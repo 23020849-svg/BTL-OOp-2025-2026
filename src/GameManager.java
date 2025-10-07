@@ -37,6 +37,11 @@ public class GameManager extends JPanel implements ActionListener {
     private boolean ballLaunched = false; // Bóng đã bắn hay chưa
     private boolean paused = false; // Tạm dừng game
 
+    // Góc bắn
+    private double launchAngle = -90; // Góc bắn mặc định (âm = hướng lên)
+    private final double MIN_ANGLE = -180; // Giới hạn trái
+    private final double MAX_ANGLE = 0; // Giới hạn phải
+
     /** Khởi tạo toàn bộ game */
     public GameManager() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT)); // Đặt kích thước khung
@@ -88,6 +93,34 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Gán phím điều khiển */
     private void initKeyBindings() {
+        // Tăng góc (bắn lệch sang phải)
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "angle_right");
+        getActionMap().put("angle_right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!ballLaunched) {
+                    launchAngle += 5;
+                    if (launchAngle > MAX_ANGLE) launchAngle = MAX_ANGLE;
+                    repaint();
+                    System.out.println("Angle right: " + launchAngle);
+                }
+            }
+        });
+
+        // Giảm góc (bắn lệch sang trái)
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "angle_left");
+        getActionMap().put("angle_left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!ballLaunched) {
+                    launchAngle -= 5;
+                    if (launchAngle < MIN_ANGLE) launchAngle = MIN_ANGLE;
+                    repaint();
+                    System.out.println("Angle left: " + launchAngle);
+                }
+            }
+        });
+
         // Giữ trái
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed LEFT"), "left_pressed");
         getActionMap().put("left_pressed", new AbstractAction() {
@@ -133,6 +166,10 @@ public class GameManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (!ballLaunched) {
                     ballLaunched = true; // Bắt đầu bắn bóng
+                    double speed = 8.0; // tốc độ khởi đầu
+                    double rad = Math.toRadians(launchAngle);
+                    ball.setDx(speed * Math.cos(rad));
+                    ball.setDy(speed * Math.sin(rad)); // âm vì hướng lên
                 }
             }
         });
@@ -276,6 +313,19 @@ public class GameManager extends JPanel implements ActionListener {
         if (!ballLaunched) {
             g.setColor(Color.BLACK);
             g.drawString("Press SPACE to launch", WIDTH / 2 - 60, HEIGHT / 2 - 10); // Hướng dẫn người chơi
+        }
+
+        if(!ballLaunched) {
+            g.setColor(Color.RED);
+            double rad = Math.toRadians(launchAngle);
+            int ballCenterX = ball.getX() + ball.getWidth() / 2;
+            int ballCenterY = ball.getY() + ball.getHeight() / 2;
+            int lineLength = 60; // Chiều dài mũi tên
+            int endX = (int) (ballCenterX + lineLength * Math.cos(rad));
+            int endY = (int) (ballCenterY + lineLength * Math.sin(rad));
+
+            g.drawLine(ballCenterX, ballCenterY, endX, endY);
+            g.drawString("Use A/D to aim", WIDTH / 2 - 50, HEIGHT / 2 + 20);
         }
 
         // Hiển thị thông báo PAUSED
