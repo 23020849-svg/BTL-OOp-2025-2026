@@ -209,7 +209,7 @@ public class GameManager extends JPanel implements ActionListener {
         }
 
         if (!ballLaunched) alignBallToPaddle(); // Nếu chưa bắn, bóng đi theo paddle
-        else ball.update();                     // Nếu đã bắn, cập nhật vị trí bóng
+        else ball.update();
         paddle.update();                        // Cập nhật paddle
 
         // Cập nhật và kiểm tra va chạm power-up
@@ -246,19 +246,26 @@ public class GameManager extends JPanel implements ActionListener {
         // Kiểm tra va chạm bóng - gạch
         Iterator<Brick> it = bricks.iterator();
         while (it.hasNext()) {
-            Brick b = it.next();
-            if (b.isDestroyed()) continue; // Bỏ qua gạch đã vỡ
-            if (ball.getBounds().intersects(b.getBounds())) {
-                b.takeHit();      // Trừ máu gạch
-                ball.bounceOff(b); // Bật ngược bóng
-                if (b.isDestroyed()) {
-                    score += 100; // Cộng điểm
+            Brick brick = it.next();
+            if (brick.isDestroyed()) continue;
+
+            if (ball.getBounds().intersects(brick.getBounds())) {
+                ball.bounceOff(brick); // Bật bóng trước để điều chỉnh vị trí
+
+                brick.takeHit(); // Trừ máu gạch
+                if (brick.isDestroyed()) {
+                    score += 100;
+
                     // Xác suất 25% rơi power-up
                     if (rand.nextDouble() < 0.25)
-                        spawnRandomPowerUp(b.getX() + b.getWidth() / 2, b.getY() + b.getHeight());
+                        spawnRandomPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight());
                 }
+
+                // Ngăn bóng va thêm các gạch khác trong cùng frame
+                break;
             }
         }
+
         bricks.removeIf(Brick::isDestroyed); // Xóa gạch vỡ
 
         // Kiểm tra nếu bóng rơi xuống dưới màn hình
