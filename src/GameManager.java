@@ -14,12 +14,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random; // Sinh giá trị ngẫu nhiên
+import java.awt.event.KeyEvent;
 
 // Lớp GameManager kế thừa JPanel (để vẽ game) và implements ActionListener (để cập nhật mỗi frame)
 public class GameManager extends JPanel implements ActionListener {
 
     public static final int WIDTH = 1440;  // Chiều rộng khung game
-    public static final int HEIGHT = 960;  // Chiều cao khung game
+    public static final int HEIGHT = 800;  // Chiều cao khung game
 
     // Các thành phần chính của game
     private Paddle paddle;              // Thanh đỡ (người chơi điều khiển)
@@ -94,29 +95,25 @@ public class GameManager extends JPanel implements ActionListener {
     /** Gán phím điều khiển */
     private void initKeyBindings() {
         // Tăng góc (bắn lệch sang phải)
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "angle_right");
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("6"), "angle_right");
         getActionMap().put("angle_right", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!ballLaunched) {
                     launchAngle += 5;
                     if (launchAngle > MAX_ANGLE) launchAngle = MAX_ANGLE;
-                    repaint();
-                    System.out.println("Angle right: " + launchAngle);
                 }
             }
         });
 
         // Giảm góc (bắn lệch sang trái)
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "angle_left");
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("4"), "angle_left");
         getActionMap().put("angle_left", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!ballLaunched) {
                     launchAngle -= 5;
                     if (launchAngle < MIN_ANGLE) launchAngle = MIN_ANGLE;
-                    repaint();
-                    System.out.println("Angle left: " + launchAngle);
                 }
             }
         });
