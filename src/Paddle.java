@@ -14,9 +14,12 @@ import java.awt.Graphics;
 // Có thể mở rộng tạm thời khi nhận power-up.
 public class Paddle extends MovableObject {
 
-    private int speed = 8;             // Tốc độ di chuyển ngang (px mỗi lần nhấn phím)
+    private int speed = 10;             // Tốc độ di chuyển ngang (px mỗi lần nhấn phím)
     private int defaultWidth;          // Chiều rộng ban đầu của paddle
     private long expandEndTime = 0;    // Thời điểm kết thúc hiệu ứng mở rộng (ms, dùng System.currentTimeMillis)
+
+    private boolean movingLeft = false;
+    private boolean movingRight = false;
 
     // ======= Constructor =======
     // Nhận vị trí, kích thước ban đầu, và lưu lại chiều rộng mặc định.
@@ -25,8 +28,22 @@ public class Paddle extends MovableObject {
         this.defaultWidth = width;
     }
 
+    // Hàm điều khiển phím sang trái
+    public void setMovingLeft(boolean movingLeft) {
+        this.movingLeft = movingLeft;
+    }
+
+    // Hàm điều khiển phím sang phải
+    public void setMovingRight(boolean movingRight) {
+        this.movingRight = movingRight;
+    }
+
     @Override
     public void update() {
+        // Di chuyển mượt
+        if (movingLeft) x -= speed;
+        if (movingRight) x += speed;
+
         // ======= 1. Giữ paddle trong giới hạn màn hình =======
         // Nếu paddle chạm biên trái → đưa về 0
         if (x < 0) x = 0;
@@ -51,15 +68,15 @@ public class Paddle extends MovableObject {
     // ======= Di chuyển sang trái =======
     public void moveLeft() {
         dx = -speed; // Tốc độ âm → đi sang trái
-        x += dx;     // Cập nhật vị trí ngay lập tức
-        dx = 0;      // Đặt lại về 0 để không tiếp tục di chuyển sau khi nhả phím
     }
 
     // ======= Di chuyển sang phải =======
     public void moveRight() {
         dx = speed;  // Tốc độ dương → đi sang phải
-        x += dx;     // Cập nhật vị trí
-        dx = 0;      // Dừng sau khi di chuyển
+    }
+
+    public void stopMoving() {
+        dx = 0;
     }
 
     /**
