@@ -11,7 +11,7 @@ import java.awt.Rectangle;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
-    private double baseSpeed = 7.0; // tốc độ gốc ban đầu
+    private double baseSpeed = 8.0; // tốc độ gốc ban đầu
     private int radius; // Bán kính của quả bóng
     private double speedMultiplier = 1.0; // Hệ số nhân tốc độ (dùng khi tăng tốc tạm thời)
     private long fastEndTime = 0; // Thời điểm kết thúc hiệu ứng tăng tốc (tính bằng mili-giây)
@@ -66,27 +66,38 @@ public class Ball extends MovableObject {
 
     // ======= Xử lý khi bóng va chạm với đối tượng khác (gạch/paddle) =======
     public void bounceOff(GameObject other) {
-        Rectangle b = getBounds(); // Lấy khung chữ nhật của bóng
-        Rectangle o = other.getBounds(); // Lấy khung chữ nhật của đối tượng va chạm
+        Rectangle b = getBounds();
+        Rectangle o = other.getBounds();
 
-        // Tính tâm của hai hình chữ nhật để xác định hướng va chạm
-        double centerX = b.getCenterX();
-        double centerY = b.getCenterY();
-        double otherCenterX = o.getCenterX();
-        double otherCenterY = o.getCenterY();
+        // Xác định vùng giao nhau
+        Rectangle intersection = b.intersection(o);
+        if (intersection.isEmpty()) return; // Không giao nhau thật
 
-        // Hiệu số tọa độ tâm
-        double diffX = centerX - otherCenterX;
-        double diffY = centerY - otherCenterY;
-
-        // Nếu lệch nhiều theo trục X → va chạm ngang → đảo hướng X
-        // Ngược lại → va chạm theo trục Y → đảo hướng Y
-        if (Math.abs(diffX) > Math.abs(diffY)) {
+        // Nếu giao nhau hẹp hơn theo trục X → nghĩa là va chạm theo trục X
+        if (intersection.width < intersection.height) {
+            // Đảo hướng X
             dx = -dx;
+
+            // Đẩy bóng ra khỏi gạch theo hướng phù hợp
+            if (b.getCenterX() < o.getCenterX()) {
+                x -= intersection.width; // bóng ở bên trái gạch
+            } else {
+                x += intersection.width; // bóng ở bên phải gạch
+            }
+
         } else {
+            // Đảo hướng Y
             dy = -dy;
+
+            // Đẩy bóng ra khỏi gạch theo hướng phù hợp
+            if (b.getCenterY() < o.getCenterY()) {
+                y -= intersection.height; // bóng ở phía trên
+            } else {
+                y += intersection.height; // bóng ở phía dưới
+            }
         }
     }
+
 
     // ======= Áp dụng hiệu ứng tăng tốc bóng trong thời gian ngắn =======
     public void setSpeedMultiplier(double m, long durationMillis) {
