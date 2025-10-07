@@ -88,23 +88,41 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Gán phím điều khiển */
     private void initKeyBindings() {
-        // Di chuyển trái
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
-        getActionMap().put("left", new AbstractAction() {
+        // Giữ trái
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed LEFT"), "left_pressed");
+        getActionMap().put("left_pressed", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                paddle.moveLeft(); // Paddle sang trái
+                paddle.setMovingLeft(true); // Paddle sang trái
                 if (!ballLaunched) alignBallToPaddle(); // Nếu chưa bắn, bóng di chuyển theo paddle
             }
         });
 
-        // Di chuyển phải
-        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
-        getActionMap().put("right", new AbstractAction() {
+        // Nhả trái
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released LEFT"), "left_released");
+        getActionMap().put("left_released", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                paddle.moveRight(); // Paddle sang phải
+                paddle.setMovingLeft(false);
+            }
+        });
+
+        // Giữ phải
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed RIGHT"), "right_pressed");
+        getActionMap().put("right_pressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paddle.setMovingRight(true); // Paddle sang phải
                 if (!ballLaunched) alignBallToPaddle(); // Bóng di chuyển cùng paddle
+            }
+        });
+
+        // Nhả phải
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released RIGHT"), "right_released");
+        getActionMap().put("right_released", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paddle.setMovingRight(false);
             }
         });
 
