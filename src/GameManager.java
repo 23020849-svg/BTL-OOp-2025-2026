@@ -35,6 +35,7 @@ public class GameManager extends JPanel implements ActionListener {
     private int lives = 3;    // Số mạng
     private boolean running = false;      // Game đang chạy hay không
     private boolean ballLaunched = false; // Bóng đã bắn hay chưa
+    private boolean paused = false; // Tạm dừng game
 
     /** Khởi tạo toàn bộ game */
     public GameManager() {
@@ -126,6 +127,15 @@ public class GameManager extends JPanel implements ActionListener {
                 initGame(); // Reset lại toàn bộ
             }
         });
+
+        // Phím P để PAUSE / Resume
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("P"), "pause");
+        getActionMap().put("pause", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paused = !paused;
+            }
+        });
     }
 
     /** Đặt bóng lên paddle (khi chưa bắn) */
@@ -139,6 +149,12 @@ public class GameManager extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!running) return; // Nếu game chưa chạy thì bỏ qua
+
+        // Khi game đang bị pause, không cập nhật logic
+        if (paused) {
+            repaint();
+            return;
+        }
 
         if (!ballLaunched) alignBallToPaddle(); // Nếu chưa bắn, bóng đi theo paddle
         else ball.update();                     // Nếu đã bắn, cập nhật vị trí bóng
@@ -242,6 +258,13 @@ public class GameManager extends JPanel implements ActionListener {
         if (!ballLaunched) {
             g.setColor(Color.BLACK);
             g.drawString("Press SPACE to launch", WIDTH / 2 - 60, HEIGHT / 2 - 10); // Hướng dẫn người chơi
+        }
+
+        // Hiển thị thông báo PAUSED
+        if (paused) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 48));
+            g.drawString("PAUSED", WIDTH / 2 - 120, HEIGHT /2);
         }
     }
 
