@@ -1,65 +1,105 @@
-import java.awt.*;
+package arkanoid; // Đặt class trong package arkanoid
 
-public class Ball extends MovableObject { // hoặc MoveableObject nếu lớp cha em đặt vậy
-    private int speed;
-    // hướng di chuyển (-1 hoặc 1)
-    private int dirX;
-    private int dirY;
+/**
+ * Ball.java
+ *
+ * Quả bóng di chuyển, xử lý bật tường, bật paddle, va chạm bricks.
+ */
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 
-    public Ball(int x, int y, int size, int speed) {
-        super(x, y, size, size);
-        this.speed = speed;
-        dirX = -1;
-        dirY = -1;
+// Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
+public class Ball extends MovableObject {
+    private int radius; // Bán kính của quả bóng
+    private double speedMultiplier = 1.0; // Hệ số nhân tốc độ (dùng khi tăng tốc tạm thời)
+    private long fastEndTime = 0; // Thời điểm kết thúc hiệu ứng tăng tốc (tính bằng mili-giây)
+
+    // Constructor: khởi tạo vị trí, kích thước, và tốc độ ban đầu
+    public Ball(int x, int y, int radius, double initialSpeedX, double initialSpeedY) {
+        super(x, y, radius * 2, radius * 2); // Gọi constructor của MovableObject (width/height = đường kính)
+        this.radius = radius;                // Lưu bán kính
+        this.dx = initialSpeedX;             // Tốc độ theo trục X
+        this.dy = initialSpeedY;             // Tốc độ theo trục Y
     }
 
     @Override
-    public void draw(Graphics2D g) {            // dùng Graphics2D cho đồng bộ
-        g.setColor(Color.RED);
-        g.fillOval(x, y, width, height);        // dùng width/height thay vì 20,20
-    }
-
-    // cập nhật vị trí bóng mỗi tick
     public void update() {
-        x += dirX * speed;
-        y += dirY * speed;
-    }
+        move(); // Gọi hàm di chuyển (cập nhật x, y dựa trên dx, dy)
 
-    // kiểm tra va chạm với tường: panelWidth/Height là biên phải/dưới bên trong vùng chơi (đã trừ BORDER nếu có)
-    public void checkWallCollision(int panelWidth, int panelHeight) {
-        // trái
-        if (x <= 0) {
-            x = 0;
-            dirX = -dirX;
+        // ======= Xử lý va chạm với tường trái/phải =======
+        if (x <= 0) {            // Chạm tường trái
+            x = 0;                 // Giữ không vượt ra ngoài
+            dx = -dx;              // Đảo hướng X
         }
-        // phải
-        if (x + width >= panelWidth) {
-            x = panelWidth - width;
-            dirX = -dirX;
+        if (x + width >= GameManager.WIDTH) { // Chạm tường phải
+            x = GameManager.WIDTH - width;      // Giữ lại trong màn hình
+            dx = -dx;                           // Đảo hướng X
         }
-        // trên
-        if (y <= 0) {
-            y = 0;
-            dirY = -dirY;
-        }
-        // đáy: KHÔNG bật ở đây; để GameView xử lý mất mạng/ reset
-    }
 
-    // kiểm tra va chạm với paddle
-    public void checkCollision(Paddle paddle) {
-        if (getBounds().intersects(paddle.getBounds())) {
-            dirY = -dirY;
-            y = paddle.getY() - height;  // kéo bóng ra khỏi paddle tránh kẹt
+        // ======= Bật trần =======
+        if (y <= 0) {    // Chạm đỉnh màn hình
+            y = 0;         // Giữ lại vị trí
+            dy = -dy;      // Đảo hướng Y
+        }
+
+        // ======= Hết thời gian tăng tốc =======
+        if (fastEndTime > 0 && System.currentTimeMillis() > fastEndTime) {
+            speedMultiplier = 1.0; // Trở về tốc độ bình thường
+            fastEndTime = 0;       // Reset thời gian
+            // Ghi chú: dx, dy vẫn giữ nguyên hướng và tốc độ hiện tại,
+            // vì code này không nhân ngược lại (tránh đổi tốc độ đột ngột).
         }
     }
 
-    // getters/setters
-    public int getSpeed() { return speed; }
-    public void setSpeed(int speed) { this.speed = speed; }
+    @Override
+    public void render(Graphics g) {
+        g.setColor(Color.RED);              // Màu bóng: đỏ
+        g.fillOval(x, y, width, height);    // Vẽ hình tròn (oval) tại vị trí (x, y)
+    }
 
-    public int getDirectionX() { return dirX; }
-    public void setDirectionX(int dirX) { this.dirX = dirX; }
+    // ======= Xử lý khi bóng va chạm với đối tượng khác (gạch/paddle) =======
+    public void bounceOff(GameObject other) {
+        Rectangle b = getBounds(); // Lấy khung chữ nhật của bóng
+        Rectangle o = other.getBounds(); // Lấy khung chữ nhật của đối tượng va chạm
 
-    public int getDirectionY() { return dirY; }
-    public void setDirectionY(int dirY) { this.dirY = dirY; }
+        // Tính tâm của hai hình chữ nhật để xác định hướng va chạm
+        double centerX = b.getCenterX();
+        double centerY = b.getCenterY();
+        double otherCenterX = o.getCenterX();
+        double otherCenterY = o.getCenterY();
+
+        // Hiệu số tọa độ tâm
+        double diffX = centerX - otherCenterX;
+        double diffY = centerY - otherCenterY;
+
+        // Nếu lệch nhiều theo trục X → va chạm ngang → đảo hướng X
+        // Ngược lại → va chạm theo trục Y → đảo hướng Y
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            dx = -dx;
+        } else {
+            dy = -dy;
+        }
+    }
+
+    // ======= Áp dụng hiệu ứng tăng tốc bóng trong thời gian ngắn =======
+    public void setSpeedMultiplier(double m, long durationMillis) {
+        speedMultiplier = m;                                  // Ghi hệ số nhân tốc độ
+        fastEndTime = System.currentTimeMillis() + durationMillis; // Lưu thời điểm kết thúc hiệu ứng
+
+        // Nhân dx, dy theo multiplier (giữ nguyên hướng, chỉ thay đổi độ lớn)
+        dx *= m;
+        dy *= m;
+    }
+
+    // ======= Chuẩn hóa vận tốc bóng (giữ độ lớn nhất định) =======
+    public void normalizeSpeed(double targetMagnitude) {
+        double mag = Math.sqrt(dx * dx + dy * dy); // Tính độ lớn của vector vận tốc
+        if (mag == 0) return;                      // Tránh chia cho 0
+        dx = dx / mag * targetMagnitude;           // Tính lại dx theo độ lớn mới
+        dy = dy / mag * targetMagnitude;           // Tính lại dy theo độ lớn mới
+    }
+
+    // ======= Getter cho bán kính =======
+    public int getRadius() { return radius; }
 }
