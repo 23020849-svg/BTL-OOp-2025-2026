@@ -43,7 +43,7 @@ public class Main {
             JOptionPane.showMessageDialog(
                     frame,
                     // Nội dung hướng dẫn điều khiển
-                    "Controls:\n← / → : Move Paddle\nSPACE : Launch Ball\nR : Restart\n\n" +
+                    "Controls:\n← / → : Move Paddle\nSPACE : Launch Ball\nR : Restart\nP: Pause\n\n" +
                             "Power-ups:\nGreen = Expand Paddle\nCyan = Fast Ball",
                     "Instructions", // Tiêu đề của hộp thoại
                     JOptionPane.INFORMATION_MESSAGE // Loại thông báo: thông tin
