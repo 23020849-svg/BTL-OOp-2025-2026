@@ -55,4 +55,10 @@ public abstract class Brick extends GameObject {
             default: return Color.GRAY;    // Gạch siêu bền (>2 HP)
         }
     }
+
+    /**
+     * Trả về tỉ lệ rơi power-up của loại gạch này.
+     * Mỗi lớp con (NormalBrick, StrongBrick) sẽ định nghĩa tỉ lệ riêng.
+     */
+    public abstract double getPowerUpDropChance();
 }
