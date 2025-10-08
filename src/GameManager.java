@@ -256,13 +256,14 @@ public class GameManager extends JPanel implements ActionListener {
                 if (brick.isDestroyed()) {
                     score += 100;
 
-                    // Xác suất 25% rơi power-up
-                    if (rand.nextDouble() < 0.25)
+                    // Xác suất rơi power-up tùy theo từng loại gạch
+                    if (rand.nextDouble() < brick.getPowerUpDropChance()) {
                         spawnRandomPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight());
-                }
+                    }
 
-                // Ngăn bóng va thêm các gạch khác trong cùng frame
-                break;
+                    // Ngăn bóng va thêm các gạch khác trong cùng frame
+                    break;
+                }
             }
         }
 
@@ -329,7 +330,7 @@ public class GameManager extends JPanel implements ActionListener {
             int endY = (int) (ballCenterY + lineLength * Math.sin(rad));
 
             g.drawLine(ballCenterX, ballCenterY, endX, endY);
-            g.drawString("Use A/D to aim", WIDTH / 2 - 50, HEIGHT / 2 + 20);
+            g.drawString("Use 4/6 to aim", WIDTH / 2 - 50, HEIGHT / 2 + 20);
         }
 
         // Hiển thị thông báo PAUSED
