@@ -23,4 +23,9 @@ public class NormalBrick extends Brick {
         // Gạch không có hành vi động, không tự thay đổi theo thời gian
         // → Không cần xử lý gì trong mỗi khung hình (frame)
     }
+
+    @Override
+    public double getPowerUpDropChance() {
+        return 0.15; // Gạch thường có 15% cơ hội rơi vật phẩm.
+    }
 }
