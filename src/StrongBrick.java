@@ -27,4 +27,14 @@ public class StrongBrick extends Brick {
         // Gạch không di chuyển hoặc thay đổi theo thời gian,
         // nên không cần logic cập nhật mỗi khung hình.
     }
+
+    @Override
+    public double getPowerUpDropChance() {
+        // Gạch càng nhiều máu tỉ lệ rơi càng cao.
+        // Ví dụ: gạch 3 máu trở lên có tỉ lệ 60%, gạch 2 máu có tỉ lệ 40%.
+        if (this.hitPoints >= 3) {
+            return 0.60; // 60%
+        }
+        return 0.40; // 40% (cho gạch 2 máu)
+    }
 }
