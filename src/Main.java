@@ -1,5 +1,4 @@
-package arkanoid; // Đặt class trong package arkanoid
-
+package src; // Đặt class Main trong package "src"
 /**
  * Main.java
  *
