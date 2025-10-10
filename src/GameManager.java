@@ -46,7 +46,7 @@ public class GameManager extends JPanel implements ActionListener {
     /** Khởi tạo toàn bộ game */
     public GameManager() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT)); // Đặt kích thước khung
-        setBackground(Color.WHITE);                     // Màu nền
+        setBackground(Color.BLACK);                     // Màu nền
         setFocusable(true);                             // Cho phép nhận phím
 
         initGame();         // Khởi tạo các đối tượng game
@@ -316,7 +316,7 @@ public class GameManager extends JPanel implements ActionListener {
         super.paintComponent(g);
         renderer.draw(g, paddle, ball, bricks, powerUps, score, lives); // Vẽ tất cả
         if (!ballLaunched) {
-            g.setColor(Color.BLACK);
+            g.setColor(Color.WHITE);
             g.drawString("Press SPACE to launch", WIDTH / 2 - 60, HEIGHT / 2 - 10); // Hướng dẫn người chơi
         }
 
@@ -335,7 +335,7 @@ public class GameManager extends JPanel implements ActionListener {
 
         // Hiển thị thông báo PAUSED
         if (paused) {
-            g.setColor(Color.BLACK);
+            g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 48));
             g.drawString("PAUSED", WIDTH / 2 - 120, HEIGHT /2);
         }

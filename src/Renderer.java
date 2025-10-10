@@ -18,7 +18,7 @@ public class Renderer {
     public void draw(Graphics g, Paddle paddle, Ball ball, List<Brick> bricks, java.util.List<PowerUp> powerUps, int score, int lives) {
 
         // ======= 1. Xóa nền cũ trước khi vẽ frame mới =======
-        g.clearRect(0, 0, GameManager.WIDTH, GameManager.HEIGHT);
+        //g.clearRect(0, 0, GameManager.WIDTH, GameManager.HEIGHT);
 
         // ======= 2. Vẽ các đối tượng chính =======
         // Paddle (thanh đỡ)
@@ -37,7 +37,7 @@ public class Renderer {
         }
 
         // ======= 3. Vẽ thông tin HUD (Score và Lives) =======
-        g.setColor(java.awt.Color.BLACK);             // Màu chữ: đen
+        g.setColor(java.awt.Color.WHITE);             // Màu chữ: trắng
         g.drawString("Score: " + score, 10, 15);      // Hiển thị điểm ở góc trái trên
         g.drawString("Lives: " + lives, GameManager.WIDTH - 80, 15); // Hiển thị số mạng ở góc phải trên
     }
