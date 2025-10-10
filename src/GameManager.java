@@ -83,11 +83,18 @@ public class GameManager extends JPanel implements ActionListener {
             for (int c = 0; c < cols; c++) {
                 int x = startX + c * brickW;
                 int y = startY + r * (brickH + 6);
-                // Một số gạch đặc biệt có độ bền cao hơn
-                if (r == 1 && c % 3 == 0)
+
+                // Hàng trên cùng (r = 0) sẽ là gạch 3 máu
+                if (r == 0) {
+                    bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 3)); // <-- Gạch 3 máu
+                }
+                // Hàng số hai (r = 1) có một vài gạch 2 máu
+                else if (r == 1 && c % 3 == 0) {
                     bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 2));
-                else
+                } // Các hàng còn lại là gạch thường
+                else {
                     bricks.add(new NormalBrick(x, y, brickW - 4, brickH));
+                }
             }
         }
     }
@@ -163,7 +170,7 @@ public class GameManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (!ballLaunched) {
                     ballLaunched = true; // Bắt đầu bắn bóng
-                    double speed = 8.0; // tốc độ khởi đầu
+                    double speed = 6.0; // tốc độ khởi đầu
                     double rad = Math.toRadians(launchAngle);
                     ball.setDx(speed * Math.cos(rad));
                     ball.setDy(speed * Math.sin(rad)); // âm vì hướng lên

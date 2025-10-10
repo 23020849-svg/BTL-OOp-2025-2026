@@ -14,7 +14,7 @@ import java.awt.Graphics;
 // Có thể mở rộng tạm thời khi nhận power-up.
 public class Paddle extends MovableObject {
 
-    private int speed = 10;             // Tốc độ di chuyển ngang (px mỗi lần nhấn phím)
+    private int speed = 7;             // Tốc độ di chuyển ngang
     private int defaultWidth;          // Chiều rộng ban đầu của paddle
     private long expandEndTime = 0;    // Thời điểm kết thúc hiệu ứng mở rộng (ms, dùng System.currentTimeMillis)
 

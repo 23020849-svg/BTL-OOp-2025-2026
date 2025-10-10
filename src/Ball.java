@@ -11,7 +11,7 @@ import java.awt.Rectangle;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
-    private double baseSpeed = 8.0; // tốc độ gốc ban đầu
+    private double baseSpeed = 6.0; // tốc độ gốc ban đầu
     private int radius; // Bán kính của quả bóng
     private double speedMultiplier = 1.0; // Hệ số nhân tốc độ (dùng khi tăng tốc tạm thời)
     private long fastEndTime = 0; // Thời điểm kết thúc hiệu ứng tăng tốc (tính bằng mili-giây)
