@@ -40,12 +40,15 @@ public class GameManager extends JPanel implements ActionListener {
     private double launchAngle = -90; // Góc bắn mặc định (âm = hướng lên)
     private final double MIN_ANGLE = -180; // Giới hạn trái
     private final double MAX_ANGLE = 0; // Giới hạn phải
+    private Sound collisionSound; // Âm thanh va chạm
 
     /** Khởi tạo toàn bộ game */
     public GameManager() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT)); // Đặt kích thước khung
         setBackground(Color.BLACK);                     // Màu nền
         setFocusable(true);                             // Cho phép nhận phím
+        collisionSound = new Sound();
+        collisionSound.loadSound("rsc/391658__jeckkech__collision.wav");
 
         initGame();         // Khởi tạo các đối tượng game
         initKeyBindings();  // Gán phím điều khiển
@@ -53,6 +56,7 @@ public class GameManager extends JPanel implements ActionListener {
         renderer = new Renderer(); // Tạo renderer để vẽ
         timer = new Timer(16, this); // Cập nhật game mỗi 16ms (~60 FPS)
         timer.start();               // Bắt đầu vòng lặp game
+        
     }
 
     /** Reset game */
@@ -167,6 +171,7 @@ public class GameManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!ballLaunched) {
+                    collisionSound.playOnce();
                     ballLaunched = true; // Bắt đầu bắn bóng
                     double speed = 6.0; // tốc độ khởi đầu
                     double rad = Math.toRadians(launchAngle);
@@ -235,6 +240,7 @@ public class GameManager extends JPanel implements ActionListener {
 
         // Va chạm giữa bóng và paddle
         if (ball.getBounds().intersects(paddle.getBounds())) {
+            collisionSound.playOnce(); // Phát âm thanh va chạm
             int paddleCenter = paddle.getX() + paddle.getWidth() / 2;
             int ballCenter = ball.getX() + ball.getWidth() / 2;
             int diff = ballCenter - paddleCenter; // Lệch giữa tâm bóng và paddle
