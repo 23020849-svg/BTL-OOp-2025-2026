@@ -5,10 +5,6 @@ package src; // Đặt class trong package arkanoid
  *
  * Power-up: tăng tốc bóng trong thời gian ngắn.
  */
-import java.awt.Color;
-import java.awt.Graphics;
-
-// ======= Lớp FastBallPowerUp kế thừa PowerUp =======
 // Khi người chơi hứng được, bóng sẽ di chuyển nhanh hơn tạm thời.
 public class FastBallPowerUp extends PowerUp {
     private double multiplier;     // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
@@ -22,13 +18,7 @@ public class FastBallPowerUp extends PowerUp {
     }
 
     // ======= Phương thức render: vẽ power-up lên màn hình =======
-    @Override
-    public void render(Graphics g) {
-        if (!active) return;               // Nếu power-up đã bị tắt thì không vẽ
-        g.setColor(Color.CYAN);            // Dùng màu xanh ngọc để phân biệt hiệu ứng tăng tốc
-        g.fillOval(x, y, width, height);   // Vẽ hình oval đại diện cho power-up
-    }
-
+  
     // ======= Khi người chơi hứng được power-up =======
     @Override
     public void applyEffect(Paddle paddle, Ball ball, GameManager game) {

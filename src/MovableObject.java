@@ -5,9 +5,6 @@ package src; // Đặt class trong package arkanoid
  *
  * Lớp trừu tượng cho các đối tượng có thể di chuyển (có dx/dy).
  */
-import java.awt.Graphics;
-
-// ======= Lớp trừu tượng MovableObject =======
 // Kế thừa từ GameObject và bổ sung khả năng di chuyển.
 // Dùng cho các đối tượng có vận tốc như Ball, Paddle, PowerUp, v.v.
 public abstract class MovableObject extends GameObject {
@@ -36,8 +33,6 @@ public abstract class MovableObject extends GameObject {
     @Override
     public abstract void update(); // Cập nhật logic (vị trí, trạng thái, va chạm, v.v.)
 
-    @Override
-    public abstract void render(Graphics g); // Vẽ đối tượng lên Graphics
 
     // ======= Getter / Setter =======
     public double getDx() { return dx; } // Lấy tốc độ theo trục X

@@ -6,7 +6,6 @@ package src; // Đặt class trong package arkanoid
  * Lớp trừu tượng cơ sở cho mọi đối tượng trong game.
  * Chứa vị trí và kích thước cơ bản, cùng hai phương thức update() và render().
  */
-import java.awt.Graphics;
 import java.awt.Rectangle;
 
 // ======= Lớp trừu tượng GameObject =======
@@ -35,7 +34,6 @@ public abstract class GameObject {
      * Vẽ đối tượng lên màn hình thông qua đối tượng Graphics.
      * Mỗi lớp con tự định nghĩa cách hiển thị (vd: Ball vẽ hình tròn, Brick vẽ hình chữ nhật).
      */
-    public abstract void render(Graphics g);
 
     // ======= Hỗ trợ kiểm tra va chạm =======
     public Rectangle getBounds() {

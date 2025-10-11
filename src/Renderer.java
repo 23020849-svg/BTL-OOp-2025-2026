@@ -26,7 +26,7 @@ public class Renderer {
         // ===== Ball =====
         if (ball != null) {
             g2.setColor(Color.RED);
-            g2.fill(ball.getShape()); // Ball cần có getShape()
+            g2.fill(ball.getShape()); 
         }
 
         // ===== Bricks =====
@@ -49,15 +49,34 @@ public class Renderer {
 
         // ===== PowerUps =====
         if (powerUps != null) {
-            for (PowerUp p : powerUps) {
-                if (p == null || !p.isActive()) continue;
-                Rectangle r = p.getBounds();
-                g2.setColor(Color.YELLOW);
-                g2.fillRect(r.x, r.y, r.width, r.height);
-                g2.setColor(Color.DARK_GRAY);
-                g2.drawRect(r.x, r.y, r.width, r.height);
-            }
+    for (PowerUp p : powerUps) {
+        if (p == null || !p.isActive()) continue;
+
+        Rectangle r = p.getBounds();
+
+        if (p instanceof ExpandPaddlePowerUp) {
+            // Power-up mở rộng paddle: oval xanh lá + viền xám
+            g2.setColor(Color.GREEN);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawOval(r.x, r.y, r.width, r.height);
+
+        } else if (p instanceof FastBallPowerUp) {
+            // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
+            g2.setColor(Color.CYAN);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawOval(r.x, r.y, r.width, r.height);
+
+        } else {
+            // Mặc định: hình chữ nhật vàng + viền xám
+            g2.setColor(Color.YELLOW);
+            g2.fillRect(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawRect(r.x, r.y, r.width, r.height);
         }
+    }
+}
 
         // ===== HUD =====
         g2.setColor(Color.WHITE);

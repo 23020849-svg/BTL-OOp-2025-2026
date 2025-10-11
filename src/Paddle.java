@@ -6,10 +6,6 @@ package src; // Đặt class trong package arkanoid
  * Thanh đỡ do người chơi điều khiển.
  * Hỗ trợ mở rộng (power-up), giới hạn di chuyển trong biên.
  */
-import java.awt.Graphics;
-import java.awt.Rectangle;
-
-// ======= Lớp Paddle =======
 // Paddle là thanh đỡ dưới màn hình, do người chơi điều khiển để đỡ bóng.
 // Có thể mở rộng tạm thời khi nhận power-up.
 public class Paddle extends MovableObject {
@@ -94,15 +90,7 @@ public class Paddle extends MovableObject {
     public int getSpeed() { return speed; }        // Lấy tốc độ hiện tại
     public void setSpeed(int speed) { this.speed = speed; } // Đặt tốc độ mới
 
-    @Override
-    public void render(Graphics g) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
+   
 
-    //getBounds() trả về hình chữ nhật của paddle để Renderer vẽ
-    @Override
-    public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
-    }
+  
 }

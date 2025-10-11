@@ -6,10 +6,6 @@ package src; // Nằm trong package arkanoid
  * Lớp cơ sở cho các Power-up rơi xuống. Khi người chơi bắt được (va chạm với Paddle),
  * applyEffect được gọi. PowerUp tự rơi theo dy.
  */
-import java.awt.Color;
-import java.awt.Graphics;
-
-// ======= Lớp trừu tượng PowerUp =======
 // Đại diện cho vật phẩm đặc biệt rơi từ gạch xuống.
 // Khi va chạm với Paddle, PowerUp kích hoạt hiệu ứng (ví dụ: mở rộng Paddle, tăng tốc bóng).
 public abstract class PowerUp extends GameObject {
@@ -35,11 +31,8 @@ public abstract class PowerUp extends GameObject {
         if (y > GameManager.HEIGHT) active = false;
     }
 
-    // ======= Vẽ power-up lên màn hình =======
-    // Mỗi loại power-up có màu sắc và hình dạng khác nhau, nên render là abstract.
-    @Override
-    public abstract void render(Graphics g);
-
+    
+  
     /**
      * Gọi khi paddle bắt được power-up.
      * Mỗi power-up sẽ cài đặt hiệu ứng riêng khi được kích hoạt.

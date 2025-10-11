@@ -1,7 +1,5 @@
 package src; // Nằm trong package arkanoid
 
-import java.awt.Graphics;
-
 /**
  * StrongBrick.java
  *
@@ -40,9 +38,5 @@ public class StrongBrick extends Brick {
         return 0.40; // 40% (cho gạch 2 máu)
     }
 
-    @Override
-    public void render(Graphics g) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
+    
 }

@@ -5,7 +5,6 @@ package src; // Đặt class trong package arkanoid
  *
  * Quả bóng di chuyển, xử lý bật tường, bật paddle, va chạm bricks.
  */
-import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 
@@ -121,10 +120,5 @@ public class Ball extends MovableObject {
         return new Ellipse2D.Double(x, y, width, height);
     }
 
-    @Override
-    public void render(Graphics g) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
-
+   
 }
