@@ -1,5 +1,7 @@
 package src; // Đặt class trong package arkanoid
 
+import java.awt.Graphics;
+
 /**
  * NormalBrick.java
  *
@@ -27,5 +29,11 @@ public class NormalBrick extends Brick {
     @Override
     public double getPowerUpDropChance() {
         return 0.15; // Gạch thường có 15% cơ hội rơi vật phẩm.
+    }
+
+    @Override
+    public void render(Graphics g) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'render'");
     }
 }

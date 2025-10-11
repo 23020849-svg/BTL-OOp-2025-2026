@@ -5,8 +5,6 @@ package src; // Đặt lớp Brick trong package arkanoid
  *
  * Lớp cơ sở cho các gạch. Có hitPoints và trạng thái destroyed.
  */
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Rectangle;
 
 // ======= Lớp trừu tượng Brick =======
@@ -23,6 +21,7 @@ public abstract class Brick extends GameObject {
 
     /** Trừ máu khi bị đánh trúng. */
     public void takeHit() {
+        if (destroyed) return;
         hitPoints--;                 // Mỗi lần trúng bóng giảm 1 hit point
         if (hitPoints <= 0) destroyed = true; // Khi máu ≤ 0 → đánh dấu đã bị phá
     }
@@ -32,28 +31,17 @@ public abstract class Brick extends GameObject {
         return destroyed;
     }
 
+    public int getHitPoints()     { return Math.max(0, hitPoints); }
+
     // ======= Phương thức update trừu tượng =======
     // Các lớp con (NormalBrick, StrongBrick...) có thể override nếu muốn có hiệu ứng riêng
     @Override
     public abstract void update();
 
-    // ======= Phương thức render: vẽ gạch lên màn hình =======
+      /** Cho View dùng để lấy khung va chạm/vẽ. */
     @Override
-    public void render(Graphics g) {
-        if (destroyed) return; // Nếu đã vỡ thì không vẽ nữa
-        g.setColor(getColorForHP());  // Chọn màu dựa theo số hitPoints còn lại
-        g.fillRect(x, y, width, height); // Vẽ khối gạch
-        g.setColor(Color.DARK_GRAY);     // Vẽ viền gạch
-        g.drawRect(x, y, width, height);
-    }
-
-    // ======= Xác định màu của gạch dựa theo độ bền =======
-    protected Color getColorForHP() {
-        switch (Math.max(1, hitPoints)) { // Đảm bảo không bị giá trị ≤ 0
-            case 1: return Color.ORANGE;   // Gạch yếu (1 HP)
-            case 2: return Color.MAGENTA;  // Gạch trung bình (2 HP)
-            default: return Color.GRAY;    // Gạch siêu bền (>2 HP)
-        }
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, width, height);
     }
 
     /**

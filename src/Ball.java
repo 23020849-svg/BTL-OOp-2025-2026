@@ -5,9 +5,9 @@ package src; // Đặt class trong package arkanoid
  *
  * Quả bóng di chuyển, xử lý bật tường, bật paddle, va chạm bricks.
  */
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.geom.Ellipse2D;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
@@ -58,11 +58,7 @@ public class Ball extends MovableObject {
         normalizeSpeed(baseSpeed * speedMultiplier);
     }
 
-    @Override
-    public void render(Graphics g) {
-        g.setColor(Color.RED);              // Màu bóng: đỏ
-        g.fillOval(x, y, width, height);    // Vẽ hình tròn (oval) tại vị trí (x, y)
-    }
+    
 
     // ======= Xử lý khi bóng va chạm với đối tượng khác (gạch/paddle) =======
     public void bounceOff(GameObject other) {
@@ -97,7 +93,7 @@ public class Ball extends MovableObject {
             }
         }
     }
-
+    
 
     // ======= Áp dụng hiệu ứng tăng tốc bóng trong thời gian ngắn =======
     public void setSpeedMultiplier(double m, long durationMillis) {
@@ -119,4 +115,16 @@ public class Ball extends MovableObject {
 
     // ======= Getter cho bán kính =======
     public int getRadius() { return radius; }
+
+    /** Hình ellipse để View/Renderer vẽ. */
+    public Ellipse2D getShape() {
+        return new Ellipse2D.Double(x, y, width, height);
+    }
+
+    @Override
+    public void render(Graphics g) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'render'");
+    }
+
 }

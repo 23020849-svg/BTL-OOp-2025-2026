@@ -6,15 +6,13 @@ package src; // Đặt class trong package "arkanoid"
  * Quản lý toàn bộ logic game Arkanoid: paddle, ball, bricks, power-ups,
  * xử lý va chạm, điểm, mạng, cập nhật trạng thái và vẽ khung hình.
  */
-import javax.swing.*; // Thư viện Swing để vẽ giao diện và xử lý sự kiện
-import java.awt.*; // Dùng cho đồ họa 2D
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener; // Giao diện cho xử lý timer
-import java.util.ArrayList;
+import java.awt.*; // Thư viện Swing để vẽ giao diện và xử lý sự kiện
+import java.awt.event.ActionEvent; // Dùng cho đồ họa 2D
+import java.awt.event.ActionListener;
+import java.util.ArrayList; // Giao diện cho xử lý timer
 import java.util.Iterator;
-import java.util.List;
-import java.util.Random; // Sinh giá trị ngẫu nhiên
-import java.awt.event.KeyEvent;
+import java.util.Random;
+import javax.swing.*;
 
 // Lớp GameManager kế thừa JPanel (để vẽ game) và implements ActionListener (để cập nhật mỗi frame)
 public class GameManager extends JPanel implements ActionListener {
@@ -318,34 +316,12 @@ public class GameManager extends JPanel implements ActionListener {
     }
 
     /** Vẽ frame */
-    @Override
+      @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        renderer.draw(g, paddle, ball, bricks, powerUps, score, lives); // Vẽ tất cả
-        if (!ballLaunched) {
-            g.setColor(Color.WHITE);
-            g.drawString("Press SPACE to launch", WIDTH / 2 - 60, HEIGHT / 2 - 10); // Hướng dẫn người chơi
-        }
-
-        if(!ballLaunched) {
-            g.setColor(Color.RED);
-            double rad = Math.toRadians(launchAngle);
-            int ballCenterX = ball.getX() + ball.getWidth() / 2;
-            int ballCenterY = ball.getY() + ball.getHeight() / 2;
-            int lineLength = 60; // Chiều dài mũi tên
-            int endX = (int) (ballCenterX + lineLength * Math.cos(rad));
-            int endY = (int) (ballCenterY + lineLength * Math.sin(rad));
-
-            g.drawLine(ballCenterX, ballCenterY, endX, endY);
-            g.drawString("Use 4/6 to aim", WIDTH / 2 - 50, HEIGHT / 2 + 20);
-        }
-
-        // Hiển thị thông báo PAUSED
-        if (paused) {
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 48));
-            g.drawString("PAUSED", WIDTH / 2 - 120, HEIGHT /2);
-        }
+        // Vẽ tất cả qua Renderer (kể cả overlay)
+        renderer.draw(g, paddle, ball, bricks, powerUps, score, lives,
+                      ballLaunched, launchAngle, paused);
     }
 
     // Getter (nếu cần)
