@@ -1,8 +1,10 @@
 package src; // Đặt class trong package arkanoid
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Image;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 // ======= Lớp Main =======
 // Đây là điểm khởi đầu (entry point) của toàn bộ chương trình Arkanoid.
@@ -17,17 +19,21 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
 
             // ======= 1. Tạo cửa sổ JFrame =======
-            JFrame frame = new JFrame("Arkanoid - OOP GUI Version"); // Tiêu đề cửa sổ game
-
+            JFrame frame = new JFrame("Arkanoid"); // Tiêu đề cửa sổ game
+            ImageIcon logo = new ImageIcon("rsc/logo.png");
+            frame.setIconImage(logo.getImage());
             // ======= 3. Cấu hình khung cửa sổ =======
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thoát chương trình khi đóng cửa sổ
             frame.setResizable(false); // Không cho phép thay đổi kích thước cửa sổ
-           
             // add image
             ImageIcon icon = new ImageIcon("rsc/background.jpg");
+            // border
+            Border border = BorderFactory.createLineBorder(Color.blue,2);
+
             Image img = icon.getImage();
             Image scaled = img.getScaledInstance(1440, 800, Image.SCALE_SMOOTH);
             JLabel background = new JLabel(new ImageIcon(scaled));
+            background.setBorder(border);
             background.setLayout(new BorderLayout());
             frame.setContentPane(background);
            
