@@ -7,6 +7,7 @@ import java.util.List;
 
 public class Renderer {
 
+    
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
                      Paddle paddle,

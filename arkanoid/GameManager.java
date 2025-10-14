@@ -1,8 +1,8 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 public class GameManager extends JPanel implements ActionListener, KeyListener {
     public static final int WIDTH = 800;
@@ -23,7 +23,7 @@ public class GameManager extends JPanel implements ActionListener, KeyListener {
 
     public GameManager() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
-        setBackground(Color.BLACK);
+        //setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
 

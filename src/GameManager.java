@@ -43,10 +43,12 @@ public class GameManager extends JPanel implements ActionListener {
     private final double MAX_ANGLE = 0; // Giới hạn phải
     private Sound collisionSound; // Âm thanh va chạm
 
+
     /** Khởi tạo toàn bộ game */
     public GameManager() {
-        setPreferredSize(new Dimension(WIDTH, HEIGHT)); // Đặt kích thước khung
-        setBackground(Color.BLACK); // Màu nền
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setOpaque(false); // Đặt kích thước khung
+       // setBackground(Color.BLACK); // Màu nền
         setFocusable(true); // Cho phép nhận phím
         collisionSound = new Sound();
         collisionSound.loadSound("rsc/391658__jeckkech__collision.wav");
