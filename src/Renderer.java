@@ -9,32 +9,31 @@ public class Renderer {
 
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
-            Paddle paddle,
-            Ball ball,
-            List<Brick> bricks,
-            List<PowerUp> powerUps,
-            int score,
-            int lives,
-            boolean ballLaunched,
-            double launchAngle,
-            boolean paused,
-            List<PowerUp> activePowerUps) {
+                     Paddle paddle,
+                     Ball ball,
+                     List<Brick> bricks,
+                     List<PowerUp> powerUps,
+                     int score,
+                     int lives,
+                     boolean ballLaunched,
+                     double launchAngle,
+                     boolean paused,
+                     List<PowerUp> activePowerUps) {
 
         Graphics2D g2 = (Graphics2D) g;
 
         // Khử răng cưa
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
+                            RenderingHints.VALUE_ANTIALIAS_ON);
 
         // ===== Ball =====
         if (ball != null) {
-<<<<<<< HEAD
             Ellipse2D circle = ball.getShape();
             Color base= new Color(190, 60, 255);
 
             g2.setColor(Color.WHITE);
             g2.fill(circle);
-            for(int i=1;i>=1;i--)
+            for(int i=2;i>=1;i--)
             {
                 float t= (float)i/2f;
                 float alpha = 0.08f + 0.28f*t; //alpha từ 6% đen 40%
@@ -50,17 +49,12 @@ public class Renderer {
             }
 
             
-=======
-            g2.setColor(Color.RED);
-            g2.fill(ball.getShape());
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
         }
 
         // ===== Bricks =====
         if (bricks != null) {
             for (Brick b : bricks) {
-                if (b == null || b.isDestroyed())
-                    continue;
+                if (b == null || b.isDestroyed()) continue;
                 Rectangle r = b.getBounds();
               int hp= b.getHitPoints();
                 Color base=colorForHP(hp);
@@ -111,35 +105,34 @@ public class Renderer {
 
         // ===== PowerUps =====
         if (powerUps != null) {
-            for (PowerUp p : powerUps) {
-                if (p == null || !p.isActive())
-                    continue;
+    for (PowerUp p : powerUps) {
+        if (p == null || !p.isActive()) continue;
 
-                Rectangle r = p.getBounds();
+        Rectangle r = p.getBounds();
 
-                if (p instanceof ExpandPaddlePowerUp) {
-                    // Power-up mở rộng paddle: oval xanh lá + viền xám
-                    g2.setColor(Color.GREEN);
-                    g2.fillOval(r.x, r.y, r.width, r.height);
-                    g2.setColor(Color.DARK_GRAY);
-                    g2.drawOval(r.x, r.y, r.width, r.height);
+        if (p instanceof ExpandPaddlePowerUp) {
+            // Power-up mở rộng paddle: oval xanh lá + viền xám
+            g2.setColor(Color.GREEN);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawOval(r.x, r.y, r.width, r.height);
 
-                } else if (p instanceof FastBallPowerUp) {
-                    // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
-                    g2.setColor(Color.CYAN);
-                    g2.fillOval(r.x, r.y, r.width, r.height);
-                    g2.setColor(Color.DARK_GRAY);
-                    g2.drawOval(r.x, r.y, r.width, r.height);
+        } else if (p instanceof FastBallPowerUp) {
+            // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
+            g2.setColor(Color.CYAN);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawOval(r.x, r.y, r.width, r.height);
 
-                } else {
-                    // Mặc định: hình chữ nhật vàng + viền xám
-                    g2.setColor(Color.YELLOW);
-                    g2.fillRect(r.x, r.y, r.width, r.height);
-                    g2.setColor(Color.DARK_GRAY);
-                    g2.drawRect(r.x, r.y, r.width, r.height);
-                }
-            }
+        } else {
+            // Mặc định: hình chữ nhật vàng + viền xám
+            g2.setColor(Color.YELLOW);
+            g2.fillRect(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawRect(r.x, r.y, r.width, r.height);
         }
+    }
+}
 
         // ===== HUD =====
         g2.setColor(Color.WHITE);
@@ -160,12 +153,20 @@ public class Renderer {
 
             g2.setColor(Color.RED);
             double rad = Math.toRadians(launchAngle);
-            int cx = ball.getX() + ball.getWidth() / 2;
+            int cx = ball.getX() + ball.getWidth() /2;
             int cy = ball.getY() + ball.getHeight() / 2;
             int lineLength = 60;
             int endX = (int) (cx + lineLength * Math.cos(rad));
             int endY = (int) (cy + lineLength * Math.sin(rad));
-            g2.drawLine(cx, cy, endX, endY);
+            
+            // vẽ đường ngắm nét đứt
+            float thickness = 3f;
+            float[] dash = {8f, 6f};
+            Graphics2D g2c = (Graphics2D) g2.create();
+            Color r= new Color(255,90,90);
+            g2c.setColor(r);
+            g2c.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, dash, 0f));
+            g2c.drawLine(cx, cy, endX, endY);
             g2.drawString("Use 4/6 to aim", w / 2 - 50, h / 2 + 20);
         }
 
@@ -181,30 +182,14 @@ public class Renderer {
             g2.drawString(text, tx, ty);
             g2.setFont(old);
         }
-        // Hiển thị tất cả PowerUp đang hoạt động
-        int yOffset = 300;
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-
-        for (PowerUp p : activePowerUps) { // activePowerUps là danh sách các power-up đang kích hoạt
-            if (p.getRemainingTime() > 0) {
-                g.drawString("PowerUp: " + p.getClass().getSimpleName() + " – " + p.getRemainingTime() + "s", 10,
-                        yOffset);
-                yOffset += 30; // Dịch xuống dòng kế tiếp
-            }
-        }
-
     }
 
     // Màu gạch theo độ bền (HP)
     private Color colorForHP(int hp) {
-        if (hp >= 3)
-            return new Color(0x7f8c8d);
-        if (hp == 2)
-            return new Color(0x9b59b6);
+        if (hp >= 3) return new Color(0x7f8c8d);
+        if (hp == 2) return new Color(0x9b59b6);
         return Color.ORANGE;
     }
-<<<<<<< HEAD
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
        float arc=10f;
        RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width-2f, r.height-2f, arc, arc);
@@ -239,7 +224,4 @@ public class Renderer {
     g2.draw(rr);
 
     }
-=======
-
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
 }

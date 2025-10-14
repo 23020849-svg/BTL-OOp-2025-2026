@@ -62,7 +62,6 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Reset game */
     private void initGame() {
-<<<<<<< HEAD
         paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40,120, 12); // Tạo paddle ở giữa dưới
         ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3);    // Tạo bóng trên paddle
         bricks = new ArrayList<>();    // Danh sách gạch
@@ -72,17 +71,6 @@ public class GameManager extends JPanel implements ActionListener {
         ballLaunched = false;          // Chưa bắn bóng
         score = 0;                     // Reset điểm
         lives = 3;                     // Reset mạng
-=======
-        paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40, 80, 12); // Tạo paddle ở giữa dưới
-        ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3); // Tạo bóng trên paddle
-        bricks = new ArrayList<>(); // Danh sách gạch
-        powerUps = new ArrayList<>(); // Danh sách power-up
-        createLevel(); // Sinh level
-        running = true; // Bắt đầu game
-        ballLaunched = false; // Chưa bắn bóng
-        score = 0; // Reset điểm
-        lives = 3; // Reset mạng
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
     }
 
     /** Tạo bố cục gạch */
@@ -91,15 +79,9 @@ public class GameManager extends JPanel implements ActionListener {
         int rows = 5; // 5 hàng gạch
         int cols = 10; // 10 cột gạch
         int brickW = (WIDTH - 50) / cols; // Tính chiều rộng mỗi gạch
-<<<<<<< HEAD
         int brickH = 25;                  // Chiều cao mỗi gạch
         int startX = 30;                  // Lề trái
         int startY = 60;                  // Lề trên
-=======
-        int brickH = 20; // Chiều cao mỗi gạch
-        int startX = 25; // Lề trái
-        int startY = 60; // Lề trên
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 int x = startX + c * brickW;
