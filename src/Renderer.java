@@ -1,6 +1,8 @@
 package src;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 
 public class Renderer {
@@ -25,8 +27,27 @@ public class Renderer {
 
         // ===== Ball =====
         if (ball != null) {
-            g2.setColor(Color.RED);
-            g2.fill(ball.getShape()); 
+            Ellipse2D circle = ball.getShape();
+            Color base= new Color(190, 60, 255);
+
+            g2.setColor(Color.WHITE);
+            g2.fill(circle);
+            for(int i=1;i>=1;i--)
+            {
+                float t= (float)i/2f;
+                float alpha = 0.08f + 0.28f*t; //alpha từ 6% đen 40%
+                int a255=(int)(alpha*255);
+                g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
+                g2.setStroke(new BasicStroke(
+                    5f + 8f*t,    //độ dày nét
+                    BasicStroke.CAP_ROUND, //đầu nét tròn
+                    BasicStroke.JOIN_ROUND)); //góc nối tròn
+                     g2.draw(circle);
+
+
+            }
+
+            
         }
 
         // ===== Bricks =====
@@ -34,17 +55,51 @@ public class Renderer {
             for (Brick b : bricks) {
                 if (b == null || b.isDestroyed()) continue;
                 Rectangle r = b.getBounds();
-                g2.setColor(colorForHP(b.getHitPoints()));
-                g2.fillRect(r.x, r.y, r.width, r.height);
-                g2.setColor(Color.DARK_GRAY);
-                g2.drawRect(r.x, r.y, r.width, r.height);
+              int hp= b.getHitPoints();
+                Color base=colorForHP(hp);
+
+                Graphics2D g2c = (Graphics2D) g2.create();
+                int m=8;
+                g2c.setClip(r.x+m, r.y+m, r.width-2*m, r.height-2*m);
+                drawNeonBrick(g2, r, base);
+                g2c.dispose();
             }
         }
 
         // ===== Paddle =====
         if (paddle != null) {
-            g2.setColor(Color.BLUE);
-            g2.fill(paddle.getBounds());
+            Rectangle r = paddle.getBounds();
+            float arc=10f;
+            RoundRectangle2D rr = new RoundRectangle2D.Float(r.x+1f, r.y+1f, r.width-2f, r.height-2f, arc, arc);
+            Color base= new Color(80,240,255);
+
+            
+            for(int i=2;i>=1;i--)
+            {
+                float t= (float)i/2f;
+                float alpha = 0.03f + 0.18f*t; //alpha từ 6% đen 40%
+                int a255=(int)(alpha*255);
+                g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
+                g2.setStroke(new BasicStroke(
+                    4f + 6f*t,    //độ dày nét
+                    BasicStroke.CAP_ROUND, //đầu nét tròn
+                    BasicStroke.JOIN_ROUND)); //góc nối tròn
+                     g2.draw(rr);
+
+
+            }
+            //core
+            g2.setColor(base);
+            g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(rr);
+
+            //lõi trắng
+            g2.setColor(Color.WHITE);       
+            g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(rr);
+
+            
+
         }
 
         // ===== PowerUps =====
@@ -125,5 +180,39 @@ public class Renderer {
         if (hp >= 3) return new Color(0x7f8c8d);
         if (hp == 2) return new Color(0x9b59b6);
         return Color.ORANGE;
+    }
+    private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
+       float arc=10f;
+       RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width-2f, r.height-2f, arc, arc);
+       g2.setColor(new Color(10,35,50));
+       g2.fill(rr);
+
+       Color halo=base.darker();
+       Color core= base.brighter();
+
+       int layers=3;
+       for(int i=layers;i>=1;i--)
+       {
+        float t= (float)i/layers;
+        float alpha = 0.03f + 0.18f*t; //alpha từ 6% đen 40%
+        int a255=(int)(alpha*255);
+        Color haloA = new Color(halo.getRed(), halo.getGreen(), halo.getBlue(), a255);
+        g2.setColor(haloA);
+        g2.setStroke(new BasicStroke(
+            5f + 10f*t,    //độ dày nét
+            BasicStroke.CAP_ROUND, //đầu nét tròn
+            BasicStroke.JOIN_ROUND)); //góc nối tròn
+             g2.draw(rr);
+       }
+       // viền core
+       g2.setColor(core);
+       g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+       g2.draw(rr);
+
+       // Lõi trắng
+       g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+    g2.draw(rr);
+
     }
 }

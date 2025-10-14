@@ -61,7 +61,7 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Reset game */
     private void initGame() {
-        paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40, 80, 12); // Tạo paddle ở giữa dưới
+        paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40,120, 12); // Tạo paddle ở giữa dưới
         ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3);    // Tạo bóng trên paddle
         bricks = new ArrayList<>();    // Danh sách gạch
         powerUps = new ArrayList<>();  // Danh sách power-up
@@ -78,8 +78,8 @@ public class GameManager extends JPanel implements ActionListener {
         int rows = 5;   // 5 hàng gạch
         int cols = 10;  // 10 cột gạch
         int brickW = (WIDTH - 50) / cols; // Tính chiều rộng mỗi gạch
-        int brickH = 20;                  // Chiều cao mỗi gạch
-        int startX = 25;                  // Lề trái
+        int brickH = 25;                  // Chiều cao mỗi gạch
+        int startX = 30;                  // Lề trái
         int startY = 60;                  // Lề trên
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
