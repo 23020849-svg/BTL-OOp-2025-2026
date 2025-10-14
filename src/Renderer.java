@@ -28,7 +28,6 @@ public class Renderer {
 
         // ===== Ball =====
         if (ball != null) {
-<<<<<<< HEAD
             Ellipse2D circle = ball.getShape();
             Color base= new Color(190, 60, 255);
 
@@ -50,10 +49,6 @@ public class Renderer {
             }
 
             
-=======
-            g2.setColor(Color.RED);
-            g2.fill(ball.getShape());
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
         }
 
         // ===== Bricks =====
@@ -204,7 +199,6 @@ public class Renderer {
             return new Color(0x9b59b6);
         return Color.ORANGE;
     }
-<<<<<<< HEAD
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
        float arc=10f;
        RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width-2f, r.height-2f, arc, arc);
@@ -239,7 +233,4 @@ public class Renderer {
     g2.draw(rr);
 
     }
-=======
-
->>>>>>> 8373727e6ce02c7fe5e33422df5d5799cdb0e6df
 }
