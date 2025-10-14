@@ -9,7 +9,6 @@ package src; // Đặt class trong package arkanoid
 public class FastBallPowerUp extends PowerUp {
     private double multiplier;     // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
     private long durationMillis;   // Thời gian hiệu ứng kéo dài (mili-giây)
-
     // ======= Constructor =======
     public FastBallPowerUp(int x, int y) {
         super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
@@ -24,6 +23,7 @@ public class FastBallPowerUp extends PowerUp {
     public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
         // Áp dụng hiệu ứng cho bóng (nếu có nhiều bóng, có thể mở rộng để áp dụng cho tất cả)
         ball.setSpeedMultiplier(multiplier, durationMillis);
+        startTime = System.currentTimeMillis(); // Ghi lại thời điểm bắt đầu hiệu ứng
         deactivate(); // Sau khi kích hoạt, tắt power-up (không thể kích hoạt lại)
     }
 }
