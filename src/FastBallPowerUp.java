@@ -8,7 +8,6 @@ package src; // Đặt class trong package arkanoid
 // Khi người chơi hứng được, bóng sẽ di chuyển nhanh hơn tạm thời.
 public class FastBallPowerUp extends PowerUp {
     private double multiplier;     // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
-    private long durationMillis;   // Thời gian hiệu ứng kéo dài (mili-giây)
     // ======= Constructor =======
     public FastBallPowerUp(int x, int y) {
         super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)

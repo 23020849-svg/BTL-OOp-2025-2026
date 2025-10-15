@@ -12,7 +12,6 @@ package src; // Đặt class trong package arkanoid
 // Khi người chơi hứng được, paddle sẽ được kéo dài tạm thời.
 public class ExpandPaddlePowerUp extends PowerUp {
     private int extraPixels;        // Số pixel mở rộng thêm cho paddle
-    private long durationMillis;    // Thời gian hiệu lực (tính bằng mili-giây)
     // Constructor: khởi tạo vị trí, kích thước, giá trị mở rộng và thời gian hiệu lực
     public ExpandPaddlePowerUp(int x, int y) {
         super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
