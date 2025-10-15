@@ -89,6 +89,12 @@ public class GameManager extends JPanel implements ActionListener {
                 int x = startX + c * brickW;
                 int y = startY + r * (brickH + 6);
 
+                // Ưu tiên kiểm tra để tạo gạch không thể bị phá hủy trước.
+                // Nếu là cột đầu tiên (c==0), cột cuối cùng (c==cols-1) hoặc cột giữa (c==cols/2)
+                if (c == 0 || c == cols - 1 || c == cols / 2) {
+                    bricks.add(new UnbreakableBrick(x, y, brickW - 4, brickH));
+                }
+
                 // Hàng trên cùng (r = 0) sẽ là gạch 3 máu
                 if (r == 0) {
                     bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 3)); // <-- Gạch 3 máu
