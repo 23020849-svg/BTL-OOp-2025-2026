@@ -147,6 +147,20 @@ public class Renderer {
         int h = (g.getClipBounds() != null) ? g.getClipBounds().height : GameManager.HEIGHT;
         g2.drawString(livesText, w - pad - g2.getFontMetrics().stringWidth(livesText), y);
 
+        // Hiển thị tất cả PowerUp đang hoạt động
+        int yOffset = 300;
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+
+        for (PowerUp p : activePowerUps) { // activePowerUps là danh sách các power-up đang kích hoạt
+            if (p.getRemainingTime() > 0) {
+                g.drawString("PowerUp: " + p.getClass().getSimpleName() + " – " + p.getRemainingTime() + "s", 10,
+                        yOffset);
+                yOffset += 30; // Dịch xuống dòng kế tiếp
+            }
+        }
+
+
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====
         if (!ballLaunched && ball != null) {
             g2.setColor(Color.WHITE);

@@ -63,7 +63,7 @@ public class GameManager extends JPanel implements ActionListener {
     }
 
     /** Reset game */
-    private void initGame() {
+    public void initGame() {
         paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40,120, 12); // Tạo paddle ở giữa dưới
         ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3);    // Tạo bóng trên paddle
         bricks = new ArrayList<>();    // Danh sách gạch
@@ -73,6 +73,8 @@ public class GameManager extends JPanel implements ActionListener {
         ballLaunched = false;          // Chưa bắn bóng
         score = 0;                     // Reset điểm
         lives = 3;                     // Reset mạng
+        paused = false;                // Reset pause
+        activePowerUps.clear();        // Clear active power-ups
     }
 
     /** Tạo bố cục gạch */
@@ -254,8 +256,7 @@ public class GameManager extends JPanel implements ActionListener {
                 for (PowerUp active : activePowerUps) {
                     if (active.getClass().equals(p.getClass())) {
                         // Nếu đã có, cộng thêm thời gian
-                        active.duration = (int) ((active.getRemainingTime() + (p.duration / 1000)) * 1000);
-                        active.startTime = System.currentTimeMillis(); // reset thời gian bắt đầu
+                        active.durationMillis = active.getRemainingTime() * 1000 + p.durationMillis;
                         alreadyActive = true;
                         break;
                     }
@@ -374,5 +375,42 @@ public class GameManager extends JPanel implements ActionListener {
 
     public Ball getBall() {
         return ball;
+    }
+    
+    public int getScore() {
+        return score;
+    }
+    
+    public int getLives() {
+        return lives;
+    }
+    
+    public boolean isRunning() {
+        return running;
+    }
+    
+    public boolean isBallLaunched() {
+        return ballLaunched;
+    }
+    
+    public void launchBall() {
+        if (!ballLaunched) {
+            collisionSound.playOnce();
+            ballLaunched = true;
+            double speed = 6.0;
+            double rad = Math.toRadians(launchAngle);
+            ball.setDx(speed * Math.cos(rad));
+            ball.setDy(speed * Math.sin(rad));
+        }
+    }
+    
+    public void adjustLaunchAngle(double delta) {
+        if (!ballLaunched) {
+            launchAngle += delta;
+            if (launchAngle > MAX_ANGLE)
+                launchAngle = MAX_ANGLE;
+            if (launchAngle < MIN_ANGLE)
+                launchAngle = MIN_ANGLE;
+        }
     }
 }
