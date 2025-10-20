@@ -46,6 +46,7 @@ public class MenuManager extends JPanel implements ActionListener {
     public MenuManager() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
+        setOpaque(false);
         
         menuRenderer = new MenuRenderer();
         gameManager = new GameManager();

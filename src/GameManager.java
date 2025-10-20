@@ -43,6 +43,10 @@ public class GameManager extends JPanel implements ActionListener {
     private final double MAX_ANGLE = 0; // Giới hạn phải
     private Sound collisionSound; // Âm thanh va chạm
 
+    private int currentLevel;
+    private LevelLoader levelLoader;
+    private int totalLevels = 2;
+
 
     /** Khởi tạo toàn bộ game */
     public GameManager() {
@@ -53,22 +57,23 @@ public class GameManager extends JPanel implements ActionListener {
         collisionSound = new Sound();
         collisionSound.loadSound("rsc/391658__jeckkech__collision.wav");
 
+        levelLoader = new LevelLoader();
+
         initGame(); // Khởi tạo các đối tượng game
         initKeyBindings(); // Gán phím điều khiển
 
         renderer = new Renderer(); // Tạo renderer để vẽ
         timer = new Timer(16, this); // Cập nhật game mỗi 16ms (~60 FPS)
         timer.start(); // Bắt đầu vòng lặp game
-
     }
 
     /** Reset game */
     public void initGame() {
         paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40,120, 12); // Tạo paddle ở giữa dưới
         ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3);    // Tạo bóng trên paddle
-        bricks = new ArrayList<>();    // Danh sách gạch
+        currentLevel = 1; // Luôn bắt đầu từ level 1
+        bricks = levelLoader.loadLevel(currentLevel); // Tải level 1
         powerUps = new ArrayList<>();  // Danh sách power-up
-        createLevel();                 // Sinh level
         running = true;                // Bắt đầu game
         ballLaunched = false;          // Chưa bắn bóng
         score = 0;                     // Reset điểm
@@ -79,37 +84,12 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Tạo bố cục gạch */
     private void createLevel() {
-        bricks.clear(); // Xóa gạch cũ
-        int rows = 5; // 5 hàng gạch
-        int cols = 10; // 10 cột gạch
-        int brickW = (WIDTH - 50) / cols; // Tính chiều rộng mỗi gạch
-        int brickH = 25;                  // Chiều cao mỗi gạch
-        int startX = 30;                  // Lề trái
-        int startY = 60;                  // Lề trên
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                int x = startX + c * brickW;
-                int y = startY + r * (brickH + 6);
+        // Tải level tiếp theo
+        bricks = levelLoader.loadLevel(currentLevel);
 
-                // Ưu tiên kiểm tra để tạo gạch không thể bị phá hủy trước.
-                // Nếu là cột đầu tiên (c==0), cột cuối cùng (c==cols-1) hoặc cột giữa (c==cols/2)
-                if (c == 0 || c == cols - 1 || c == cols / 2) {
-                    bricks.add(new UnbreakableBrick(x, y, brickW - 4, brickH));
-                }
-
-                // Hàng trên cùng (r = 0) sẽ là gạch 3 máu
-                if (r == 0) {
-                    bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 3)); // <-- Gạch 3 máu
-                }
-                // Hàng số hai (r = 1) có một vài gạch 2 máu
-                else if (r == 1 && c % 3 == 0) {
-                    bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 2));
-                } // Các hàng còn lại là gạch thường
-                else {
-                    bricks.add(new NormalBrick(x, y, brickW - 4, brickH));
-                }
-            }
-        }
+        // Reset lại bóng và paddle
+        ballLaunched = false;
+        alignBallToPaddle();
     }
 
     /** Gán phím điều khiển */
@@ -341,11 +321,19 @@ public class GameManager extends JPanel implements ActionListener {
 
         // Khi không còn gạch → sang level mới
         if (bricks.isEmpty()) {
-            createLevel(); // Sinh level mới
-            ball.setDx(ball.getDx() * 1.1); // Tăng tốc bóng
-            ball.setDy(ball.getDy() * 1.1);
-            ballLaunched = false;
-            alignBallToPaddle();
+           currentLevel++; // Tăng cấp độ
+           if (currentLevel > totalLevels) {
+              // Xử lý khi người chơi đã thắng toàn bộ game
+              running = false;
+               SwingUtilities.invokeLater(() -> {
+                  JOptionPane.showMessageDialog(this, "Chúc mừng! Bạn đã chiến thắng!\nScore: " + score);
+                  System.exit(0);
+               });
+               return;
+           } else {
+               // Tải level tiếp theo
+               createLevel();
+           }
         }
 
         repaint(); // Vẽ lại frame
