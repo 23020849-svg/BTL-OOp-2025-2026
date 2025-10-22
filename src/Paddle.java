@@ -93,11 +93,12 @@ public class Paddle extends MovableObject {
     // Lấy thời gian còn lại của hiệu ứng mở rộng (tính bằng giây)
     public int getExpandRemainingTime() {
         if (expandEndTime == 0) return 0;
-        long remaining = expandEndTime - System.currentTimeMillis();
-        return Math.max((int)(remaining / 1000), 0);
+        long remainingMillis = expandEndTime - System.currentTimeMillis();
+        if (remainingMillis <= 0) {
+            expandEndTime = 0; // Đặt lại nếu đã hết hạn
+            return 0;
+        }
+
+        return (int) Math.ceil(remainingMillis / 1000.0);
     }
-
-   
-
-  
 }

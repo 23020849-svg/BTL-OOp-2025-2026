@@ -11,7 +11,7 @@ public class Renderer {
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
                      Paddle paddle,
-                     Ball ball,
+                     List<Ball> balls,
                      List<Brick> bricks,
                      List<PowerUp> powerUps,
                      int score,
@@ -28,28 +28,27 @@ public class Renderer {
                             RenderingHints.VALUE_ANTIALIAS_ON);
 
         // ===== Ball =====
-        if (ball != null) {
-            Ellipse2D circle = ball.getShape();
-            Color base= new Color(190, 60, 255);
+        if (balls != null) {
+            for (Ball ball : balls) { // Lặp qua để vẽ từng quả bóng
+                if (ball == null) continue;
 
-            g2.setColor(Color.WHITE);
-            g2.fill(circle);
-            for(int i=2;i>=1;i--)
-            {
-                float t= (float)i/2f;
-                float alpha = 0.08f + 0.28f*t; //alpha từ 6% đen 40%
-                int a255=(int)(alpha*255);
-                g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
-                g2.setStroke(new BasicStroke(
-                    5f + 8f*t,    //độ dày nét
-                    BasicStroke.CAP_ROUND, //đầu nét tròn
-                    BasicStroke.JOIN_ROUND)); //góc nối tròn
-                     g2.draw(circle);
+                Ellipse2D circle = ball.getShape();
+                Color base= new Color(190, 60, 255);
 
-
+                g2.setColor(Color.WHITE);
+                g2.fill(circle);
+                for(int i = 2; i >= 1; i--) {
+                    float t = (float)i / 2f;
+                    float alpha = 0.08f + 0.28f * t; //alpha từ 6% đen 40%
+                    int a255 = (int)(alpha * 255);
+                    g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
+                    g2.setStroke(new BasicStroke(
+                        5f + 8f * t,    //độ dày nét
+                        BasicStroke.CAP_ROUND, //đầu nét tròn
+                        BasicStroke.JOIN_ROUND)); //góc nối tròn
+                    g2.draw(circle);
+                }
             }
-
-            
         }
 
         // ===== Bricks =====
@@ -106,7 +105,7 @@ public class Renderer {
 
         // ===== PowerUps =====
         if (powerUps != null) {
-    for (PowerUp p : activePowerUps) {
+    for (PowerUp p : powerUps) {
         if (p == null || !p.isActive()) continue;
 
         Rectangle r = p.getBounds();
@@ -124,7 +123,12 @@ public class Renderer {
             g2.fillOval(r.x, r.y, r.width, r.height);
             g2.setColor(Color.DARK_GRAY);
             g2.drawOval(r.x, r.y, r.width, r.height);
-
+        } else if (p instanceof MultiBallPowerUp) {
+            // Power-up Multi-Ball: oval màu vàng = viền xám
+            g2.setColor(Color.YELLOW);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.DARK_GRAY);
+            g2.drawOval(r.x, r.y, r.width, r.height);
         } else {
             // Mặc định: hình chữ nhật vàng + viền xám
             g2.setColor(Color.YELLOW);
@@ -158,22 +162,28 @@ public class Renderer {
             yOffset += 30;
         }
         
-        if (ball.getFastRemainingTime() > 0) {
-            g.drawString("PowerUp: FastBallPowerUp – " + ball.getFastRemainingTime() + "s", 10, yOffset);
-            yOffset += 30;
+        // Kiểm tra thời gian power-up từ danh sách balls
+        if (balls != null && !balls.isEmpty()) {
+            // Tất cả bóng đều có cùng hiệu ứng, nê chỉ cần kiểm tra bóng đầu tiên
+            int fastTime = balls.get(0).getFastRemainingTime();
+            if (fastTime > 0) {
+                g.drawString("PowerUp: FastBallPowerUp - " + fastTime + "s", 10, yOffset);
+                yOffset += 30;
+            }
         }
         
 
 
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====
-        if (!ballLaunched && ball != null) {
+        if (!ballLaunched && !balls.isEmpty()) {
+            Ball firstBall = balls.get(0);
             g2.setColor(Color.WHITE);
             g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
 
             g2.setColor(Color.RED);
             double rad = Math.toRadians(launchAngle);
-            int cx = ball.getX() + ball.getWidth() /2;
-            int cy = ball.getY() + ball.getHeight() / 2;
+            int cx = firstBall.getX() + firstBall.getWidth() /2;
+            int cy = firstBall.getY() + firstBall.getHeight() / 2;
             int lineLength = 60;
             int endX = (int) (cx + lineLength * Math.cos(rad));
             int endY = (int) (cy + lineLength * Math.sin(rad));

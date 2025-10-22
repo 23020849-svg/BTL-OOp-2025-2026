@@ -22,12 +22,16 @@ public class GameManager extends JPanel implements ActionListener {
 
     // Các thành phần chính của game
     private Paddle paddle; // Thanh đỡ (người chơi điều khiển)
-    private Ball ball; // Quả bóng
+    private java.util.List<Ball> balls; // Danh sách bóng
     private java.util.List<Brick> bricks; // Danh sách gạch
     private java.util.List<PowerUp> powerUps; // Danh sách vật phẩm rơi
     private Renderer renderer; // Lớp phụ để vẽ
     private Timer timer; // Bộ đếm thời gian cho game loop (~60 FPS)
     private Random rand = new Random(); // Sinh ngẫu nhiên vật phẩm
+
+    private LevelLoader levelLoader;
+    private int currentLevel = 1;
+    private int totalLevels = 5;
 
     // Trạng thái game
     private int score = 0; // Điểm
@@ -65,10 +69,12 @@ public class GameManager extends JPanel implements ActionListener {
     /** Reset game */
     public void initGame() {
         paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40,120, 12); // Tạo paddle ở giữa dưới
-        ball = new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3);    // Tạo bóng trên paddle
-        bricks = new ArrayList<>();    // Danh sách gạch
+        balls = new ArrayList<>();
+        balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
+        levelLoader = new LevelLoader();
+        currentLevel = 1; // Luôn bắt đầu từ level 1
+        createLevel(); // Gọi createLevel để tải màn hình chơi
         powerUps = new ArrayList<>();  // Danh sách power-up
-        createLevel();                 // Sinh level
         running = true;                // Bắt đầu game
         ballLaunched = false;          // Chưa bắn bóng
         score = 0;                     // Reset điểm
@@ -79,31 +85,16 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Tạo bố cục gạch */
     private void createLevel() {
-        bricks.clear(); // Xóa gạch cũ
-        int rows = 5; // 5 hàng gạch
-        int cols = 10; // 10 cột gạch
-        int brickW = (WIDTH - 50) / cols; // Tính chiều rộng mỗi gạch
-        int brickH = 25;                  // Chiều cao mỗi gạch
-        int startX = 30;                  // Lề trái
-        int startY = 60;                  // Lề trên
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                int x = startX + c * brickW;
-                int y = startY + r * (brickH + 6);
+        bricks = levelLoader.loadLevel(currentLevel);
 
-                // Hàng trên cùng (r = 0) sẽ là gạch 3 máu
-                if (r == 0) {
-                    bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 3)); // <-- Gạch 3 máu
-                }
-                // Hàng số hai (r = 1) có một vài gạch 2 máu
-                else if (r == 1 && c % 3 == 0) {
-                    bricks.add(new StrongBrick(x, y, brickW - 4, brickH, 2));
-                } // Các hàng còn lại là gạch thường
-                else {
-                    bricks.add(new NormalBrick(x, y, brickW - 4, brickH));
-                }
-            }
-        }
+        // Reset lại trạng thái bóng cho màn mới
+        ballLaunched = false;
+        paddle.setX(WIDTH / 2 - paddle.getWidth() / 2); // Đưa paddle về giữa
+
+        // Xóa bóng cũ (nếu có) và tạo bóng mới
+        balls.clear();
+        balls.add(new Ball(WIDTH / 2 -8, HEIGHT - 60, 8, 3, -3));
+        alignBallToPaddle();
     }
 
     /** Gán phím điều khiển */
@@ -184,8 +175,9 @@ public class GameManager extends JPanel implements ActionListener {
                     ballLaunched = true; // Bắt đầu bắn bóng
                     double speed = 6.0; // tốc độ khởi đầu
                     double rad = Math.toRadians(launchAngle);
-                    ball.setDx(speed * Math.cos(rad));
-                    ball.setDy(speed * Math.sin(rad)); // âm vì hướng lên
+                    Ball ballToLaunch = balls.get(0);
+                    ballToLaunch.setDx(speed * Math.cos(rad));
+                    ballToLaunch.setDy(speed * Math.sin(rad)); // âm vì hướng lên
                 }
             }
         });
@@ -211,16 +203,17 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Đặt bóng lên paddle (khi chưa bắn) */
     private void alignBallToPaddle() {
-        // Căn giữa bóng trên paddle
-        ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
-        ball.setY(paddle.getY() - ball.getHeight() - 2);
+        if (balls.size() == 1) {
+            Ball ball = balls.get(0);
+            ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
+            ball.setY(paddle.getY() - ball.getHeight() - 2);
+        }
     }
 
     /** Hàm loop cập nhật game */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!running)
-            return; // Nếu game chưa chạy thì bỏ qua
+        if (!running) return; // Nếu game chưa chạy thì bỏ qua
 
         // Khi game đang bị pause, không cập nhật logic
         if (paused) {
@@ -228,11 +221,7 @@ public class GameManager extends JPanel implements ActionListener {
             return;
         }
 
-        if (!ballLaunched)
-            alignBallToPaddle(); // Nếu chưa bắn, bóng đi theo paddle
-        else
-            ball.update();
-        paddle.update(); // Cập nhật paddle
+        paddle.update();
 
         // Cập nhật và kiểm tra va chạm power-up
         Iterator<PowerUp> pit = powerUps.iterator();
@@ -243,9 +232,10 @@ public class GameManager extends JPanel implements ActionListener {
                 pit.remove(); // Xóa nếu hết tác dụng
             }
             // Va chạm paddle → kích hoạt hiệu ứng
-            if (p.getBounds().intersects(paddle.getBounds())) {
+            else if (p.getBounds().intersects(paddle.getBounds())) {
                 // Áp dụng hiệu ứng trực tiếp lên Paddle và Ball
-                p.applyEffect(paddle, ball, this);
+                // Dùng quả bóng đầu tiên trong danh sách
+                p.applyEffect(paddle, balls.isEmpty() ? null : balls.get(0), this);
                 p.start();
                 activePowerUps.add(p);
                 p.deactivate();// Vô hiệu hóa vật phẩm rơi
@@ -255,41 +245,54 @@ public class GameManager extends JPanel implements ActionListener {
         // Xóa các power-up đã hết thời gian
         activePowerUps.removeIf(active -> active.getRemainingTime() <= 0);
 
-        // Va chạm giữa bóng và paddle
-        if (ball.getBounds().intersects(paddle.getBounds())) {
-            collisionSound.playOnce(); // Phát âm thanh va chạm
-            int paddleCenter = paddle.getX() + paddle.getWidth() / 2;
-            int ballCenter = ball.getX() + ball.getWidth() / 2;
-            int diff = ballCenter - paddleCenter; // Lệch giữa tâm bóng và paddle
-            double factor = diff / (double) (paddle.getWidth() / 2);
-            double speed = Math.sqrt(ball.getDx() * ball.getDx() + ball.getDy() * ball.getDy());
-            double newDx = speed * factor * 1.2; // Góc lệch dựa trên vị trí va chạm
-            double newDy = -Math.abs(speed * (1 - Math.abs(factor))); // Luôn bật lên
-            if (Math.abs(newDy) < 2)
-                newDy = -2; // Giữ tốc độ tối thiểu
-            ball.setDx(newDx);
-            ball.setDy(newDy);
-            ball.setY(paddle.getY() - ball.getHeight() - 1); // Đặt bóng lên trên paddle
+        // Nếu chưa bắn bóng, căn chỉnh quả bóng duy nhất theo paddle
+        if (!ballLaunched) {
+            alignBallToPaddle();
         }
 
-        // Kiểm tra va chạm bóng - gạch
-        Iterator<Brick> it = bricks.iterator();
-        while (it.hasNext()) {
-            Brick brick = it.next();
-            if (brick.isDestroyed())
-                continue;
+        // Dùng Iterator để duyệt và xóa bóng một cách an toàn
+        Iterator<Ball> ballIterator = balls.iterator();
+        while (ballIterator.hasNext()) {
+            Ball currentBall = ballIterator.next();
 
-            if (ball.getBounds().intersects(brick.getBounds())) {
+            if (ballLaunched) {
+                currentBall.update();
+            }
+
+            // Va chạm bóng và paddle
+            if (currentBall.getBounds().intersects(paddle.getBounds())) {
                 collisionSound.playOnce(); // Phát âm thanh va chạm
-                ball.bounceOff(brick); // Bật bóng trước để điều chỉnh vị trí
+                int paddleCenter = paddle.getX() + paddle.getWidth() / 2;
+                int ballCenter = currentBall.getX() + currentBall.getWidth() / 2;
+                int diff = ballCenter - paddleCenter; // Lệch giữa tâm bóng và paddle
+                double factor = diff / (double) (paddle.getWidth() / 2);
+                double speed = Math.sqrt(currentBall.getDx() * currentBall.getDx() + currentBall.getDy() * currentBall.getDy());
+                double newDx = speed * factor * 1.2; // Góc lệch dựa trên vị trí va chạm
+                double newDy = -Math.abs(speed * (1 - Math.abs(factor))); // Luôn bật lên
+                if (Math.abs(newDy) < 2) newDy = -2; // Giữ tốc độ tối thiểu
+                currentBall.setDx(newDx);
+                currentBall.setDy(newDy);
+                currentBall.setY(paddle.getY() - currentBall.getHeight() - 1); // Đặt bóng lên trên paddle
+            }
 
-                brick.takeHit(); // Trừ máu gạch
-                if (brick.isDestroyed()) {
-                    score += 100;
+            // Va chạm bóng và gạch
+            Iterator<Brick> brickIt = bricks.iterator();
+            while (brickIt.hasNext()) {
+                Brick brick = brickIt.next();
+                if (brick.isDestroyed()) continue;
 
-                    // Xác suất rơi power-up tùy theo từng loại gạch
-                    if (rand.nextDouble() < brick.getPowerUpDropChance()) {
-                        spawnRandomPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight());
+                if (currentBall.getBounds().intersects(brick.getBounds())) {
+                    collisionSound.playOnce(); // Phát âm thanh va chạm
+                    currentBall.bounceOff(brick); // Bật bóng trước để điều chỉnh vị trí
+
+                    brick.takeHit(); // Trừ máu gạch
+                    if (brick.isDestroyed()) {
+                        score += 100;
+
+                        // Xác suất rơi power-up tùy theo từng loại gạch
+                        if (rand.nextDouble() < brick.getPowerUpDropChance()) {
+                            spawnRandomPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight());
+                        }
                     }
 
                     // Ngăn bóng va thêm các gạch khác trong cùng frame
@@ -299,29 +302,46 @@ public class GameManager extends JPanel implements ActionListener {
         }
 
         bricks.removeIf(Brick::isDestroyed); // Xóa gạch vỡ
+        // Xóa bóng rơi ra ngoài
+        balls.removeIf(b -> b.getY() > HEIGHT);
 
         // Kiểm tra nếu bóng rơi xuống dưới màn hình
-        if (ball.getY() > HEIGHT) {
+        if (ballLaunched && balls.isEmpty()) {
             lives--; // Mất một mạng
             if (lives <= 0) { // Hết mạng → Game Over
                 running = false;
-                // Không hiển thị dialog, để MenuManager xử lý
+                SwingUtilities.invokeLater(() -> {
+                    int resp = JOptionPane.showConfirmDialog(this,
+                            "Game Over! Score: " + score + "\nPlay again?",
+                            "Game Over", JOptionPane.YES_NO_OPTION);
+                    if (resp == JOptionPane.YES_OPTION)
+                        initGame(); // Chơi lại
+                    else
+                        System.exit(0); // Thoát game
+                });
             } else {
-                // Còn mạng → reset bóng
+                // Hồi sinh một quả bóng mới
                 ballLaunched = false;
-                ball.setDx(3);
-                ball.setDy(-3);
+                balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
                 alignBallToPaddle();
             }
         }
 
         // Khi không còn gạch → sang level mới
         if (bricks.isEmpty()) {
-            createLevel(); // Sinh level mới
-            ball.setDx(ball.getDx() * 1.1); // Tăng tốc bóng
-            ball.setDy(ball.getDy() * 1.1);
-            ballLaunched = false;
-            alignBallToPaddle();
+           currentLevel++; // Tăng cấp độ
+           if (currentLevel > totalLevels) {
+              // Xử lý khi người chơi đã thắng toàn bộ game
+              running = false;
+               SwingUtilities.invokeLater(() -> {
+                  JOptionPane.showMessageDialog(this, "Chúc mừng! Bạn đã chiến thắng!\nScore: " + score);
+                  System.exit(0);
+               });
+               return;
+           } else {
+               // Tải level tiếp theo
+               createLevel();
+           }
         }
 
         repaint(); // Vẽ lại frame
@@ -329,10 +349,14 @@ public class GameManager extends JPanel implements ActionListener {
 
     /** Sinh power-up ngẫu nhiên */
     private void spawnRandomPowerUp(int x, int y) {
-        if (rand.nextBoolean())
-            powerUps.add(new ExpandPaddlePowerUp(x - 10, y)); // Power-up mở rộng paddle
-        else
-            powerUps.add(new FastBallPowerUp(x - 10, y)); // Power-up tăng tốc bóng
+        double chance = rand.nextDouble();
+        if (chance < 0.33) {
+            powerUps.add(new ExpandPaddlePowerUp(x - 10, y));
+        } else if (chance < 0.66) {
+            powerUps.add(new FastBallPowerUp(x - 10, y));
+        } else {
+            powerUps.add(new MultiBallPowerUp(x - 10, y));
+        }
     }
 
     /** Vẽ frame */
@@ -340,7 +364,7 @@ public class GameManager extends JPanel implements ActionListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         // Vẽ tất cả qua Renderer (kể cả overlay)
-        renderer.draw(g, paddle, ball, bricks, powerUps, score, lives,
+        renderer.draw(g, paddle, balls, bricks, powerUps, score, lives,
                 ballLaunched, launchAngle, paused, activePowerUps);
     }
 
@@ -349,8 +373,8 @@ public class GameManager extends JPanel implements ActionListener {
         return paddle;
     }
 
-    public Ball getBall() {
-        return ball;
+    public java.util.List<Ball> getBalls() {
+        return balls;
     }
     
     public int getScore() {
@@ -370,11 +394,12 @@ public class GameManager extends JPanel implements ActionListener {
     }
     
     public void launchBall() {
-        if (!ballLaunched) {
+        if (!ballLaunched && !balls.isEmpty()) {
             collisionSound.playOnce();
             ballLaunched = true;
             double speed = 6.0;
             double rad = Math.toRadians(launchAngle);
+            Ball ball = balls.get(0); // Chỉ phóng quả bóng đầu tiên
             ball.setDx(speed * Math.cos(rad));
             ball.setDy(speed * Math.sin(rad));
         }
@@ -388,5 +413,23 @@ public class GameManager extends JPanel implements ActionListener {
             if (launchAngle < MIN_ANGLE)
                 launchAngle = MIN_ANGLE;
         }
+    }
+
+    /** Kích hoạt hiệu ứng Multi-Ball */
+    public void activateMultiBall() {
+        if (balls.isEmpty()) return; // Không có bóng để nhân đôi
+
+        // Lấy quả bóng đầu tiên làm gốc
+        Ball originalBall = balls.get(0);
+        int x = originalBall.getX();
+        int y = originalBall.getY();
+        double speed = Math.sqrt(originalBall.getDx() * originalBall.getDx() + originalBall.getDy() * originalBall.getDy());
+
+        // Tạo 1 quả bóng mới với góc lệch
+        Ball ball2 = new Ball(x, y, 8, 0, 0);
+        ball2.setDx(speed * Math.cos(Math.toRadians(90))); // Hướng 90 độ
+        ball2.setDy(-speed * Math.sin(Math.toRadians(90)));
+
+        balls.add(ball2);
     }
 }
