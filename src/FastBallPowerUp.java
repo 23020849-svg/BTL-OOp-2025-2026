@@ -12,7 +12,7 @@ public class FastBallPowerUp extends PowerUp {
     public FastBallPowerUp(int x, int y) {
         super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
         this.multiplier = 1.6;        // Bóng nhanh gấp 1.6 lần tốc độ gốc
-        this.durationMillis = 8_000;  // Hiệu ứng kéo dài 8 giây (8000 ms)
+        this.durationMillis = 10_000;  // Hiệu ứng kéo dài 10 giây (10000 ms)
     }
 
     // ======= Phương thức render: vẽ power-up lên màn hình =======
@@ -20,9 +20,8 @@ public class FastBallPowerUp extends PowerUp {
     // ======= Khi người chơi hứng được power-up =======
     @Override
     public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
-        // Áp dụng hiệu ứng cho bóng (nếu có nhiều bóng, có thể mở rộng để áp dụng cho tất cả)
+        // Luôn reset thời gian về 10 giây khi nhặt PowerUp (không cộng dồn)
         ball.setSpeedMultiplier(multiplier, durationMillis);
-        startTime = System.currentTimeMillis(); // Ghi lại thời điểm bắt đầu hiệu ứng
         deactivate(); // Sau khi kích hoạt, tắt power-up (không thể kích hoạt lại)
     }
 }

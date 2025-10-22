@@ -114,6 +114,13 @@ public class Ball extends MovableObject {
 
     // ======= Getter cho bán kính =======
     public int getRadius() { return radius; }
+    
+    // Lấy thời gian còn lại của hiệu ứng tăng tốc (tính bằng giây)
+    public int getFastRemainingTime() {
+        if (fastEndTime == 0) return 0;
+        long remaining = fastEndTime - System.currentTimeMillis();
+        return Math.max((int)(remaining / 1000), 0);
+    }
 
     /** Hình ellipse để View/Renderer vẽ. */
     public Ellipse2D getShape() {

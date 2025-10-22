@@ -89,6 +89,13 @@ public class Paddle extends MovableObject {
     // ======= Getter/Setter =======
     public int getSpeed() { return speed; }        // Lấy tốc độ hiện tại
     public void setSpeed(int speed) { this.speed = speed; } // Đặt tốc độ mới
+    
+    // Lấy thời gian còn lại của hiệu ứng mở rộng (tính bằng giây)
+    public int getExpandRemainingTime() {
+        if (expandEndTime == 0) return 0;
+        long remaining = expandEndTime - System.currentTimeMillis();
+        return Math.max((int)(remaining / 1000), 0);
+    }
 
    
 

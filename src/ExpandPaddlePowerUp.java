@@ -16,14 +16,14 @@ public class ExpandPaddlePowerUp extends PowerUp {
     public ExpandPaddlePowerUp(int x, int y) {
         super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
         this.extraPixels = 80;        // Mở rộng thêm 80 pixel cho paddle
-        this.durationMillis = 8_000;  // Hiệu ứng kéo dài tồn tại trong 8 giây (8000 ms)
+        this.durationMillis = 10_000;  // Hiệu ứng kéo dài tồn tại trong 10 giây (10000 ms)
     }
 
     // ======= Khi paddle hứng được power-up =======
     @Override
     public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
-        paddle.applyExpand(extraPixels, durationMillis); // Gọi hiệu ứng mở rộng paddle trong thời gian giới hạn
-        startTime = System.currentTimeMillis(); // Ghi lại thời điểm bắt đầu hiệu ứng
+        // Luôn reset thời gian về 10 giây khi nhặt PowerUp (không cộng dồn)
+        paddle.applyExpand(extraPixels, durationMillis);
         deactivate(); // Sau khi kích hoạt → tắt power-up (không hoạt động nữa)
     }
 

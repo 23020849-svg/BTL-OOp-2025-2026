@@ -106,7 +106,7 @@ public class Renderer {
 
         // ===== PowerUps =====
         if (powerUps != null) {
-    for (PowerUp p : powerUps) {
+    for (PowerUp p : activePowerUps) {
         if (p == null || !p.isActive()) continue;
 
         Rectangle r = p.getBounds();
@@ -152,13 +152,17 @@ public class Renderer {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
 
-        for (PowerUp p : activePowerUps) { // activePowerUps là danh sách các power-up đang kích hoạt
-            if (p.getRemainingTime() > 0) {
-                g.drawString("PowerUp: " + p.getClass().getSimpleName() + " – " + p.getRemainingTime() + "s", 10,
-                        yOffset);
-                yOffset += 30; // Dịch xuống dòng kế tiếp
-            }
+        // Hiển thị thời gian PowerUp từ Paddle và Ball
+        if (paddle.getExpandRemainingTime() > 0) {
+            g.drawString("PowerUp: ExpandPaddlePowerUp – " + paddle.getExpandRemainingTime() + "s", 10, yOffset);
+            yOffset += 30;
         }
+        
+        if (ball.getFastRemainingTime() > 0) {
+            g.drawString("PowerUp: FastBallPowerUp – " + ball.getFastRemainingTime() + "s", 10, yOffset);
+            yOffset += 30;
+        }
+        
 
 
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====

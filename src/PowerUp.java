@@ -40,9 +40,10 @@ public abstract class PowerUp extends GameObject {
 
     // Lấy thời gian còn lại (tính bằng giây)
     public int getRemainingTime() {
-        if (startTime == 0) return 0;
-        int remaining = (int) (durationMillis - (System.currentTimeMillis() - startTime));
-        return Math.max(remaining / 1000, 0); // tính bằng giây
+        if (!activated || startTime == 0) return 0;
+        long elapsed = System.currentTimeMillis() - startTime;
+        long remaining = durationMillis - elapsed;
+        return Math.max((int)(remaining / 1000), 0); // tính bằng giây
     }
 
     // ======= Cập nhật vị trí theo thời gian =======
