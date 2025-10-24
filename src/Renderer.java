@@ -112,10 +112,10 @@ public class Renderer {
 
         if (p instanceof ExpandPaddlePowerUp) {
             // Power-up mở rộng paddle: oval xanh lá + viền xám
-            Image arrowFrame = Toolkit.getDefaultToolkit().getImage(
-            getClass().getResource("/arrow.gif")
-                );
-            renderCapsule(g2, r.x, r.y, r.width+100, r.height+20, arrowFrame);
+             g2.setColor(Color.CYAN);
+            g2.fillOval(r.x, r.y, r.width, r.height);
+            g2.setColor(Color.PINK);
+            g2.drawOval(r.x, r.y, r.width, r.height);
 
         } else if (p instanceof FastBallPowerUp) {
             // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
@@ -252,7 +252,7 @@ private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arro
     int imgH = arrowFrame.getHeight(null);
 
     Shape oldClip = g2.getClip();
-    g2.setClip(inner);
+    //g2.setClip(inner);
     if (imgW > 0 && imgH > 0) {
         g2.drawImage(arrowFrame, ix + (iw - imgW)/2, iy + (ih - imgH)/2, null);
     }
