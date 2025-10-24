@@ -14,10 +14,9 @@ public abstract class PowerUp extends GameObject {
     protected double dy = 2.0;      // Tốc độ rơi theo trục y (đơn vị px mỗi frame)
     protected boolean active = true; // Đang tồn tại trên màn hình (chưa bị bắt hoặc rơi khỏi màn hình)
     protected int fallSpeed = 2;     // Tốc độ rơi (đơn giản, có thể điều chỉnh nếu cần)
-    protected int duration = 10000; // Thời gian hiệu ứng kéo dài (mặc định 10 giây)
     protected long startTime;        // Thời điểm bắt đầu hiệu ứng (mili-giây)
-
-    //  Thêm: cờ cho biết PowerUp đã được kích hoạt (đang chạy hiệu ứng)
+    protected long durationMillis;   // Thời gian hiệu ứng kéo dài (mili-giây)
+    //Thêm: cờ cho biết PowerUp đã được kích hoạt (đang chạy hiệu ứng)
     protected boolean activated = false;
 
     // ======= Constructor =======
@@ -25,13 +24,13 @@ public abstract class PowerUp extends GameObject {
         super(x, y, width, height);
     }
 
-    //  Ghi lại thời điểm bắt đầu hiệu ứng
+    // Ghi lại thời điểm bắt đầu hiệu ứng
     public void start() {
         startTime = System.currentTimeMillis();
         activated = true;
     }
 
-    //  Kiểm tra còn thời gian hoạt động không
+    // Kiểm tra còn thời gian hoạt động không
     public boolean isActivated() {
     if (activated && getRemainingTime() <= 0) {
         activated = false;
@@ -41,9 +40,10 @@ public abstract class PowerUp extends GameObject {
 
     // Lấy thời gian còn lại (tính bằng giây)
     public int getRemainingTime() {
-        if (startTime == 0) return 0;
-        int remaining = (int) (duration - (System.currentTimeMillis() - startTime));
-        return Math.max(remaining / 1000, 0); // tính bằng giây
+        if (!activated || startTime == 0) return 0;
+        long elapsed = System.currentTimeMillis() - startTime;
+        long remaining = durationMillis - elapsed;
+        return Math.max((int)(remaining / 1000), 0); // tính bằng giây
     }
 
     // ======= Cập nhật vị trí theo thời gian =======

@@ -37,8 +37,8 @@ public class Main {
             background.setLayout(new BorderLayout());
             frame.setContentPane(background);
            
-           GameManager game = new GameManager();
-           background.add(game, BorderLayout.CENTER);
+           MenuManager menu = new MenuManager();
+           background.add(menu, BorderLayout.CENTER);
            
            
             //frame.add(game);           // Thêm panel GameManager vào frame (nơi vẽ game)
@@ -52,15 +52,7 @@ public class Main {
             // Hiển thị cửa sổ
             frame.setVisible(true);
 
-            // ======= 4. Hiển thị hướng dẫn điều khiển (bảng thông báo ban đầu) =======
-            JOptionPane.showMessageDialog(
-                    frame,
-                    // Nội dung hướng dẫn điều khiển
-                    "Controls:\n← / → : Move Paddle\nSPACE : Launch Ball\nR : Restart\nP: Pause\n\n" +
-                            "Power-ups:\nGreen = Expand Paddle\nCyan = Fast Ball",
-                    "Instructions", // Tiêu đề của hộp thoại
-                    JOptionPane.INFORMATION_MESSAGE // Loại thông báo: thông tin
-            );
+            // Menu system handles all instructions and game flow
         });
     }
 }
