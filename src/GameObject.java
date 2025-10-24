@@ -1,4 +1,4 @@
-package src; // Đặt class trong package arkanoid
+ // Đặt class trong package arkanoid
 
 /**
  * GameObject.java

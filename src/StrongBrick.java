@@ -1,4 +1,4 @@
-package src; // Nằm trong package arkanoid
+// Nằm trong package arkanoid
 
 /**
  * StrongBrick.java

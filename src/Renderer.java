@@ -1,4 +1,4 @@
-package src;
+
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -113,7 +113,7 @@ public class Renderer {
         if (p instanceof ExpandPaddlePowerUp) {
             // Power-up mở rộng paddle: oval xanh lá + viền xám
             Image arrowFrame = Toolkit.getDefaultToolkit().getImage(
-            getClass().getResource("/rsc/arrow.gif")
+            getClass().getResource("/arrow.gif")
                 );
             renderCapsule(g2, r.x, r.y, r.width+100, r.height+20, arrowFrame);
 

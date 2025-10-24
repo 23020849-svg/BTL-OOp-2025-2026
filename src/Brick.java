@@ -1,4 +1,4 @@
-package src; // Đặt lớp Brick trong package arkanoid
+ // Đặt lớp Brick trong package arkanoid
 
 /**
  * Brick.java

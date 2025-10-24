@@ -1,4 +1,3 @@
-package src; // Đặt class trong package arkanoid
 
 /**
  * NormalBrick.java
