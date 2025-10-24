@@ -62,8 +62,8 @@ public class Renderer {
 
                 Graphics2D g2c = (Graphics2D) g2.create();
                 int m=8;
-                g2c.setClip(r.x+m, r.y+m, r.width-2*m, r.height-2*m);
-                drawNeonBrick(g2, r, base);
+                //g2c.setClip(r.x+m, r.y+m, r.width-2*m, r.height-2*m);
+                drawNeonBrick(g2c, r, base);
                 g2c.dispose();
             }
         }
@@ -113,16 +113,16 @@ public class Renderer {
 
         if (p instanceof ExpandPaddlePowerUp) {
             // Power-up mở rộng paddle: oval xanh lá + viền xám
-            g2.setColor(Color.GREEN);
-            g2.fillOval(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.DARK_GRAY);
-            g2.drawOval(r.x, r.y, r.width, r.height);
+            Image arrowFrame = Toolkit.getDefaultToolkit().getImage(
+            getClass().getResource("/rsc/arrow.gif")
+                );
+            renderCapsule(g2, r.x, r.y, r.width+100, r.height+20, arrowFrame);
 
         } else if (p instanceof FastBallPowerUp) {
             // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
             g2.setColor(Color.CYAN);
             g2.fillOval(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.DARK_GRAY);
+            g2.setColor(Color.BLUE);
             g2.drawOval(r.x, r.y, r.width, r.height);
 
         } else {
@@ -191,6 +191,47 @@ public class Renderer {
         if (hp == 2) return new Color(0x9b59b6);
         return Color.ORANGE;
     }
+
+    //hình bao ngoài của power up
+
+    // hình bao ngoài của power up
+private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arrowFrame) {
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    // vỏ
+    Shape outer = new RoundRectangle2D.Float(x, y, w, h, h, h);
+    LinearGradientPaint metal = new LinearGradientPaint(
+        x, y, x, y + h,
+        new float[]{0f, 1f},
+        new Color[]{new Color(255,255,255,200), new Color(200,200,200,50)}
+    );
+    g2.setPaint(metal);
+    g2.fill(outer);
+
+    // ô bên trong
+    int pad = 6;
+    int iw = w - 2*pad;
+    int ih = h - 2*pad;
+    int ix = x + pad;
+    int iy = y + pad;
+
+    Shape inner = new RoundRectangle2D.Float(ix, iy, iw, ih, ih, ih);
+    g2.setColor(new Color(20,20,22));
+    g2.fill(inner);
+
+    // mũi tên
+    int imgW = arrowFrame.getWidth(null);
+    int imgH = arrowFrame.getHeight(null);
+
+    Shape oldClip = g2.getClip();
+    g2.setClip(inner);
+    if (imgW > 0 && imgH > 0) {
+        g2.drawImage(arrowFrame, ix + (iw - imgW)/2, iy + (ih - imgH)/2, null);
+    }
+    g2.setClip(oldClip);
+}
+
+    //màu neon
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
        float arc=10f;
        RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width-2f, r.height-2f, arc, arc);
@@ -225,4 +266,6 @@ public class Renderer {
     g2.draw(rr);
 
     }
+
+
 }
