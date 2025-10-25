@@ -18,7 +18,7 @@ public abstract class PowerUp extends GameObject {
     // ======= Thuộc tính cơ bản =======
     protected double dy = 2.0;      // Tốc độ rơi theo trục y (đơn vị px mỗi frame)
     protected boolean active = true; // Đang tồn tại trên màn hình (chưa bị bắt hoặc rơi khỏi màn hình)
-    protected int fallSpeed = 2;     // Tốc độ rơi (đơn giản, có thể điều chỉnh nếu cần)
+    protected double fallSpeed = 120.0;     // Tốc độ rơi (đơn giản, có thể điều chỉnh nếu cần)
     protected long startTime;        // Thời điểm bắt đầu hiệu ứng (mili-giây)
     protected long durationMillis;   // Thời gian hiệu ứng kéo dài (mili-giây)
     //Thêm: cờ cho biết PowerUp đã được kích hoạt (đang chạy hiệu ứng)
@@ -53,9 +53,9 @@ public abstract class PowerUp extends GameObject {
 
     // ======= Cập nhật vị trí theo thời gian =======
     @Override
-    public void update() {
+    public void update(double dt) {
         // Mỗi frame, power-up rơi xuống theo trục y
-        y += fallSpeed;
+        y += fallSpeed * dt;
 
         // Nếu rơi quá chiều cao màn hình (GameManager.HEIGHT), thì hủy (ngừng hiển thị)
         if (y > GameManager.HEIGHT) active = false;

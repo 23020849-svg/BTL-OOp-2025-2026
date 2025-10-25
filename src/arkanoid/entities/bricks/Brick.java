@@ -37,12 +37,12 @@ public abstract class Brick extends GameObject {
     // ======= Phương thức update trừu tượng =======
     // Các lớp con (NormalBrick, StrongBrick...) có thể override nếu muốn có hiệu ứng riêng
     @Override
-    public abstract void update();
+    public abstract void update(double dt);
 
       /** Cho View dùng để lấy khung va chạm/vẽ. */
     @Override
     public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
+        return new Rectangle((int)x, (int)y, width, height);
     }
 
     /**

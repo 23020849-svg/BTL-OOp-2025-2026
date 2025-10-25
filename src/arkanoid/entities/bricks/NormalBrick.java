@@ -18,7 +18,7 @@ public class NormalBrick extends Brick {
     }
 
     @Override
-    public void update() {
+    public void update(double dt) {
         // Gạch không có hành vi động, không tự thay đổi theo thời gian
         // → Không cần xử lý gì trong mỗi khung hình (frame)
     }

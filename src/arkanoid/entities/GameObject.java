@@ -12,7 +12,7 @@ import java.awt.Rectangle;
 // Đây là lớp nền (superclass) cho mọi đối tượng trong game Arkanoid:
 // ví dụ như Ball, Paddle, Brick, PowerUp, v.v.
 public abstract class GameObject {
-    protected int x, y;           // Tọa độ (x, y) — góc trên bên trái của đối tượng
+    protected double x, y;           // Tọa độ (x, y) — góc trên bên trái của đối tượng
     protected int width, height;  // Kích thước chiều rộng và chiều cao
 
     // ======= Constructor =======
@@ -28,7 +28,7 @@ public abstract class GameObject {
      * Cập nhật trạng thái logic của đối tượng (được gọi mỗi frame/tick).
      * Mỗi lớp con sẽ tự định nghĩa lại cách cập nhật riêng (vd: Ball di chuyển, PowerUp rơi xuống...).
      */
-    public abstract void update();
+    public abstract void update(double dt);
 
     /**
      * Vẽ đối tượng lên màn hình thông qua đối tượng Graphics.
@@ -38,15 +38,15 @@ public abstract class GameObject {
     // ======= Hỗ trợ kiểm tra va chạm =======
     public Rectangle getBounds() {
         // Trả về hình chữ nhật bao quanh đối tượng, dùng trong xử lý va chạm.
-        return new Rectangle(x, y, width, height);
+        return new Rectangle((int) x, (int) y, width, height);
     }
 
     // ======= Getter/Setter tiện lợi =======
-    public int getX() { return x; }          // Lấy tọa độ x
-    public int getY() { return y; }          // Lấy tọa độ y
+    public double getX() { return x; }          // Lấy tọa độ x
+    public double getY() { return y; }          // Lấy tọa độ y
     public int getWidth() { return width; }  // Lấy chiều rộng
     public int getHeight() { return height; }// Lấy chiều cao
 
-    public void setX(int x) { this.x = x; }  // Đặt lại tọa độ x
-    public void setY(int y) { this.y = y; }  // Đặt lại tọa độ y
+    public void setX(double x) { this.x = x; }  // Đặt lại tọa độ x
+    public void setY(double y) { this.y = y; }  // Đặt lại tọa độ y
 }

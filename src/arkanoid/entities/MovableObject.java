@@ -22,16 +22,15 @@ public abstract class MovableObject extends GameObject {
      * Thực hiện di chuyển dựa trên dx, dy
      * (tức là thay đổi tọa độ x, y mỗi frame theo vận tốc hiện tại).
      */
-    public void move() {
-        // Cộng dx, dy vào vị trí hiện tại (làm tròn sang int để phù hợp với pixel)
-        x += (int) Math.round(dx);
-        y += (int) Math.round(dy);
+    public void move(double dt) {
+        x += dx * dt;
+        y += dy * dt;
     }
 
     // ======= Hai phương thức trừu tượng =======
     // Bắt buộc lớp con (như Ball, Paddle) phải tự định nghĩa cách cập nhật logic và vẽ hình.
     @Override
-    public abstract void update(); // Cập nhật logic (vị trí, trạng thái, va chạm, v.v.)
+    public abstract void update(double dt); // Cập nhật logic (vị trí, trạng thái, va chạm, v.v.)
 
 
     // ======= Getter / Setter =======
