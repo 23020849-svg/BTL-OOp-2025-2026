@@ -14,9 +14,13 @@ import arkanoid.entities.powerups.FastBallPowerUp;
 import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
 
+import javax.swing.*;
+
 public class Renderer {
 
-    
+    private arkanoid.view.expandpaddle ex =  new arkanoid.view.expandpaddle();
+    private arkanoid.view.extraball exball = new arkanoid.view.extraball();
+    private arkanoid.view.fasst fast = new arkanoid.view.fasst();
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
                      Paddle paddle,
@@ -120,24 +124,24 @@ public class Renderer {
         Rectangle r = p.getBounds();
 
         if (p instanceof ExpandPaddlePowerUp) {
-            // Power-up mở rộng paddle: oval xanh lá + viền xám
-             g2.setColor(Color.CYAN);
-            g2.fillOval(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.PINK);
-            g2.drawOval(r.x, r.y, r.width, r.height);
+            ImageIcon gif = ex.getGifIcon();
+            if (gif != null) {
+                Image img = gif.getImage();
+                g2.drawImage(img, r.x, r.y, 100, 60, null);
+            }
 
         } else if (p instanceof FastBallPowerUp) {
-            // Power-up tăng tốc bóng: oval xanh ngọc + viền xám
-            g2.setColor(Color.CYAN);
-            g2.fillOval(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.BLUE);
-            g2.drawOval(r.x, r.y, r.width, r.height);
+            ImageIcon gif = fast.getGifIcon();
+            if (gif != null) {
+                Image img = gif.getImage();
+                g2.drawImage(img, r.x, r.y, 100, 60, null);
+            }
         } else if (p instanceof MultiBallPowerUp) {
-            // Power-up Multi-Ball: oval màu vàng = viền xám
-            g2.setColor(Color.YELLOW);
-            g2.fillOval(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.DARK_GRAY);
-            g2.drawOval(r.x, r.y, r.width, r.height);
+                ImageIcon gif = exball.getGifIcon();
+                if (gif != null) {
+                    Image img = gif.getImage();
+                    g2.drawImage(img, r.x, r.y, 100, 60, null);
+                }
         } else {
             // Mặc định: hình chữ nhật vàng + viền xám
             g2.setColor(Color.YELLOW);

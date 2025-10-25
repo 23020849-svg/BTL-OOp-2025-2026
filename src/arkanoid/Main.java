@@ -3,8 +3,14 @@ package arkanoid; // Đặt class trong package arkanoid
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+
 import arkanoid.core.MenuManager;
 
 // ======= Lớp Main =======
