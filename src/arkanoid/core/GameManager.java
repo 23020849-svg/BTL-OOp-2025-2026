@@ -67,7 +67,7 @@ public class GameManager extends JPanel implements ActionListener {
        // setBackground(Color.BLACK); // Màu nền
         setFocusable(true); // Cho phép nhận phím
         collisionSound = new Sound();
-        collisionSound.loadSound("391658__jeckkech__collision.wav");
+        collisionSound.loadSound("/391658__jeckkech__collision.wav");
 
         initGame(); // Khởi tạo các đối tượng game
         initKeyBindings(); // Gán phím điều khiển
