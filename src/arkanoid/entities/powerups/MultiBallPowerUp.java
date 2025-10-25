@@ -1,4 +1,8 @@
+package arkanoid.entities.powerups;
 
+import arkanoid.entities.Paddle;
+import arkanoid.entities.Ball;
+import arkanoid.core.GameManager;
 
 /**
  * MultiBallPowerUp.java

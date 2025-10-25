@@ -1,4 +1,4 @@
-// Đặt class trong package arkanoid
+package arkanoid.entities; // Đặt class trong package arkanoid.entities
 
 /**
  * MovableObject.java

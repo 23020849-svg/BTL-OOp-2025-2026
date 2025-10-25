@@ -1,9 +1,18 @@
-
+package arkanoid.view;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
+
+import arkanoid.core.GameManager;
+import arkanoid.entities.Ball;
+import arkanoid.entities.Paddle;
+import arkanoid.entities.bricks.Brick;
+import arkanoid.entities.powerups.ExpandPaddlePowerUp;
+import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.MultiBallPowerUp;
+import arkanoid.entities.powerups.PowerUp;
 
 public class Renderer {
 

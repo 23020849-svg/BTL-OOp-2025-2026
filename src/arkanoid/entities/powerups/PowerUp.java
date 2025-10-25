@@ -1,4 +1,9 @@
- // Nằm trong package arkanoid
+package arkanoid.entities.powerups; // Nằm trong package arkanoid.entities.powerups
+
+import arkanoid.entities.GameObject;
+import arkanoid.core.GameManager;
+import arkanoid.entities.Paddle;
+import arkanoid.entities.Ball;
 
 /**
  * PowerUp.java

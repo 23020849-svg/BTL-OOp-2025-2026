@@ -1,9 +1,10 @@
-
+package arkanoid.core;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
+import arkanoid.view.MenuRenderer;
 
 /**
  * MenuManager.java

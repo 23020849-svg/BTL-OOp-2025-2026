@@ -1,6 +1,8 @@
- // Đặt class trong package arkanoid
+package arkanoid.entities.powerups; // Đặt class trong package arkanoid.entities.powerups
 
-
+import arkanoid.entities.Paddle;
+import arkanoid.entities.Ball;
+import arkanoid.core.GameManager;
 /**
  * ExpandPaddlePowerUp.java
  *

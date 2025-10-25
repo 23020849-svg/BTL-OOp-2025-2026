@@ -1,4 +1,4 @@
- // Đặt lớp Brick trong package arkanoid
+package arkanoid.entities.bricks; // Đặt lớp Brick trong package arkanoid.entities.bricks
 
 /**
  * Brick.java
@@ -6,6 +6,7 @@
  * Lớp cơ sở cho các gạch. Có hitPoints và trạng thái destroyed.
  */
 import java.awt.Rectangle;
+import arkanoid.entities.GameObject;
 
 // ======= Lớp trừu tượng Brick =======
 // Kế thừa GameObject, cung cấp thuộc tính và hành vi chung cho các loại gạch (NormalBrick, StrongBrick, v.v.)

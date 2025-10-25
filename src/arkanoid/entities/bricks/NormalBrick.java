@@ -1,4 +1,4 @@
-
+package arkanoid.entities.bricks;
 /**
  * NormalBrick.java
  *

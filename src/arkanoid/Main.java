@@ -1,10 +1,11 @@
-// Đặt class trong package arkanoid
+package arkanoid; // Đặt class trong package arkanoid
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 import javax.swing.*;
 import javax.swing.border.Border;
+import arkanoid.core.MenuManager;
 
 // ======= Lớp Main =======
 // Đây là điểm khởi đầu (entry point) của toàn bộ chương trình Arkanoid.

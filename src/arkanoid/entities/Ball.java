@@ -1,4 +1,4 @@
-// Đặt class trong package arkanoid
+package arkanoid.entities; // Đặt class trong package arkanoid.entities
 
 /**
  * Ball.java
@@ -7,6 +7,7 @@
  */
 import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
+import arkanoid.core.GameManager;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
