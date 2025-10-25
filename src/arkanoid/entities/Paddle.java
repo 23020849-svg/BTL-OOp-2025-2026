@@ -1,4 +1,6 @@
-// Đặt class trong package arkanoid
+package arkanoid.entities; // Đặt class trong package arkanoid
+
+import arkanoid.core.GameManager;
 
 /**
  * Paddle.java

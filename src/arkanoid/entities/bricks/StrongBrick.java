@@ -1,4 +1,4 @@
-// Nằm trong package arkanoid
+package arkanoid.entities.bricks; // Nằm trong package arkanoid.entities.bricks
 
 /**
  * StrongBrick.java

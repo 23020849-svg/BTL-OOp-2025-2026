@@ -1,8 +1,9 @@
-import javax.swing.JPanel;
-import javax.swing.JLabel;
+package arkanoid.view;
+import java.awt.Dimension;
+
 import javax.swing.ImageIcon;
-import javax.swing.SwingConstants;
-import java.awt.Dimension; 
+import javax.swing.JLabel;
+import javax.swing.JPanel; 
 
 public class fasst extends JPanel {
     private ImageIcon gifIcon; // Biến instance

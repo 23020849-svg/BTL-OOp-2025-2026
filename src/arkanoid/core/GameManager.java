@@ -1,4 +1,4 @@
- // Đặt class trong package "arkanoid"
+package arkanoid.core; // Đặt class trong package arkanoid.core
 
 /**
  * GameManager.java
@@ -13,6 +13,17 @@ import java.util.ArrayList; // Giao diện cho xử lý timer
 import java.util.Iterator;
 import java.util.Random;
 import javax.swing.*;
+
+import arkanoid.entities.Ball;
+import arkanoid.entities.Paddle;
+import arkanoid.entities.bricks.Brick;
+import arkanoid.entities.powerups.ExpandPaddlePowerUp;
+import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.MultiBallPowerUp;
+import arkanoid.entities.powerups.PowerUp;
+import arkanoid.utils.LevelLoader;
+import arkanoid.utils.Sound;
+import arkanoid.view.Renderer;
 
 // Lớp GameManager kế thừa JPanel (để vẽ game) và implements ActionListener (để cập nhật mỗi frame)
 public class GameManager extends JPanel implements ActionListener {
@@ -56,7 +67,7 @@ public class GameManager extends JPanel implements ActionListener {
        // setBackground(Color.BLACK); // Màu nền
         setFocusable(true); // Cho phép nhận phím
         collisionSound = new Sound();
-        collisionSound.loadSound("rsc/391658__jeckkech__collision.wav");
+        collisionSound.loadSound("391658__jeckkech__collision.wav");
 
         initGame(); // Khởi tạo các đối tượng game
         initKeyBindings(); // Gán phím điều khiển

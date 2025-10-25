@@ -1,35 +1,26 @@
+package arkanoid.view;
 
-
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.LinearGradientPaint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import static javax.imageio.ImageIO.read;
+import arkanoid.core.GameManager;
+import arkanoid.entities.Ball;
+import arkanoid.entities.Paddle;
+import arkanoid.entities.bricks.Brick;
+import arkanoid.entities.powerups.ExpandPaddlePowerUp;
+import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.MultiBallPowerUp;
+import arkanoid.entities.powerups.PowerUp;
+
+import javax.swing.*;
 
 public class Renderer {
 
-	public final expandpaddle ex = new expandpaddle();
-	public final fasst fastPanel = new fasst();
-	public final extraball exball = new extraball();
-
+    private arkanoid.view.expandpaddle ex =  new arkanoid.view.expandpaddle();
+    private arkanoid.view.extraball exball = new arkanoid.view.extraball();
+    private arkanoid.view.fasst fast = new arkanoid.view.fasst();
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
                      Paddle paddle,
@@ -129,25 +120,28 @@ public class Renderer {
         if (powerUps != null) {
     for (PowerUp p : powerUps) {
         if (p == null || !p.isActive()) continue;
+
         Rectangle r = p.getBounds();
-           if (p instanceof ExpandPaddlePowerUp) {
-        	   ImageIcon gif = ex.getGifIcon();
-       	    if (gif != null) {
-       	        Image img = gif.getImage();
-       	        g2.drawImage(img, r.x, r.y,100,60 , null);
-       	    }
+
+        if (p instanceof ExpandPaddlePowerUp) {
+            ImageIcon gif = ex.getGifIcon();
+            if (gif != null) {
+                Image img = gif.getImage();
+                g2.drawImage(img, r.x, r.y, 100, 60, null);
+            }
+
         } else if (p instanceof FastBallPowerUp) {
-        	 ImageIcon gif = fastPanel.getGifIcon();
-        	    if (gif != null) {
-        	        Image img = gif.getImage();
-        	        g2.drawImage(img, r.x, r.y,100,60 , null);
-        	    }
+            ImageIcon gif = fast.getGifIcon();
+            if (gif != null) {
+                Image img = gif.getImage();
+                g2.drawImage(img, r.x, r.y, 100, 60, null);
+            }
         } else if (p instanceof MultiBallPowerUp) {
-        	 ImageIcon gif = exball.getGifIcon();
-        	    if (gif != null) {
-        	        Image img = gif.getImage();
-        	        g2.drawImage(img, r.x, r.y,100,60 , null);
-        	    }
+                ImageIcon gif = exball.getGifIcon();
+                if (gif != null) {
+                    Image img = gif.getImage();
+                    g2.drawImage(img, r.x, r.y, 100, 60, null);
+                }
         } else {
             // Mặc định: hình chữ nhật vàng + viền xám
             g2.setColor(Color.YELLOW);
@@ -239,7 +233,44 @@ public class Renderer {
         return Color.ORANGE;
     }
 
+    //hình bao ngoài của power up
 
+    // hình bao ngoài của power up
+private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arrowFrame) {
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    // vỏ
+    Shape outer = new RoundRectangle2D.Float(x, y, w, h, h, h);
+    LinearGradientPaint metal = new LinearGradientPaint(
+        x, y, x, y + h,
+        new float[]{0f, 1f},
+        new Color[]{new Color(255,255,255,200), new Color(200,200,200,50)}
+    );
+    g2.setPaint(metal);
+    g2.fill(outer);
+
+    // ô bên trong
+    int pad = 6;
+    int iw = w - 2*pad;
+    int ih = h - 2*pad;
+    int ix = x + pad;
+    int iy = y + pad;
+
+    Shape inner = new RoundRectangle2D.Float(ix, iy, iw, ih, ih, ih);
+    g2.setColor(new Color(20,20,22));
+    g2.fill(inner);
+
+    // mũi tên
+    int imgW = arrowFrame.getWidth(null);
+    int imgH = arrowFrame.getHeight(null);
+
+    Shape oldClip = g2.getClip();
+    //g2.setClip(inner);
+    if (imgW > 0 && imgH > 0) {
+        g2.drawImage(arrowFrame, ix + (iw - imgW)/2, iy + (ih - imgH)/2, null);
+    }
+    g2.setClip(oldClip);
+}
 
     //màu neon
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
@@ -276,47 +307,6 @@ public class Renderer {
     g2.draw(rr);
 
     }
-
-    // hình bao ngoài của power up
-    private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arrowFrame) {
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        /* vỏ
-        Shape outer = new RoundRectangle2D.Float(x, y, w, h, h, h);
-        LinearGradientPaint metal = new LinearGradientPaint(
-                x, y, x, y + h,
-                new float[]{0f, 1f},
-                new Color[]{new Color(255,255,255,200), new Color(200,200,200,50)}
-        );
-        g2.setPaint(metal);
-        g2.fill(outer);
-
-         */
-
-        // ô bên trong
-        int pad = 6;
-        int iw = w - 2*pad;
-        int ih = h - 2*pad;
-        int ix = x + pad;
-        int iy = y + pad;
-
-        Shape inner = new RoundRectangle2D.Float(ix, iy, iw, ih, ih, ih);
-        g2.setColor(new Color(20,20,22));
-        g2.fill(inner);
-
-        // mũi tên
-        int imgW = arrowFrame.getWidth(null);
-        int imgH = arrowFrame.getHeight(null);
-
-        Shape oldClip = g2.getClip();
-        g2.setClip(inner);
-        if (imgW > 0 && imgH > 0) {
-            g2.drawImage(arrowFrame, ix + (iw - imgW)/2, iy + (ih - imgH)/2, null);
-        }
-        g2.setClip(oldClip);
-    }
-
-
 
 
 }
