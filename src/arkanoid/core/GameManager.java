@@ -8,7 +8,6 @@ package arkanoid.core; // Đặt class trong package arkanoid.core
  */
 import java.awt.*; // Thư viện Swing để vẽ giao diện và xử lý sự kiện
 import java.awt.event.ActionEvent; // Dùng cho đồ họa 2D
-import java.awt.event.ActionListener;
 import java.util.ArrayList; // Giao diện cho xử lý timer
 import java.util.Iterator;
 import java.util.Random;
@@ -26,7 +25,7 @@ import arkanoid.utils.Sound;
 import arkanoid.view.Renderer;
 
 // Lớp GameManager kế thừa JPanel (để vẽ game) và implements ActionListener (để cập nhật mỗi frame)
-public class GameManager extends JPanel implements ActionListener {
+public class GameManager extends JPanel {
 
     public static final int WIDTH = 1440; // Chiều rộng khung game
     public static final int HEIGHT = 800; // Chiều cao khung game
@@ -37,7 +36,6 @@ public class GameManager extends JPanel implements ActionListener {
     private java.util.List<Brick> bricks; // Danh sách gạch
     private java.util.List<PowerUp> powerUps; // Danh sách vật phẩm rơi
     private Renderer renderer; // Lớp phụ để vẽ
-    private Timer timer; // Bộ đếm thời gian cho game loop (~60 FPS)
     private Random rand = new Random(); // Sinh ngẫu nhiên vật phẩm
 
     private LevelLoader levelLoader;
@@ -73,8 +71,6 @@ public class GameManager extends JPanel implements ActionListener {
         initKeyBindings(); // Gán phím điều khiển
 
         renderer = new Renderer(); // Tạo renderer để vẽ
-        timer = new Timer(16, this); // Cập nhật game mỗi 16ms (~60 FPS)
-        timer.start(); // Bắt đầu vòng lặp game
     }
 
     /** Reset game */
@@ -221,24 +217,16 @@ public class GameManager extends JPanel implements ActionListener {
         }
     }
 
-    /** Hàm loop cập nhật game */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (!running) return; // Nếu game chưa chạy thì bỏ qua
+    public void updateGame(double dt) {
+        if (!running || paused) return;
 
-        // Khi game đang bị pause, không cập nhật logic
-        if (paused) {
-            repaint();
-            return;
-        }
-
-        paddle.update();
+        paddle.update(dt); // Truyền dt
 
         // Cập nhật và kiểm tra va chạm power-up
         Iterator<PowerUp> pit = powerUps.iterator();
         while (pit.hasNext()) {
             PowerUp p = pit.next();
-            p.update(); // Power-up rơi xuống
+            p.update(dt); // Power-up rơi xuống
             if (!p.isActive()) {
                 pit.remove(); // Xóa nếu hết tác dụng
             }
@@ -265,16 +253,15 @@ public class GameManager extends JPanel implements ActionListener {
         Iterator<Ball> ballIterator = balls.iterator();
         while (ballIterator.hasNext()) {
             Ball currentBall = ballIterator.next();
-
             if (ballLaunched) {
-                currentBall.update();
+                currentBall.update(dt);
             }
 
             // Va chạm bóng và paddle
             if (currentBall.getBounds().intersects(paddle.getBounds())) {
                 collisionSound.playOnce(); // Phát âm thanh va chạm
-                int paddleCenter = paddle.getX() + paddle.getWidth() / 2;
-                int ballCenter = currentBall.getX() + currentBall.getWidth() / 2;
+                int paddleCenter = (int)paddle.getX() + paddle.getWidth() / 2;
+                int ballCenter = (int)currentBall.getX() + currentBall.getWidth() / 2;
                 int diff = ballCenter - paddleCenter; // Lệch giữa tâm bóng và paddle
                 double factor = diff / (double) (paddle.getWidth() / 2);
                 double speed = Math.sqrt(currentBall.getDx() * currentBall.getDx() + currentBall.getDy() * currentBall.getDy());
@@ -302,7 +289,7 @@ public class GameManager extends JPanel implements ActionListener {
 
                         // Xác suất rơi power-up tùy theo từng loại gạch
                         if (rand.nextDouble() < brick.getPowerUpDropChance()) {
-                            spawnRandomPowerUp(brick.getX() + brick.getWidth() / 2, brick.getY() + brick.getHeight());
+                            spawnRandomPowerUp((int)(brick.getX() + brick.getWidth() / 2), (int)brick.getY() + brick.getHeight());
                         }
                     }
 
@@ -432,12 +419,12 @@ public class GameManager extends JPanel implements ActionListener {
 
         // Lấy quả bóng đầu tiên làm gốc
         Ball originalBall = balls.get(0);
-        int x = originalBall.getX();
-        int y = originalBall.getY();
+        double x = originalBall.getX();
+        double y = originalBall.getY();
         double speed = Math.sqrt(originalBall.getDx() * originalBall.getDx() + originalBall.getDy() * originalBall.getDy());
 
         // Tạo 1 quả bóng mới với góc lệch
-        Ball ball2 = new Ball(x, y, 8, 0, 0);
+        Ball ball2 = new Ball((int)x, (int)y, 8, 0, 0);
         ball2.setDx(speed * Math.cos(Math.toRadians(90))); // Hướng 90 độ
         ball2.setDy(-speed * Math.sin(Math.toRadians(90)));
 

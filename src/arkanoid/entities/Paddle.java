@@ -12,7 +12,7 @@ import arkanoid.core.GameManager;
 // Có thể mở rộng tạm thời khi nhận power-up.
 public class Paddle extends MovableObject {
 
-    private int speed = 7;             // Tốc độ di chuyển ngang
+    private double speed = 420.0;             // Tốc độ di chuyển ngang
     private int defaultWidth;          // Chiều rộng ban đầu của paddle
     private long expandEndTime = 0;    // Thời điểm kết thúc hiệu ứng mở rộng (ms, dùng System.currentTimeMillis)
 
@@ -37,10 +37,10 @@ public class Paddle extends MovableObject {
     }
 
     @Override
-    public void update() {
+    public void update(double dt) {
         // Di chuyển mượt
-        if (movingLeft) x -= speed;
-        if (movingRight) x += speed;
+        if (movingLeft) x -= speed * dt;
+        if (movingRight) x += speed * dt;
 
         // ======= 1. Giữ paddle trong giới hạn màn hình =======
         // Nếu paddle chạm biên trái → đưa về 0
@@ -89,7 +89,7 @@ public class Paddle extends MovableObject {
     }
 
     // ======= Getter/Setter =======
-    public int getSpeed() { return speed; }        // Lấy tốc độ hiện tại
+    public double getSpeed() { return speed; }        // Lấy tốc độ hiện tại
     public void setSpeed(int speed) { this.speed = speed; } // Đặt tốc độ mới
     
     // Lấy thời gian còn lại của hiệu ứng mở rộng (tính bằng giây)

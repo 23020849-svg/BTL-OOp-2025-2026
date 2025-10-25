@@ -23,7 +23,7 @@ public class StrongBrick extends Brick {
     }
 
     @Override
-    public void update() {
+    public void update(double dt) {
         // Gạch không di chuyển hoặc thay đổi theo thời gian,
         // nên không cần logic cập nhật mỗi khung hình.
     }

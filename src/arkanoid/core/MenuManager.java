@@ -261,14 +261,18 @@ public class MenuManager extends JPanel implements ActionListener {
         currentState = MenuState.GAME_OVER;
     }
     
+    private long lastUpdateTime = System.currentTimeMillis();
+
     @Override
     public void actionPerformed(ActionEvent e) {
+        // Tính Delta Time
+        long currentTime = System.currentTimeMillis();
+        double deltaTime = (currentTime - lastUpdateTime) / 1000.0; // Đổi sang giây
+        lastUpdateTime = currentTime; // Lưu lại thời gian cho các lần lặp sau
+
         if (currentState == MenuState.GAME) {
-            gameManager.actionPerformed(e);
-            // Check if game is over
-            if (!gameManager.isRunning() && gameManager.getLives() <= 0) {
-                gameOver();
-            }
+            // Truyền deltaTime vào GameManager
+            gameManager.updateGame(deltaTime);
         } else if (currentState == MenuState.PAUSED) {
             // Don't update game when paused, just repaint
         }

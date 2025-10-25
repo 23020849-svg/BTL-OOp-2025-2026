@@ -38,7 +38,7 @@ public class UnbreakableBrick extends Brick {
      * Phương thức update() cũng cần được định nghĩa.
      */
     @Override
-    public void update() {
+    public void update(double dt) {
         // Để trống, vì gạch này không di chuyển hay thay đổi.
     }
 }

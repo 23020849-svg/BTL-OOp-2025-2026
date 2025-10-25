@@ -191,8 +191,8 @@ public class Renderer {
 
             g2.setColor(Color.RED);
             double rad = Math.toRadians(launchAngle);
-            int cx = firstBall.getX() + firstBall.getWidth() /2;
-            int cy = firstBall.getY() + firstBall.getHeight() / 2;
+            int cx = (int)firstBall.getX() + firstBall.getWidth() /2;
+            int cy = (int)firstBall.getY() + firstBall.getHeight() / 2;
             int lineLength = 60;
             int endX = (int) (cx + lineLength * Math.cos(rad));
             int endY = (int) (cy + lineLength * Math.sin(rad));
