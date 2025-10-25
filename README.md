@@ -1,4 +1,5 @@
-<img width="1805" height="1192" alt="UMLdiagram" src="https://github.com/user-attachments/assets/5bf476eb-26d0-43d5-9eab-a963bab32ff8" />
+<img width="1918" height="1398" alt="UML drawio (1)" src="https://github.com/user-attachments/assets/e19ea650-f0cf-4eb1-a875-94acd2f31033" />
+
 
 
 
