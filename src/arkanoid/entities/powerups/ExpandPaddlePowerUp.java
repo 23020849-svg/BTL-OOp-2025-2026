@@ -1,8 +1,9 @@
 package arkanoid.entities.powerups; // Đặt class trong package arkanoid.entities.powerups
 
-import arkanoid.entities.Paddle;
-import arkanoid.entities.Ball;
 import arkanoid.core.GameManager;
+import arkanoid.entities.Ball;
+import arkanoid.entities.Paddle;
+import arkanoid.utils.Sound;
 /**
  * ExpandPaddlePowerUp.java
  *
@@ -24,6 +25,9 @@ public class ExpandPaddlePowerUp extends PowerUp {
     // ======= Khi paddle hứng được power-up =======
     @Override
     public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
+        Sound powerUpSound = new Sound();
+        powerUpSound.loadSound("/powerup.wav");
+        powerUpSound.playOnce();
         // Luôn reset thời gian về 10 giây khi nhặt PowerUp (không cộng dồn)
         paddle.applyExpand(extraPixels, durationMillis);
         deactivate(); // Sau khi kích hoạt → tắt power-up (không hoạt động nữa)
