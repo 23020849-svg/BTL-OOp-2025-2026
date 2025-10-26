@@ -13,13 +13,16 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.ImageIcon;
+import java.awt.Image;
 
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.MenuRenderer;
 
 import java.awt.Toolkit;
-import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 
