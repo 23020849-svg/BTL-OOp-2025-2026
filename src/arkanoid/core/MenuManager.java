@@ -9,6 +9,11 @@ import javax.swing.*;
 import arkanoid.view.MenuRenderer;
 import arkanoid.utils.Sound;
 
+import java.awt.Toolkit;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+
 /**
  * MenuManager.java
  * 
@@ -39,6 +44,12 @@ public class MenuManager extends JPanel implements ActionListener {
     private GameManager gameManager;
     private Timer timer;
     private Sound selectingSound; // Âm thanh khi chọn menu
+
+    // Biến để quản lý fullscreen
+    private JFrame mainFrame;
+    private JLabel backgroundLabel;
+    private Image originalBackgroundImg;
+    private boolean isFullScreen = true;
     
     // Menu options
     private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Exit"};
@@ -54,7 +65,10 @@ public class MenuManager extends JPanel implements ActionListener {
     private long countdownStartTime;
     private static final long COUNTDOWN_DURATION = 1000; // 1 second per count
     
-    public MenuManager() {
+    public MenuManager(JFrame frame, JLabel background, Image originalImg) {
+        this.mainFrame = frame;
+        this.backgroundLabel = background;
+        this.originalBackgroundImg = originalImg;
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
         setOpaque(false);
@@ -71,6 +85,47 @@ public class MenuManager extends JPanel implements ActionListener {
         
         timer = new Timer(16, this);
         timer.start();
+    }
+
+    /**
+     * Bật/tắt chế độ toàn màn hình
+     */
+    private void toggleFullScreen() {
+        isFullScreen = !isFullScreen; // Đảo trạng thái
+        mainFrame.dispose(); // Hủy cửa sổ hiện tại để thay đổi thuộc tính
+
+        if (isFullScreen) {
+            // Chuyển sang fullscreen
+            
+            // Lấy kích thước màn hình và scale ảnh nền
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            Image scaled = originalBackgroundImg.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
+            backgroundLabel.setIcon(new ImageIcon(scaled));
+            backgroundLabel.setLayout(new GridBagLayout());
+
+            // Đặt lại ContentPane là cái background
+            mainFrame.setContentPane(backgroundLabel);
+            // Thêm game (this) vào giữa background
+            backgroundLabel.add(this, new GridBagConstraints());
+            
+            // Đặt lại chế độ full màn hình
+            mainFrame.setUndecorated(true);
+            mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        } else {
+            // Chuyển qua cửa sổ
+            mainFrame.setContentPane(this);
+
+            mainFrame.setUndecorated(false);
+            mainFrame.setExtendedState(JFrame.NORMAL);
+
+            mainFrame.pack();
+            
+            mainFrame.setLocationRelativeTo(null);
+        }
+
+        mainFrame.setVisible(true);
+
+        requestFocusInWindow();
     }
     
     private void initKeyBindings() {
@@ -208,6 +263,15 @@ public class MenuManager extends JPanel implements ActionListener {
                 if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
                     gameManager.adjustLaunchAngle(5);
                 }
+            }
+        });
+
+        // Phím F11 để bật/tắt toàn màn hình
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F11"), "toggle_fullscreen");
+        getActionMap().put("toggle_fullscreen", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                toggleFullScreen();
             }
         });
     }

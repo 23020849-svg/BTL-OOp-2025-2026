@@ -55,7 +55,7 @@ public class Main {
             frame.setContentPane(background);
 
             // ======= 4. Thêm Game vào giữa màn hình =======
-            MenuManager menu = new MenuManager();
+            MenuManager menu = new MenuManager(frame, background, img);
 
             //Thêm panel game vào giữa
             background.add(menu, new GridBagConstraints());
