@@ -14,7 +14,8 @@ public class expandpaddle extends JPanel {
         JLabel lblNewLabel = new JLabel("");
 
         
-        this.gif = new ImageIcon("C:\\Users\\Admin\\Desktop\\BTL\\rsc\\extra.gif");
+        this.gif = new ImageIcon(getClass().getResource("/extra.gif"));
+        lblNewLabel.setIcon(gif);
 
       
         lblNewLabel.setPreferredSize(new Dimension(100, 60));

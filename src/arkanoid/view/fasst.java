@@ -14,7 +14,8 @@ public class fasst extends JPanel {
         JLabel lblNewLabel = new JLabel("");
 
         
-        this.gifIcon = new ImageIcon("C:\\Users\\Admin\\Desktop\\BTL\\rsc\\fast.gif");
+        this.gifIcon = new ImageIcon(getClass().getResource("/fast.gif"));
+        lblNewLabel.setIcon(gifIcon);
 
        
         

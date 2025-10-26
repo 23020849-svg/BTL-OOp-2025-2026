@@ -13,9 +13,8 @@ public class extraball extends JPanel {
     public  extraball() {
         JLabel lblNewLabel = new JLabel("");
 
-        
-        this.gif = new ImageIcon("C:\\Users\\Admin\\Desktop\\BTL\\rsc\\extraball.gif");
-
+      this.gif = new ImageIcon(getClass().getResource("/extraball.gif"));
+      lblNewLabel.setIcon(gif);
       
         lblNewLabel.setPreferredSize(new Dimension(100, 60));
 
