@@ -6,12 +6,18 @@ package arkanoid.core; // Đặt class trong package arkanoid.core
  * Quản lý toàn bộ logic game Arkanoid: paddle, ball, bricks, power-ups,
  * xử lý va chạm, điểm, mạng, cập nhật trạng thái và vẽ khung hình.
  */
-import java.awt.*; // Thư viện Swing để vẽ giao diện và xử lý sự kiện
-import java.awt.event.ActionEvent; // Dùng cho đồ họa 2D
-import java.util.ArrayList; // Giao diện cho xử lý timer
+import java.awt.Dimension; // Thư viện Swing để vẽ giao diện và xử lý sự kiện
+import java.awt.Graphics; // Dùng cho đồ họa 2D
+import java.awt.event.ActionEvent; // Giao diện cho xử lý timer
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import arkanoid.entities.Ball;
 import arkanoid.entities.Paddle;
@@ -29,6 +35,9 @@ public class GameManager extends JPanel {
 
     public static final int WIDTH = 1440; // Chiều rộng khung game
     public static final int HEIGHT = 800; // Chiều cao khung game
+    private static final double BALL_SCALE = 2.5; // phóng to khi vẽ
+    private static final int VISUAL_GAP = 6;      // khoảng hở giữa bóng (đã scale) và paddle
+
 
     // Các thành phần chính của game
     private Paddle paddle; // Thanh đỡ (người chơi điều khiển)
@@ -214,8 +223,34 @@ public class GameManager extends JPanel {
     public void alignBallToPaddle() {
         if (balls.size() == 1) {
             Ball ball = balls.get(0);
-            ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
-            ball.setY(paddle.getY() - ball.getHeight() - 2);
+
+    // Tâm paddle
+    int px = (int) paddle.getX();
+    int py = (int) paddle.getY();
+    int pw = paddle.getWidth();
+    int ph = paddle.getHeight();
+    int pcx = px + pw / 2;
+    int ptop = py;
+
+    // Kích thước logic của bóng
+    int bw = ball.getWidth();
+    int bh = ball.getHeight();
+    int rLogic = Math.min(bw, bh) / 2;
+
+    // Bán kính dùng để VẼ (2.5×)
+    int rDraw = (int) Math.round(rLogic * BALL_SCALE);
+
+    // ---- Canh tâm X đúng giữa paddle (không phụ thuộc scale) ----
+    double ballX = pcx - bw / 2.0;
+
+    // ---- Canh Y để đáy BÓNG VẼ cách mặt trên paddle VISUAL_GAP px ----
+    // cy_draw = ptop - VISUAL_GAP - rDraw
+    // ballY  = cy_draw - bh/2  (vì setY dùng góc trên-trái theo kích thước logic bh)
+    double cy_draw = ptop - VISUAL_GAP - rDraw;
+    double ballY = cy_draw + 15 - bh / 2.0;
+
+    ball.setX(ballX);
+    ball.setY(ballY);
         }
     }
 

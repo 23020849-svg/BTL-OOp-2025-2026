@@ -33,7 +33,7 @@ public class Main {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thoát chương trình khi đóng cửa sổ
             frame.setResizable(false); // Không cho phép thay đổi kích thước cửa sổ
             // add image
-            ImageIcon icon = new ImageIcon("rsc/background.jpg");
+            ImageIcon icon = new ImageIcon("rsc/testbg.jpg");
             // border
             Border border = BorderFactory.createLineBorder(Color.blue,2);
 
