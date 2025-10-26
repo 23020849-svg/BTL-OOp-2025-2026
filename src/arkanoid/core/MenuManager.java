@@ -1,13 +1,22 @@
 package arkanoid.core;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.*;
-import arkanoid.view.MenuRenderer;
+
+import javax.swing.AbstractAction;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
 import arkanoid.utils.Sound;
+import arkanoid.view.LeaderboardDialog;
+import arkanoid.view.MenuRenderer;
 
 import java.awt.Toolkit;
 import java.awt.Dimension;
@@ -52,7 +61,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private boolean isFullScreen = true;
     
     // Menu options
-    private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Exit"};
+    private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Leaderboard","Exit"};
     private int selectedOption = 0;
     
     // Settings
@@ -380,7 +389,13 @@ public class MenuManager extends JPanel implements ActionListener {
                     case 2: // Instructions
                         currentState = MenuState.INSTRUCTIONS;
                         break;
-                    case 3: // Exit
+
+                    //Leaderboard
+                    case 3: 
+                    showLeaderboard();
+                    break;
+
+                    case 4: // Exit
                         System.exit(0);
                         break;
                 }
@@ -431,6 +446,19 @@ public class MenuManager extends JPanel implements ActionListener {
         // Make sure MenuManager keeps focus but forwards input to game
         setFocusable(true);
         requestFocusInWindow();
+    }
+
+    private void showLeaderboard() {
+        // Tạm dừng game loop
+    timer.stop();
+
+    Window parent = SwingUtilities.getWindowAncestor(this);
+    // Hiển thị Top 10 (tùy bạn chỉnh)
+    LeaderboardDialog.showTop(parent, 10);
+
+    // Khôi phục
+    timer.start();
+    requestFocusInWindow();
     }
     
     public void gameOver() {

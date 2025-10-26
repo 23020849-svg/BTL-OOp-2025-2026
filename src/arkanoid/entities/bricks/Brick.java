@@ -6,6 +6,7 @@ package arkanoid.entities.bricks; // Đặt lớp Brick trong package arkanoid.e
  * Lớp cơ sở cho các gạch. Có hitPoints và trạng thái destroyed.
  */
 import java.awt.Rectangle;
+
 import arkanoid.entities.GameObject;
 
 // ======= Lớp trừu tượng Brick =======
@@ -27,6 +28,17 @@ public abstract class Brick extends GameObject {
         if (hitPoints <= 0) destroyed = true; // Khi máu ≤ 0 → đánh dấu đã bị phá
     }
 
+      /** Đặt lại HP khi load. */
+    public void setHp(int hp) {
+        this.hitPoints = Math.max(0, hp);
+        this.destroyed = (this.hitPoints == 0);
+    }
+
+    /** Đặt trực tiếp trạng thái vỡ (tuỳ tình huống khi load). */
+    public void setDestroyed(boolean d) {
+        this.destroyed = d;
+        if (d) this.hitPoints = 0;
+    }
     // Trả về true nếu gạch đã bị phá hủy
     public boolean isDestroyed() {
         return destroyed;
@@ -50,4 +62,7 @@ public abstract class Brick extends GameObject {
      * Mỗi lớp con (NormalBrick, StrongBrick) sẽ định nghĩa tỉ lệ riêng.
      */
     public abstract double getPowerUpDropChance();
+
+  
+
 }
