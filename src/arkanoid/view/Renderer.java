@@ -32,7 +32,8 @@ public class Renderer {
                      boolean ballLaunched,
                      double launchAngle,
                      boolean paused,
-                     List<PowerUp> activePowerUps) {
+                     List<PowerUp> activePowerUps,
+                     boolean isFirstLife) {
 
         Graphics2D g2 = (Graphics2D) g;
 
@@ -171,7 +172,7 @@ public class Renderer {
 
         // Hiển thị thời gian PowerUp từ Paddle và Ball
         if (paddle.getExpandRemainingTime() > 0) {
-            g.drawString("PowerUp: ExpandPaddlePowerUp – " + paddle.getExpandRemainingTime() + "s", 10, yOffset);
+            g.drawString("PowerUp: Expand Paddle - " + paddle.getExpandRemainingTime() + "s", 10, yOffset);
             yOffset += 30;
         }
         
@@ -180,7 +181,7 @@ public class Renderer {
             // Tất cả bóng đều có cùng hiệu ứng, nê chỉ cần kiểm tra bóng đầu tiên
             int fastTime = balls.get(0).getFastRemainingTime();
             if (fastTime > 0) {
-                g.drawString("PowerUp: FastBallPowerUp - " + fastTime + "s", 10, yOffset);
+                g.drawString("PowerUp: Fast Ball - " + fastTime + "s", 10, yOffset);
                 yOffset += 30;
             }
         }
@@ -188,7 +189,8 @@ public class Renderer {
 
 
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====
-        if (!ballLaunched && !balls.isEmpty()) {
+        // Chỉ hiển thị UI ngắm nếu không phải mạng đầu tiên
+        if (!ballLaunched && !balls.isEmpty() && !isFirstLife) {
             Ball firstBall = balls.get(0);
             g2.setColor(Color.WHITE);
             g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);

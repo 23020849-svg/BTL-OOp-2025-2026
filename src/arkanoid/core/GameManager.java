@@ -48,6 +48,7 @@ public class GameManager extends JPanel {
     private boolean running = false; // Game đang chạy hay không
     private boolean ballLaunched = false; // Bóng đã bắn hay chưa
     private boolean paused = false; // Tạm dừng game
+    private boolean isFirstLife = true; // Là mạng đầu tiên
     private java.util.List<PowerUp> activePowerUps = new ArrayList<>();
 
     // Góc bắn
@@ -84,6 +85,7 @@ public class GameManager extends JPanel {
         powerUps = new ArrayList<>();  // Danh sách power-up
         running = true;                // Bắt đầu game
         ballLaunched = false;          // Chưa bắn bóng
+        isFirstLife = true;            // Reset về mạng đầu tiên
         score = 0;                     // Reset điểm
         lives = 3;                     // Reset mạng
         paused = false;                // Reset pause
@@ -209,7 +211,7 @@ public class GameManager extends JPanel {
     }
 
     /** Đặt bóng lên paddle (khi chưa bắn) */
-    private void alignBallToPaddle() {
+    public void alignBallToPaddle() {
         if (balls.size() == 1) {
             Ball ball = balls.get(0);
             ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
@@ -227,17 +229,19 @@ public class GameManager extends JPanel {
         while (pit.hasNext()) {
             PowerUp p = pit.next();
             p.update(dt); // Power-up rơi xuống
-            if (!p.isActive()) {
-                pit.remove(); // Xóa nếu hết tác dụng
-            }
+            
             // Va chạm paddle → kích hoạt hiệu ứng
-            else if (p.getBounds().intersects(paddle.getBounds())) {
+            if (p.getBounds().intersects(paddle.getBounds())) {
                 // Áp dụng hiệu ứng trực tiếp lên Paddle và Ball
                 // Dùng quả bóng đầu tiên trong danh sách
                 p.applyEffect(paddle, balls.isEmpty() ? null : balls.get(0), this);
                 p.start();
                 activePowerUps.add(p);
-                p.deactivate();// Vô hiệu hóa vật phẩm rơi
+                pit.remove(); // Xóa power-up khỏi danh sách rơi
+            }
+            // Xóa power-up nếu rơi ra ngoài màn hình hoặc hết tác dụng
+            else if (!p.isActive() || p.getY() > HEIGHT) {
+                pit.remove(); // Xóa nếu hết tác dụng hoặc rơi ra ngoài
             }
         }
         
@@ -320,6 +324,7 @@ public class GameManager extends JPanel {
             } else {
                 // Hồi sinh một quả bóng mới
                 ballLaunched = false;
+                isFirstLife = false;   // Không còn là mạng đầu tiên nữa
                 balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
                 alignBallToPaddle();
             }
@@ -363,7 +368,7 @@ public class GameManager extends JPanel {
         super.paintComponent(g);
         // Vẽ tất cả qua Renderer (kể cả overlay)
         renderer.draw(g, paddle, balls, bricks, powerUps, score, lives,
-                ballLaunched, launchAngle, paused, activePowerUps);
+                ballLaunched, launchAngle, paused, activePowerUps, isFirstLife);
     }
 
     // Getter (nếu cần)
@@ -391,7 +396,25 @@ public class GameManager extends JPanel {
         return ballLaunched;
     }
     
+    public boolean isFirstLife() {
+        return isFirstLife;
+    }
+    
     public void launchBall() {
+        if (!ballLaunched && !balls.isEmpty()) {
+            collisionSound.playOnce();
+            ballLaunched = true;
+            isFirstLife = false; // Không còn mạng đầu tiên nữa sau khi bắn
+            double speed = 6.0;
+            double rad = Math.toRadians(launchAngle);
+            Ball ball = balls.get(0); // Chỉ phóng quả bóng đầu tiên
+            ball.setDx(speed * Math.cos(rad));
+            ball.setDy(speed * Math.sin(rad));
+        }
+    }
+    
+    @Deprecated
+    public void launchBallOld() {
         if (!ballLaunched && !balls.isEmpty()) {
             collisionSound.playOnce();
             ballLaunched = true;

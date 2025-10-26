@@ -172,7 +172,7 @@ public class MenuRenderer {
     private void drawFooterInstructions(Graphics2D g2) {
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
-        String instruction = "Use ↑↓ to navigate, ENTER to select, ESC to go back";
+        String instruction = "Use ↑↓ or MOUSE to navigate, ENTER or CLICK to select, ESC to go back";
         FontMetrics fm = g2.getFontMetrics();
         int x = (WIDTH - fm.stringWidth(instruction)) / 2;
         int y = HEIGHT - 30;
@@ -251,8 +251,8 @@ public class MenuRenderer {
 
         String[] instructions = {
                 "CONTROLS:",
-                "• ← / → : Move Paddle",
-                "• SPACE : Launch Ball",
+                "• ← / → or MOUSE : Move Paddle",
+                "• SPACE or CLICK : Launch Ball",
                 "• 4 / 6 : Aim before launching",
                 "• R : Restart Game",
                 "• ESC : Pause/Resume",
@@ -317,6 +317,57 @@ public class MenuRenderer {
         x = (WIDTH - fm.stringWidth(instruction)) / 2;
         y += 60;
         g2.drawString(instruction, x, y);
+    }
+
+    /**
+     * Vẽ đếm ngược khi bắt đầu game
+     */
+    public void drawCountdown(Graphics g, int countdownValue) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Semi-transparent overlay
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // Countdown text
+        String countdownText = String.valueOf(countdownValue);
+        
+        // Sử dụng font tùy chỉnh với kích thước lớn
+        Font countdownFont = loadCustomFont(200f).deriveFont(Font.BOLD);
+        g2.setFont(countdownFont);
+        
+        FontMetrics fm = g2.getFontMetrics();
+        int x = (WIDTH - fm.stringWidth(countdownText)) / 2;
+        int y = (HEIGHT + fm.getAscent()) / 2;
+
+        // Vẽ hiệu ứng glow cho số đếm ngược
+        for (int i = 5; i >= 1; i--) {
+            float alpha = 0.1f + 0.15f * (6 - i) / 5f;
+            g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), (int)(alpha * 255)));
+            g2.setFont(countdownFont.deriveFont(200f + i * 10));
+            
+            FontMetrics glowFm = g2.getFontMetrics();
+            int glowX = (WIDTH - glowFm.stringWidth(countdownText)) / 2;
+            int glowY = (HEIGHT + glowFm.getAscent()) / 2;
+            g2.drawString(countdownText, glowX, glowY);
+        }
+
+        // Vẽ số chính
+        g2.setColor(PRIMARY_COLOR);
+        g2.setFont(countdownFont);
+        g2.drawString(countdownText, x, y);
+
+        // Vẽ text "GET READY" khi countdown = 3
+        if (countdownValue == 3) {
+            g2.setColor(TEXT_COLOR);
+            g2.setFont(new Font("Arial", Font.BOLD, 36));
+            fm = g2.getFontMetrics();
+            String readyText = "GET READY!";
+            int readyX = (WIDTH - fm.stringWidth(readyText)) / 2;
+            int readyY = y - 100;
+            g2.drawString(readyText, readyX, readyY);
+        }
     }
 
     /**
