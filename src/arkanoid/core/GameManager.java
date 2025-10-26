@@ -295,6 +295,7 @@ public class GameManager extends JPanel {
         Iterator<Ball> ballIterator = balls.iterator();
         while (ballIterator.hasNext()) {
             Ball currentBall = ballIterator.next();
+            
             if (ballLaunched) {
                 currentBall.update(dt);
             }
@@ -306,6 +307,16 @@ public class GameManager extends JPanel {
                 int ballCenter = (int)currentBall.getX() + currentBall.getWidth() / 2;
                 int diff = ballCenter - paddleCenter; // Lệch giữa tâm bóng và paddle
                 double factor = diff / (double) (paddle.getWidth() / 2);
+
+                // Giới hạn 'factor' để tránh góc nảy quá ngang (gần 0 độ).
+                // Giá trị 0.85 đảm bảo luôn có ít nhất 15% tốc độ được chuyển vào newDy.
+                final double MAX_FACTOR = 0.85;
+                if (factor > MAX_FACTOR) {
+                    factor = MAX_FACTOR;
+                } else if (factor < -MAX_FACTOR) {
+                    factor = -MAX_FACTOR;
+                }
+
                 double speed = Math.sqrt(currentBall.getDx() * currentBall.getDx() + currentBall.getDy() * currentBall.getDy());
                 double newDx = speed * factor * 1.2; // Góc lệch dựa trên vị trí va chạm
                 double newDy = -Math.abs(speed * (1 - Math.abs(factor))); // Luôn bật lên
