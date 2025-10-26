@@ -93,7 +93,7 @@ public class Renderer {
                  float alpha = (float) (i + 1) / trail.size();
 
                 int core = (int) (rDraw * (0.22 + 0.28 * alpha)); // cỡ đốm
-                g2.setColor(new Color(236, 72, 153, (int)(alpha * 80))); // hồng đậm
+                g2.setColor(new Color(255, 255, 153, (int)(alpha * 80))); // hồng đậm
                 g2.fillOval((int)pos[0] - core, (int)pos[1] - core, core * 2, core * 2);
 
     // 2 lớp halo trắng
