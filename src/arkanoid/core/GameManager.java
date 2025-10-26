@@ -295,7 +295,22 @@ public class GameManager extends JPanel {
         Iterator<Ball> ballIterator = balls.iterator();
         while (ballIterator.hasNext()) {
             Ball currentBall = ballIterator.next();
+
+            double x1 = currentBall.getX();
+            double y1 = currentBall.getY();
+            int w = currentBall.getWidth();
+            int h = currentBall.getHeight();
+
+            double x2 = x1 + currentBall.getDx() * dt;
+            double y2 = y1 + currentBall.getDy() * dt;
             
+            double minX = Math.min(x1, x2);
+            double minY = Math.min(y1, y2);
+            double maxX = Math.max(x1 + w, x2 + w);
+            double maxY = Math.max(y1 + h, y2 + h);
+
+            java.awt.Rectangle sweepRect = new java.awt.Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+
             if (ballLaunched) {
                 currentBall.update(dt);
             }
@@ -332,22 +347,24 @@ public class GameManager extends JPanel {
                 Brick brick = brickIt.next();
                 if (brick.isDestroyed()) continue;
 
-                if (currentBall.getBounds().intersects(brick.getBounds())) {
-                    collisionSound.playOnce(); // Phát âm thanh va chạm
-                    currentBall.bounceOff(brick); // Bật bóng trước để điều chỉnh vị trí
+                if (sweepRect.intersects(brick.getBounds())) {
+                    if (currentBall.getBounds().intersects(brick.getBounds())) {
+                        collisionSound.playOnce(); // Phát âm thanh va chạm
+                        currentBall.bounceOff(brick); // Bật bóng trước để điều chỉnh vị trí
 
-                    brick.takeHit(); // Trừ máu gạch
-                    if (brick.isDestroyed()) {
-                        score += 100;
+                        brick.takeHit(); // Trừ máu gạch
+                        if (brick.isDestroyed()) {
+                            score += 100;
 
-                        // Xác suất rơi power-up tùy theo từng loại gạch
-                        if (rand.nextDouble() < brick.getPowerUpDropChance()) {
-                            spawnRandomPowerUp((int)(brick.getX() + brick.getWidth() / 2), (int)brick.getY() + brick.getHeight());
+                            // Xác suất rơi power-up tùy theo từng loại gạch
+                            if (rand.nextDouble() < brick.getPowerUpDropChance()) {
+                                spawnRandomPowerUp((int)(brick.getX() + brick.getWidth() / 2), (int)brick.getY() + brick.getHeight());
+                            }
                         }
-                    }
 
-                    // Ngăn bóng va thêm các gạch khác trong cùng frame
-                    break;
+                        // Ngăn bóng va thêm các gạch khác trong cùng frame
+                        break;
+                    }
                 }
             }
         }
