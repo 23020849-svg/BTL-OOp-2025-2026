@@ -1,9 +1,20 @@
 package arkanoid.view;
 
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.LinearGradientPaint;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
+
+import javax.swing.ImageIcon;
 
 import arkanoid.core.GameManager;
 import arkanoid.entities.Ball;
@@ -14,13 +25,24 @@ import arkanoid.entities.powerups.FastBallPowerUp;
 import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
 
-import javax.swing.*;
-
 public class Renderer {
 
     private arkanoid.view.expandpaddle ex =  new arkanoid.view.expandpaddle();
     private arkanoid.view.extraball exball = new arkanoid.view.extraball();
     private arkanoid.view.fasst fast = new arkanoid.view.fasst();
+    private Image ballImage;
+    private static final double BALL_SCALE = 2.5; // phóng to khi VẼ
+    private static final int ARROW_GAP = 2;       // khoảng hở giữa mép bóng & mũi tên
+
+
+     public Renderer() {
+        try {
+            ballImage = new ImageIcon(getClass().getResource("/ball.png")).getImage();
+        } catch (Exception e) {
+            System.err.println("Không thể load ảnh ball.png: " + e.getMessage());
+        }
+    }
+  
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
                      Paddle paddle,
@@ -44,23 +66,48 @@ public class Renderer {
         if (balls != null) {
             for (Ball ball : balls) { // Lặp qua để vẽ từng quả bóng
                 if (ball == null) continue;
+               int bx = (int) ball.getX();
+                int by = (int) ball.getY();
+                int bw = ball.getWidth();
+                int bh = ball.getHeight();
 
-                Ellipse2D circle = ball.getShape();
-                Color base= new Color(190, 60, 255);
+                int cx = bx + bw / 2;
+                int cy = by + bh / 2;
+                int rLogic = Math.min(bw, bh) / 2;
+                int rDraw  = (int) Math.round(rLogic * BALL_SCALE); // bán kính để VẼ (2.5x)
 
-                g2.setColor(Color.WHITE);
-                g2.fill(circle);
-                for(int i = 2; i >= 1; i--) {
-                    float t = (float)i / 2f;
-                    float alpha = 0.08f + 0.28f * t; //alpha từ 6% đen 40%
-                    int a255 = (int)(alpha * 255);
-                    g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
-                    g2.setStroke(new BasicStroke(
-                        5f + 8f * t,    //độ dày nét
-                        BasicStroke.CAP_ROUND, //đầu nét tròn
-                        BasicStroke.JOIN_ROUND)); //góc nối tròn
-                    g2.draw(circle);
-                }
+                // ---- Vệt sáng (trail) theo TÂM, tỉ lệ theo rDraw ----
+                List<double[]> trail = ball.getTrail();
+/*
+ * Nếu trail đang lưu góc trên-trái thay vì tâm, dùng:
+ *   double tx = pos[0] + bw/2.0;
+ *   double ty = pos[1] + bh/2.0;
+ * và thay (pos[0],pos[1]) bằng (tx,ty) bên dưới.
+ */
+                for (int i = 0; i < trail.size(); i++) {
+                 double[] pos = trail.get(i);
+                 float alpha = (float) (i + 1) / trail.size();
+
+                int core = (int) (rDraw * (0.22 + 0.28 * alpha)); // cỡ đốm
+                g2.setColor(new Color(236, 72, 153, (int)(alpha * 80))); // hồng đậm
+                g2.fillOval((int)pos[0] - core, (int)pos[1] - core, core * 2, core * 2);
+
+    // 2 lớp halo trắng
+    for (int j = 2; j >= 1; j--) {
+        float t = j / 2f;
+        int haloA  = (int)(alpha * 50 * t);
+        int haloSz = (int)(core * (1 + 0.55f * t));
+        g2.setColor(new Color(255, 255, 255, haloA));
+        g2.fillOval((int)pos[0] - haloSz, (int)pos[1] - haloSz, haloSz * 2, haloSz * 2);
+    }
+        }
+
+        // ---- Vẽ ảnh bóng phóng to 2.5x, căn giữa theo (cx, cy) ----
+        if (ballImage != null) {
+    int drawD = rDraw * 2;
+    g2.drawImage(ballImage, cx - rDraw, cy - rDraw, drawD, drawD, null);
+        }
+
             }
         }
 
@@ -189,7 +236,7 @@ public class Renderer {
 
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====
         if (!ballLaunched && !balls.isEmpty()) {
-            Ball firstBall = balls.get(0);
+            /*Ball firstBall = balls.get(0);
             g2.setColor(Color.WHITE);
             g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
 
@@ -209,7 +256,36 @@ public class Renderer {
             g2c.setColor(r);
             g2c.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, dash, 0f));
             g2c.drawLine(cx, cy, endX, endY);
-            g2.drawString("Use 4/6 to aim", w / 2 - 50, h / 2 + 20);
+            g2.drawString("Use 4/6 to aim", w / 2 - 50, h / 2 + 20);*/
+             Ball firstBall = balls.get(0);
+    int fbw = firstBall.getWidth();
+    int fbh = firstBall.getHeight();
+    int fcx = (int) firstBall.getX() + fbw / 2;
+    int fcy = (int) firstBall.getY() + fbh / 2;
+    int frLogic = Math.min(fbw, fbh) / 2;
+    int frDraw  = (int) Math.round(frLogic * BALL_SCALE);
+
+    double rad = Math.toRadians(launchAngle);
+    int lineLength = 60;
+
+    // Bắt đầu từ mép ảnh đã phóng to + khoảng hở
+    int startX = (int) (fcx + (frDraw + ARROW_GAP) * Math.cos(rad));
+    int startY = (int) (fcy + (frDraw + ARROW_GAP) * Math.sin(rad));
+    int endX   = (int) (fcx + (frDraw + ARROW_GAP + lineLength) * Math.cos(rad));
+    int endY   = (int) (fcy + (frDraw + ARROW_GAP + lineLength) * Math.sin(rad));
+
+    Graphics2D g2c = (Graphics2D) g2.create();
+    g2c.setColor(new Color(244, 63, 94)); // hồng đậm #F43F5E
+    g2c.setStroke(new BasicStroke(
+        3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f,
+        new float[]{8f, 6f}, 0f
+    ));
+    g2c.drawLine(startX, startY, endX, endY);
+    g2c.dispose();
+
+    g2.setColor(Color.WHITE);
+    g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
+    g2.drawString("Use 4/6 to aim",       w / 2 - 50, h / 2 + 20);
         }
 
         // ===== Overlay: PAUSED =====

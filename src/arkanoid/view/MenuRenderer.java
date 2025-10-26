@@ -1,10 +1,19 @@
 package arkanoid.view;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.swing.ImageIcon;
 
 public class MenuRenderer {
 
@@ -79,7 +88,7 @@ public class MenuRenderer {
     private void drawTitle(Graphics2D g2) {
         String title = "ARKANOID";
         int y = 200;
-        float titleSize = 200f; // Tăng kích thước tiêu đề
+        float titleSize = 100f; // Tăng kích thước tiêu đề
 
         // Lấy Font tùy chỉnh
         Font customFont = loadCustomFont(titleSize);

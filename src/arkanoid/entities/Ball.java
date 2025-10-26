@@ -7,7 +7,11 @@ package arkanoid.entities; // Đặt class trong package arkanoid.entities
  */
 import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.List;
+
 import arkanoid.core.GameManager;
+import arkanoid.utils.Sound;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
@@ -15,6 +19,10 @@ public class Ball extends MovableObject {
     private int radius; // Bán kính của quả bóng
     private double speedMultiplier = 1.0; // Hệ số nhân tốc độ (dùng khi tăng tốc tạm thời)
     private long fastEndTime = 0; // Thời điểm kết thúc hiệu ứng tăng tốc (tính bằng mili-giây)
+    private Sound CollisionWall;
+    private List<double[]> trail = new ArrayList<>();
+    private static final int TRAIL_SIZE = 12;
+    
 
     // Constructor: khởi tạo vị trí, kích thước, và tốc độ ban đầu
     public Ball(int x, int y, int radius, double initialSpeedX, double initialSpeedY) {
@@ -22,28 +30,38 @@ public class Ball extends MovableObject {
         this.radius = radius;                // Lưu bán kính
         this.dx = initialSpeedX;             // Tốc độ theo trục X
         this.dy = initialSpeedY;             // Tốc độ theo trục Y
+        CollisionWall = new Sound();
 
+        CollisionWall.loadSound("/tapwall.wav");
         normalizeSpeed(baseSpeed); // Chuẩn hóa độ lớn vector vận tốc về baseSpeed
     }
 
     @Override
     public void update(double dt) {
+
+        // Lưu vị trí hiện tại vào vệt
+        trail.add(new double[]{x + width/2.0,y+height/2.0});
+        if(trail.size()> TRAIL_SIZE) trail.remove(0);
         move(dt);
 
         // ======= Xử lý va chạm với tường trái/phải =======
         if (x <= 0) {            // Chạm tường trái
             x = 0;                 // Giữ không vượt ra ngoài
-            dx = -dx;              // Đảo hướng X
+            dx = -dx;     
+            CollisionWall.playOnce();
+                     // Đảo hướng X
         }
         if (x + width >= GameManager.WIDTH) { // Chạm tường phải
             x = GameManager.WIDTH - width;      // Giữ lại trong màn hình
-            dx = -dx;                           // Đảo hướng X
+            dx = -dx;    
+            CollisionWall.playOnce();                       // Đảo hướng X
         }
 
         // ======= Bật trần =======
         if (y <= 0) {    // Chạm đỉnh màn hình
             y = 0;         // Giữ lại vị trí
             dy = -dy;      // Đảo hướng Y
+            CollisionWall.playOnce();
         }
 
         // ======= Hết thời gian tăng tốc =======
@@ -57,7 +75,7 @@ public class Ball extends MovableObject {
         // Giữ vận tốc ổn định
         normalizeSpeed(baseSpeed * speedMultiplier);
     }
-
+    public List<double[]> getTrail() {return trail;}
     
 
     // ======= Xử lý khi bóng va chạm với đối tượng khác (gạch/paddle) =======
