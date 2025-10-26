@@ -30,14 +30,18 @@ public class Renderer {
     private arkanoid.view.expandpaddle ex =  new arkanoid.view.expandpaddle();
     private arkanoid.view.extraball exball = new arkanoid.view.extraball();
     private arkanoid.view.fasst fast = new arkanoid.view.fasst();
+   
     private Image ballImage;
+    private Image heart;
     private static final double BALL_SCALE = 2.5; // phóng to khi VẼ
     private static final int ARROW_GAP = 2;       // khoảng hở giữa mép bóng & mũi tên
-
+    private static final int LIFE_ICON_SIZE = 35;
 
      public Renderer() {
         try {
             ballImage = new ImageIcon(getClass().getResource("/ball.png")).getImage();
+            heart = new ImageIcon(getClass().getResource("/heart.png")).getImage();
+
         } catch (Exception e) {
             System.err.println("Không thể load ảnh ball.png: " + e.getMessage());
         }
@@ -200,16 +204,28 @@ public class Renderer {
 }
 
         // ===== HUD =====
-        g2.setColor(Color.WHITE);
-        int pad = 10;
-        int y = pad + g2.getFontMetrics().getAscent();
-        String scoreText = "Score: " + score;
-        String livesText = "Lives: " + lives;
-        g2.drawString(scoreText, pad, y);
+        //g2.setColor(Color.WHITE);
+        //int pad = 10;
+        //int y = pad + g2.getFontMetrics().getAscent();
+        //String scoreText = "Score: " + score;
+        //String livesText = "Lives: " + lives;
+        //g2.drawString(scoreText, pad, y);
 
         int w = (g.getClipBounds() != null) ? g.getClipBounds().width : GameManager.WIDTH;
         int h = (g.getClipBounds() != null) ? g.getClipBounds().height : GameManager.HEIGHT;
-        g2.drawString(livesText, w - pad - g2.getFontMetrics().stringWidth(livesText), y);
+
+        Font hudFont = MenuRenderer.loadCustomFont(22f);
+        g2.setFont(hudFont);
+        g2.setColor(Color.WHITE);
+        int pad = 10;
+        FontMetrics fm = g2.getFontMetrics();
+        int textY = pad + fm.getAscent();
+
+        //vẽ score ở góc trái
+        String scoreText = "Score: " + score;
+        g2.drawString(scoreText, pad, textY);
+        drawLivesWithIcons(g2,lives,w,textY,fm,pad);
+
 
         // Hiển thị tất cả PowerUp đang hoạt động
         int yOffset = 300;
@@ -236,27 +252,7 @@ public class Renderer {
 
         // ===== Overlay: hướng dẫn & mũi tên ngắm khi chưa bắn =====
         if (!ballLaunched && !balls.isEmpty()) {
-            /*Ball firstBall = balls.get(0);
-            g2.setColor(Color.WHITE);
-            g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
-
-            g2.setColor(Color.RED);
-            double rad = Math.toRadians(launchAngle);
-            int cx = (int)firstBall.getX() + firstBall.getWidth() /2;
-            int cy = (int)firstBall.getY() + firstBall.getHeight() / 2;
-            int lineLength = 60;
-            int endX = (int) (cx + lineLength * Math.cos(rad));
-            int endY = (int) (cy + lineLength * Math.sin(rad));
             
-            // vẽ đường ngắm nét đứt
-            float thickness = 3f;
-            float[] dash = {8f, 6f};
-            Graphics2D g2c = (Graphics2D) g2.create();
-            Color r= new Color(255,90,90);
-            g2c.setColor(r);
-            g2c.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, dash, 0f));
-            g2c.drawLine(cx, cy, endX, endY);
-            g2.drawString("Use 4/6 to aim", w / 2 - 50, h / 2 + 20);*/
              Ball firstBall = balls.get(0);
     int fbw = firstBall.getWidth();
     int fbh = firstBall.getHeight();
@@ -293,9 +289,9 @@ public class Renderer {
             String text = "PAUSED";
             Font old = g2.getFont();
             g2.setFont(new Font("Arial", Font.BOLD, 48));
-            FontMetrics fm = g2.getFontMetrics();
-            int tx = (w - fm.stringWidth(text)) / 2;
-            int ty = (h + fm.getAscent()) / 2 - 10;
+            FontMetrics pm = g2.getFontMetrics();
+            int tx = (w - pm.stringWidth(text)) / 2;
+            int ty = (h + pm.getAscent()) / 2 - 10;
             g2.setColor(Color.WHITE);
             g2.drawString(text, tx, ty);
             g2.setFont(old);
@@ -307,6 +303,41 @@ public class Renderer {
         if (hp >= 3) return new Color(0x7f8c8d);
         if (hp == 2) return new Color(0x9b59b6);
         return Color.ORANGE;
+    }
+
+     private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, int textY, FontMetrics fm, int pad) {
+        String livesLabel = "Lives: ";
+        int labelWidth = fm.stringWidth(livesLabel);
+        
+        // Tính toán vị trí bắt đầu (căn phải)
+        int totalIconsWidth = lives * (LIFE_ICON_SIZE + 5); // 5px spacing giữa các icon
+        int startX = screenWidth - pad - labelWidth - totalIconsWidth;
+        
+        // Vẽ text "Lives: "
+        g2.drawString(livesLabel, startX, textY);
+        
+        // Vẽ các icon bóng
+        if (ballImage != null) {
+            int iconX = startX + labelWidth;
+            int iconY = textY - LIFE_ICON_SIZE + 3; // Căn giữa với text
+            
+            for (int i = 0; i < lives; i++) {
+                g2.drawImage(heart, iconX, iconY+5, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
+                iconX += LIFE_ICON_SIZE + 5; // Khoảng cách giữa các icon
+            }
+        } else {
+            // Fallback: vẽ hình tròn nếu không load được ảnh
+            int iconX = startX + labelWidth;
+            int iconY = textY - LIFE_ICON_SIZE / 2;
+            
+            for (int i = 0; i < lives; i++) {
+                g2.setColor(new Color(236, 72, 153)); // Màu hồng giống trail
+                g2.fillOval(iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE);
+                g2.setColor(Color.WHITE);
+                g2.drawOval(iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE);
+                iconX += LIFE_ICON_SIZE + 5;
+            }
+        }
     }
 
     //hình bao ngoài của power up
