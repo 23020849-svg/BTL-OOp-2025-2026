@@ -154,16 +154,43 @@ public class Renderer {
 }
 
         // ===== HUD =====
-        g2.setColor(Color.WHITE);
         int pad = 10;
         int y = pad + g2.getFontMetrics().getAscent();
         String scoreText = "Score: " + score;
-        String livesText = "Lives: " + lives;
+        g2.setColor(Color.WHITE);
         g2.drawString(scoreText, pad, y);
 
+        // Hiển thị lives bằng tim
         int w = (g.getClipBounds() != null) ? g.getClipBounds().width : GameManager.WIDTH;
         int h = (g.getClipBounds() != null) ? g.getClipBounds().height : GameManager.HEIGHT;
-        g2.drawString(livesText, w - pad - g2.getFontMetrics().stringWidth(livesText), y);
+        int heartX = w - pad - 30; // Bắt đầu từ bên phải
+        int heartY = y - 10;
+        int heartSize = 25;
+        int heartSpacing = 30;
+        long currentTime = System.currentTimeMillis();
+        boolean blink = (currentTime / 500) % 2 == 0; // Nháy mỗi 500ms
+        
+        // Lưu font cũ và đặt font mới cho tim
+        Font oldFont = g2.getFont();
+        Font heartFont = new Font("Arial", Font.BOLD, heartSize);
+        g2.setFont(heartFont);
+        
+        for (int i = lives - 1; i >= 0; i--) {
+            int currentHeartX = heartX - (lives - 1 - i) * heartSpacing;
+            
+            // Mạng hiện tại thì nháy
+            if (i == 0 && blink) {
+                g2.setColor(new Color(255, 0, 0)); // Màu đỏ sáng
+            } else {
+                g2.setColor(new Color(200, 50, 50)); // Màu đỏ nhạt
+            }
+            
+            // Vẽ ký tự tim Unicode
+            g2.drawString("♥", currentHeartX, heartY);
+        }
+        
+        // Khôi phục font cũ
+        g2.setFont(oldFont);
 
         // Hiển thị tất cả PowerUp đang hoạt động
         int yOffset = 300;
@@ -273,6 +300,7 @@ private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arro
     }
     g2.setClip(oldClip);
 }
+
 
     //màu neon
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
