@@ -7,6 +7,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import arkanoid.view.MenuRenderer;
+import arkanoid.utils.Sound;
 
 /**
  * MenuManager.java
@@ -37,6 +38,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private MenuRenderer menuRenderer;
     private GameManager gameManager;
     private Timer timer;
+    private Sound selectingSound; // Âm thanh khi chọn menu
     
     // Menu options
     private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Exit"};
@@ -60,6 +62,10 @@ public class MenuManager extends JPanel implements ActionListener {
         menuRenderer = new MenuRenderer();
         gameManager = new GameManager();
         
+        // Khởi tạo âm thanh
+        selectingSound = new Sound();
+        selectingSound.loadSound("/selecting.wav");
+        
         initKeyBindings();
         initMouseListeners();
         
@@ -75,6 +81,7 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption - 1 + mainMenuOptions.length) % mainMenuOptions.length;
+                    if (soundEnabled) selectingSound.playOnce();
                 } else if (currentState == MenuState.SETTINGS) {
                     // Navigate settings options
                 }
@@ -87,6 +94,7 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption + 1) % mainMenuOptions.length;
+                    if (soundEnabled) selectingSound.playOnce();
                 } else if (currentState == MenuState.SETTINGS) {
                     // Navigate settings options
                 }
@@ -267,7 +275,12 @@ public class MenuManager extends JPanel implements ActionListener {
             for (int i = 0; i < mainMenuOptions.length; i++) {
                 int optionY = startY + i * spacing;
                 if (mouseY >= optionY - 30 && mouseY <= optionY + 10) {
+                    int oldSelected = selectedOption;
                     selectedOption = i;
+                    // Phát âm thanh nếu thay đổi lựa chọn và có bật sound
+                    if (oldSelected != selectedOption && soundEnabled) {
+                        selectingSound.playOnce();
+                    }
                     break;
                 }
             }

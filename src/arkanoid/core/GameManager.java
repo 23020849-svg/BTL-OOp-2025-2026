@@ -65,6 +65,7 @@ public class GameManager extends JPanel {
     private final double MIN_ANGLE = -180; // Giới hạn trái
     private final double MAX_ANGLE = 0; // Giới hạn phải
     private Sound collisionSound; // Âm thanh va chạm
+    private Sound losingSound; // Âm thanh khi thua
 
 
 
@@ -76,6 +77,8 @@ public class GameManager extends JPanel {
         setFocusable(true); // Cho phép nhận phím
         collisionSound = new Sound();
         collisionSound.loadSound("/391658__jeckkech__collision.wav");
+        losingSound = new Sound();
+        losingSound.loadSound("/losing_sound.wav");
 
         initGame(); // Khởi tạo các đối tượng game
         initKeyBindings(); // Gán phím điều khiển
@@ -347,6 +350,7 @@ public class GameManager extends JPanel {
             lives--; // Mất một mạng
             if (lives <= 0) { // Hết mạng → Game Over
                 running = false;
+                losingSound.playOnce(); // Phát âm thanh khi thua
                 SwingUtilities.invokeLater(() -> {
                     int resp = JOptionPane.showConfirmDialog(this,
                             "Game Over! Score: " + score + "\nPlay again?",
