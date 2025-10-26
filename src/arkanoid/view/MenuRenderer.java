@@ -8,6 +8,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class MenuRenderer {
 
     private static Font ARKANOID_TITLE_FONT = null;
 
+    private Rectangle leaderboardButtonBounds = new Rectangle();
 
     public static Font loadCustomFont(float size) {
 
@@ -77,9 +79,11 @@ public class MenuRenderer {
 
         // Title
         drawTitle(g2);
+        
 
         // Menu options
         drawMenuOptions(g2, options, selectedOption);
+       
 
         // Instructions
         drawFooterInstructions(g2);
@@ -173,6 +177,41 @@ public class MenuRenderer {
         // Text
         g2.setColor(SELECTED_COLOR);
         g2.drawString(text, x, y);
+    }
+
+    // vẽ Leaderboard
+    private void drawLeaderboardButton(Graphics2D g2, int width, int height){
+        String label = "BẢNG XẾP HẠNG";
+        Font btnFont = loadCustomFont(20f).deriveFont(Font.BOLD);
+        g2.setFont(btnFont);
+
+        FontMetrics fm = g2.getFontMetrics();
+        int textW = fm.stringWidth(label);
+        int textH = fm.getAscent();
+
+        int padX = 22;
+        int padY= 14;
+        int w = textW + padX*2;
+        int h = textH + padY;
+         int x = Math.max(24, width - w - 36);   // cách mép phải 36px
+        int y = Math.max(24, height - h - 36);  // cách mép dưới 36px
+        
+        RoundRectangle2D pill = new RoundRectangle2D.Float(x,y,w,h,h,h);
+
+        g2.setColor(new Color(255,255,255,28));
+        g2.fill(pill);
+        g2.setColor(PRIMARY_COLOR);
+        g2.setStroke(new BasicStroke(2f));
+        g2.draw(pill);
+        g2.setColor(PRIMARY_COLOR);
+        int tx = x + (w - textW) / 2;
+        int ty = y + (h + textH) / 2 - 3;
+        g2.drawString(label, tx, ty);
+
+        // save bounds (nới thêm 4px cho dễ bấm)
+        leaderboardButtonBounds = new Rectangle(x - 4, y - 4, w + 8, h + 8);
+
+
     }
 
     /**
@@ -436,5 +475,8 @@ public class MenuRenderer {
             g2.setColor(color);
             g2.drawLine(0, i, WIDTH, i);
         }
+    }
+    public Rectangle getLeaderboardButtonBounds() {
+    return new Rectangle(leaderboardButtonBounds);
     }
 }
