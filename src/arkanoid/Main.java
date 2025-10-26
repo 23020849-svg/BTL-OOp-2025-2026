@@ -4,12 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 
-import javax.swing.BorderFactory;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 
 import arkanoid.core.MenuManager;
 
@@ -29,32 +32,34 @@ public class Main {
             JFrame frame = new JFrame("Arkanoid"); // Tiêu đề cửa sổ game
             ImageIcon logo = new ImageIcon("rsc/logo.png");
             frame.setIconImage(logo.getImage());
-            // ======= 3. Cấu hình khung cửa sổ =======
+            // ======= 2. Cấu hình full màn hình =======
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thoát chương trình khi đóng cửa sổ
-            frame.setResizable(false); // Không cho phép thay đổi kích thước cửa sổ
+            frame.setUndecorated(true); // Bỏ viền và thanh tiêu đề
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Phóng to toàn màn hình
+
+            // ======= 3. Xử lý ảnh nền (background) =======
+            // Lấy kích thước màn hình thực tế
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
             // add image
             ImageIcon icon = new ImageIcon("rsc/testbg.jpg");
-            // border
-            Border border = BorderFactory.createLineBorder(Color.blue,2);
-
             Image img = icon.getImage();
-            Image scaled = img.getScaledInstance(1440, 800, Image.SCALE_SMOOTH);
-            JLabel background = new JLabel(new ImageIcon(scaled));
-            background.setBorder(border);
-            background.setLayout(new BorderLayout());
-            frame.setContentPane(background);
-           
-           MenuManager menu = new MenuManager();
-           background.add(menu, BorderLayout.CENTER);
-           
-           
-            //frame.add(game);           // Thêm panel GameManager vào frame (nơi vẽ game)
 
-            // pack() tự động điều chỉnh kích thước cửa sổ vừa với kích thước panel bên trong
-            frame.pack();
-            
-            // Đặt cửa sổ ra giữa màn hình
-            frame.setLocationRelativeTo(null);
+            // Scale ảnh nền cho vừa đúng kích thước màn hình
+            Image scaled = img.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
+
+            JLabel background = new JLabel(new ImageIcon(scaled));
+
+            // Dùng GridBagLayout để căn giữa game
+            background.setLayout(new GridBagLayout());
+            frame.setContentPane(background);
+
+            // ======= 4. Thêm Game vào giữa màn hình =======
+            MenuManager menu = new MenuManager();
+
+            //Thêm panel game vào giữa
+            background.add(menu, new GridBagConstraints());
+
 
             // Hiển thị cửa sổ
             frame.setVisible(true);
