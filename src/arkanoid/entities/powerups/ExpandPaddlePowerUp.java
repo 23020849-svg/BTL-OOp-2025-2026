@@ -24,12 +24,12 @@ public class ExpandPaddlePowerUp extends PowerUp {
 
     // ======= Khi paddle hứng được power-up =======
     @Override
-    public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
+    public void applyEffect(Paddle paddle, Ball ball, GameManager game, int screenWidth) {
         Sound powerUpSound = new Sound();
         powerUpSound.loadSound("/powerup.wav");
         powerUpSound.playOnce();
         // Luôn reset thời gian về 10 giây khi nhặt PowerUp (không cộng dồn)
-        paddle.applyExpand(extraPixels, durationMillis);
+        paddle.applyExpand(extraPixels, durationMillis, screenWidth);
         deactivate(); // Sau khi kích hoạt → tắt power-up (không hoạt động nữa)
     }
 

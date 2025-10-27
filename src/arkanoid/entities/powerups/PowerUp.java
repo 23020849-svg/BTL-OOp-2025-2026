@@ -54,11 +54,15 @@ public abstract class PowerUp extends GameObject {
     // ======= Cập nhật vị trí theo thời gian =======
     @Override
     public void update(double dt) {
+
+    }
+
+    public void update(double dt, int screenHeight) {
         // Mỗi frame, power-up rơi xuống theo trục y
         y += fallSpeed * dt;
 
         // Nếu rơi quá chiều cao màn hình (GameManager.HEIGHT), thì hủy (ngừng hiển thị)
-        if (y > GameManager.HEIGHT) active = false;
+        if (y > screenHeight) active = false;
     }
 
     /**
@@ -68,7 +72,7 @@ public abstract class PowerUp extends GameObject {
      * @param ball bóng trong game (vì có loại ảnh hưởng đến tốc độ bóng)
      * @param game đối tượng GameManager để tương tác với toàn bộ game
      */
-    public abstract void applyEffect(Paddle paddle, Ball ball, GameManager game);
+    public abstract void applyEffect(Paddle paddle, Ball ball, GameManager game, int screenWidth);
 
     // ======= Trạng thái hoạt động =======
     public boolean isActive() { return active; }   // Kiểm tra còn tồn tại không

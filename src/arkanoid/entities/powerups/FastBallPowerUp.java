@@ -24,7 +24,7 @@ public class FastBallPowerUp extends PowerUp {
   
     // ======= Khi người chơi hứng được power-up =======
     @Override
-    public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
+    public void applyEffect(Paddle paddle, Ball ball, GameManager game, int screenWidth) {
          Sound powerUpSound = new Sound();
         powerUpSound.loadSound("/powerup.wav");
         powerUpSound.playOnce();

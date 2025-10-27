@@ -20,7 +20,7 @@ public class MultiBallPowerUp extends PowerUp {
     }
 
     @Override
-    public void applyEffect(Paddle paddle, Ball ball, GameManager game) {
+    public void applyEffect(Paddle paddle, Ball ball, GameManager game, int screenWidth) {
          Sound powerUpSound = new Sound();
          powerUpSound.loadSound("/powerup.wav");
         powerUpSound.playOnce();

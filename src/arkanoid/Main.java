@@ -1,10 +1,8 @@
 package arkanoid; // Đặt class trong package arkanoid
 
 import java.awt.Image;
-
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 
 import javax.swing.ImageIcon;
@@ -48,15 +46,15 @@ public class Main {
 
             JLabel background = new JLabel(new ImageIcon(scaled));
 
-            // Dùng GridBagLayout để căn giữa game
-            background.setLayout(new GridBagLayout());
+            // Dùng BorderLayout để panel game tự động lấp đầy
+            background.setLayout(new BorderLayout());
             frame.setContentPane(background);
 
             // ======= 4. Thêm Game vào giữa màn hình =======
             MenuManager menu = new MenuManager(frame, background, img);
 
             //Thêm panel game vào giữa
-            background.add(menu, new GridBagConstraints());
+            background.add(menu, BorderLayout.CENTER);
 
 
             // Hiển thị cửa sổ

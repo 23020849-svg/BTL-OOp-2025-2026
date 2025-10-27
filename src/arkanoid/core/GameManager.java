@@ -40,8 +40,6 @@ import arkanoid.view.Renderer;
 
 public class GameManager extends JPanel {
 
-    public static final int WIDTH = 1440; //Chiều rộng khung game
-    public static final int HEIGHT = 800; // Chiều cao khung game
     private static final double BALL_SCALE = 2.5;
     private static final int VISUAL_GAP = 6;// khoảng hở giữa bóng (đã scale) và paddle
 
@@ -72,7 +70,7 @@ public class GameManager extends JPanel {
     private Sound losingSound;
 
     public GameManager() {
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setPreferredSize(new Dimension(1440, 800));
         setOpaque(false);
         setFocusable(true);
         
@@ -87,7 +85,13 @@ public class GameManager extends JPanel {
     }
 
     public void initGame() {
-        paddle = new Paddle(WIDTH / 2 - 40, HEIGHT - 40, 120, 12);
+
+        int w = getWidth();
+        int h = getHeight();
+        if (w == 0) w = 1440;
+        if (h == 0) h = 800;
+
+        paddle = new Paddle(w / 2 - 40, h - 40, 120, 12);
         balls = new ArrayList<>();
         balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
         
@@ -106,11 +110,20 @@ public class GameManager extends JPanel {
     }
 
     private void createLevel() {
-        bricks = levelLoader.loadLevel(currentLevel);  
+        int w = getWidth();
+        int h = getHeight();
+        if (w == 0) w = 1440;
+        if (h == 0) h = 800;
+        createLevel(w, h);
+    }
+
+    private void createLevel(int screenWidth, int screenHeight) {
+        bricks = levelLoader.loadLevel(currentLevel, screenWidth);  
         ballLaunched = false;
-        paddle.setX(WIDTH / 2 - paddle.getWidth() / 2);
+        paddle.setX(screenWidth / 2 - paddle.getWidth() / 2);
+        paddle.setY(screenHeight - 40);
         balls.clear();
-        balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
+        balls.add(new Ball(screenWidth / 2 - 8, screenHeight - 60, 8, 3, -3));
         alignBallToPaddle();
     }
 
@@ -229,22 +242,22 @@ public class GameManager extends JPanel {
         }
     }
 
-    public void updateGame(double dt) {
+    public void updateGame(double dt, int screenWidth, int screenHeight) {
         if (!running || paused) return;
 
-        paddle.update(dt);
+        paddle.update(dt, screenWidth);
 
         Iterator<PowerUp> pit = powerUps.iterator();
         while (pit.hasNext()) {
             PowerUp p = pit.next();
-            p.update(dt);
+            p.update(dt, screenHeight);
             
             if (p.getBounds().intersects(paddle.getBounds())) {
-                p.applyEffect(paddle, balls.isEmpty() ? null : balls.get(0), this);
+                p.applyEffect(paddle, balls.isEmpty() ? null : balls.get(0), this, screenWidth);
                 p.start();
                 activePowerUps.add(p);
                 pit.remove();
-            } else if (!p.isActive() || p.getY() > HEIGHT) {
+            } else if (!p.isActive() || p.getY() > screenHeight) {
                 pit.remove();
             }
         }
@@ -275,7 +288,7 @@ public class GameManager extends JPanel {
             java.awt.Rectangle sweepRect = new java.awt.Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
 
             if (ballLaunched) {
-                currentBall.update(dt);
+                currentBall.update(dt, screenWidth, screenHeight);
             }
 
             if (currentBall.getBounds().intersects(paddle.getBounds())) {
@@ -325,7 +338,7 @@ public class GameManager extends JPanel {
         }
 
         bricks.removeIf(Brick::isDestroyed);
-        balls.removeIf(b -> b.getY() > HEIGHT);
+        balls.removeIf(b -> b.getY() > screenHeight);
 
         if (ballLaunched && balls.isEmpty()) {
             lives--;
@@ -334,7 +347,9 @@ public class GameManager extends JPanel {
             } else {
                 ballLaunched = false;
                 isFirstLife = false;
-                balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
+                paddle.setX(screenWidth / 2 - paddle.getWidth() / 2);
+                paddle.setY(screenHeight - 40);
+                balls.add(new Ball(screenWidth / 2 - 8, screenHeight - 60, 8, 3, -3));
                 alignBallToPaddle();
             }
         }
@@ -349,11 +364,10 @@ public class GameManager extends JPanel {
                });
                return;
            } else {
-               createLevel();
+               createLevel(screenWidth, screenHeight);
            }
         }
 
-        repaint();
     }
 
     private void spawnRandomPowerUp(int x, int y) {
@@ -369,9 +383,11 @@ public class GameManager extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        renderer.draw(g, paddle, balls, bricks, powerUps, score, lives,
-                ballLaunched, launchAngle, paused, activePowerUps, isFirstLife);
+        
+    }
+
+    public void paintComponent(Graphics g, int screenWidth, int screenHeight) {
+        renderer.draw(g, paddle, balls, bricks, powerUps, score, lives, ballLaunched, launchAngle, paused, activePowerUps, isFirstLife);
     }
 
     // Getters
@@ -383,6 +399,10 @@ public class GameManager extends JPanel {
     public boolean isBallLaunched() { return ballLaunched; }
     public boolean isFirstLife() { return isFirstLife; }
     
+    public boolean isGameOver() {
+        return !running;
+    }
+
     public void launchBall() {
         if (!ballLaunched && !balls.isEmpty()) {
             collisionSound.playOnce();
@@ -498,7 +518,7 @@ public class GameManager extends JPanel {
         }
         
         if (s.isPaddleExpanded && s.paddleExpandRemainMs > 0) {
-            paddle.applyExpand(40, s.paddleExpandRemainMs);
+            paddle.applyExpand(80, s.paddleExpandRemainMs, getWidth());
         }
         
         repaint();

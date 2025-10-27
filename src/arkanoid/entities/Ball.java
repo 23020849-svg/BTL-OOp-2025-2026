@@ -10,7 +10,6 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import arkanoid.core.GameManager;
 import arkanoid.utils.Sound;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
@@ -37,7 +36,11 @@ public class Ball extends MovableObject {
     }
 
     @Override
-    public void update(double dt) {
+    public void update (double dt) {
+
+    }
+
+    public void update(double dt, int screenWidth, int screenHeight) {
 
         // Lưu vị trí hiện tại vào vệt
         trail.add(new double[]{x + width/2.0,y+height/2.0});
@@ -51,8 +54,8 @@ public class Ball extends MovableObject {
             CollisionWall.playOnce();
                      // Đảo hướng X
         }
-        if (x + width >= GameManager.WIDTH) { // Chạm tường phải
-            x = GameManager.WIDTH - width;      // Giữ lại trong màn hình
+        if (x + width >= screenWidth) { // Chạm tường phải
+            x = screenWidth - width;      // Giữ lại trong màn hình
             dx = -dx;    
             CollisionWall.playOnce();                       // Đảo hướng X
         }

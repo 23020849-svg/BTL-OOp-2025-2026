@@ -1,5 +1,6 @@
 package arkanoid.core;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Window;
@@ -23,8 +24,6 @@ import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.MenuRenderer;
 
 import java.awt.Toolkit;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
 
 /**
  * MenuManager.java
@@ -113,12 +112,12 @@ public class MenuManager extends JPanel implements ActionListener {
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             Image scaled = originalBackgroundImg.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
             backgroundLabel.setIcon(new ImageIcon(scaled));
-            backgroundLabel.setLayout(new GridBagLayout());
+            backgroundLabel.setLayout(new BorderLayout());
 
             // Đặt lại ContentPane là cái background
             mainFrame.setContentPane(backgroundLabel);
             // Thêm game (this) vào giữa background
-            backgroundLabel.add(this, new GridBagConstraints());
+            backgroundLabel.add(this, BorderLayout.CENTER);
             
             // Đặt lại chế độ full màn hình
             mainFrame.setUndecorated(true);
@@ -368,7 +367,7 @@ public class MenuManager extends JPanel implements ActionListener {
             
             // Giới hạn paddle trong màn hình
             if (newPaddleX < 0) newPaddleX = 0;
-            if (newPaddleX > WIDTH - paddleWidth) newPaddleX = WIDTH - paddleWidth;
+            if (newPaddleX > getWidth() - paddleWidth) newPaddleX = getWidth() - paddleWidth;
             
             gameManager.getPaddle().setX(newPaddleX);
             
@@ -500,9 +499,13 @@ public class MenuManager extends JPanel implements ActionListener {
                     gameManager.launchBall();
                 }
             }
+
         } else if (currentState == MenuState.GAME) {
             // Truyền deltaTime vào GameManager
-            gameManager.updateGame(deltaTime);
+            gameManager.updateGame(deltaTime, getWidth(), getHeight());
+            if (gameManager.isGameOver()) {
+                gameOver();
+            }
         } else if (currentState == MenuState.PAUSED) {
             // Don't update game when paused, just repaint
         }
@@ -512,30 +515,33 @@ public class MenuManager extends JPanel implements ActionListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        int w = getWidth();
+        int h = getHeight();
         
         switch (currentState) {
             case MAIN_MENU:
-                menuRenderer.drawMainMenu(g, mainMenuOptions, selectedOption);
+                menuRenderer.drawMainMenu(g, mainMenuOptions, selectedOption, w, h);
                 break;
             case SETTINGS:
-                menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames);
+                menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames, w, h);
                 break;
             case INSTRUCTIONS:
-                menuRenderer.drawInstructions(g);
+                menuRenderer.drawInstructions(g, w, h);
                 break;
             case COUNTDOWN:
-                gameManager.paintComponent(g);
-                menuRenderer.drawCountdown(g, countdownValue);
+                gameManager.paintComponent(g, w, h);
+                menuRenderer.drawCountdown(g, countdownValue, w, h);
                 break;
             case GAME:
-                gameManager.paintComponent(g);
+                gameManager.paintComponent(g, w, h);
                 break;
             case PAUSED:
-                gameManager.paintComponent(g);
-                menuRenderer.drawPauseOverlay(g);
+                gameManager.paintComponent(g, w, h);
+                menuRenderer.drawPauseOverlay(g, w, h);
                 break;
             case GAME_OVER:
-                menuRenderer.drawGameOver(g, gameManager.getScore());
+                menuRenderer.drawGameOver(g, gameManager.getScore(), w, h);
                 break;
         }
     }

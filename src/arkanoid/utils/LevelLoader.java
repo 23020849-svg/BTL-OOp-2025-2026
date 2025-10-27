@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import arkanoid.core.GameManager;
 import arkanoid.entities.bricks.Brick;
 import arkanoid.entities.bricks.NormalBrick;
 import arkanoid.entities.bricks.StrongBrick;
@@ -15,11 +14,11 @@ import arkanoid.entities.bricks.UnbreakableBrick;
 
 public class LevelLoader {
 
-    public static List<Brick> loadLevel(int levelNumber) {
+    public static List<Brick> loadLevel(int levelNumber, int screenWidth) {
         List<Brick> bricks = new ArrayList<>();
         String filePath = "src/levels/level_" + levelNumber + ".txt"; // Đường dẫn tới file level
 
-        int brickW = (GameManager.WIDTH - 50) / 10; // 10 cột
+        int brickW = (screenWidth - 50) / 10; // 10 cột
         int brickH = 25;
         int startX = 30;
         int startY = 60;
@@ -32,8 +31,8 @@ public class LevelLoader {
             while ((line = reader.readLine()) != null) {
                 // Tính toán lại chiều rộng và lề trái cho vừa với số cột của level
                 int cols = line.length();
-                brickW = (GameManager.WIDTH - 50) / cols;
-                startX = (GameManager.WIDTH - (cols * brickW) + (cols*4)) / 2;
+                brickW = (screenWidth - 50) / cols;
+                startX = (screenWidth - (cols * brickW) + (cols*4)) / 2;
 
                 for (int col = 0; col < cols; col++) {
                     char symbol = line.charAt(col);

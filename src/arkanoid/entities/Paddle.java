@@ -38,6 +38,10 @@ public class Paddle extends MovableObject {
 
     @Override
     public void update(double dt) {
+
+    }
+
+    public void update(double dt, int screenWidth) {
         // Di chuyển mượt
         if (movingLeft) x -= speed * dt;
         if (movingRight) x += speed * dt;
@@ -46,7 +50,7 @@ public class Paddle extends MovableObject {
         // Nếu paddle chạm biên trái → đưa về 0
         if (x < 0) x = 0;
         // Nếu paddle chạm biên phải → giới hạn lại để không vượt ra ngoài
-        if (x + width > GameManager.WIDTH) x = GameManager.WIDTH - width;
+        if (x + width > screenWidth) x = screenWidth - width;
 
         // ======= 2. Kiểm tra hiệu ứng mở rộng =======
         // Nếu hiệu ứng mở rộng hết hạn, khôi phục lại chiều rộng ban đầu
@@ -77,12 +81,12 @@ public class Paddle extends MovableObject {
      * @param extraPixels số pixel mở rộng thêm so với kích thước mặc định
      * @param durationMillis thời lượng hiệu ứng (ms)
      */
-    public void applyExpand(int extraPixels, long durationMillis) {
+    public void applyExpand(int extraPixels, long durationMillis, int screenWidth) {
         // Tăng chiều rộng paddle
         width = defaultWidth + extraPixels;
 
         // Nếu paddle vượt biên phải, điều chỉnh lại cho vừa khung
-        if (x + width > GameManager.WIDTH) x = GameManager.WIDTH - width;
+        if (x + width > screenWidth) x = screenWidth - width;
 
         // Lưu thời điểm kết thúc hiệu ứng (tính từ thời điểm hiện tại)
         expandEndTime = System.currentTimeMillis() + durationMillis;

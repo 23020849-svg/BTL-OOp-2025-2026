@@ -18,9 +18,6 @@ import javax.swing.ImageIcon;
 
 public class MenuRenderer {
 
-    private static final int WIDTH = 1440;
-    private static final int HEIGHT = 800;
-
     // Colors
     private static final Color BACKGROUND_COLOR = new Color(10, 15, 25);
     private static final Color PRIMARY_COLOR = new Color(80, 240, 255);
@@ -60,7 +57,7 @@ public class MenuRenderer {
     /**
      * Vẽ menu chính
      */
-    public void drawMainMenu(Graphics g, String[] options, int selectedOption) {
+    public void drawMainMenu(Graphics g, String[] options, int selectedOption, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -69,27 +66,25 @@ public class MenuRenderer {
             Image img = icon.getImage();
 
             if (img != null) {
-                g2.drawImage(img, 0, 0, WIDTH, HEIGHT, null);
+                g2.drawImage(img, 0, 0, screenWidth, screenHeight, null);
             } else {
-                drawBackground(g2);
+                drawBackground(g2, screenWidth, screenHeight);
             }
         } catch (Exception e) {
-            drawBackground(g2);
+            drawBackground(g2, screenWidth, screenHeight);
         }
 
         // Title
-        drawTitle(g2);
+        drawTitle(g2, screenWidth, screenHeight);
         
-
         // Menu options
-        drawMenuOptions(g2, options, selectedOption);
+        drawMenuOptions(g2, options, selectedOption, screenWidth, screenHeight);
        
-
         // Instructions
-        drawFooterInstructions(g2);
+        drawFooterInstructions(g2, screenWidth, screenHeight);
     }
 
-    private void drawTitle(Graphics2D g2) {
+    private void drawTitle(Graphics2D g2, int screenWidth, int screenHeight) {
         String title = "ARKANOID";
         int y = 200;
         float titleSize = 100f; // Tăng kích thước tiêu đề
@@ -99,7 +94,7 @@ public class MenuRenderer {
         g2.setFont(customFont);
 
         FontMetrics fm = g2.getFontMetrics();
-        int x = (WIDTH - fm.stringWidth(title)) / 2;
+        int x = (screenWidth - fm.stringWidth(title)) / 2;
 
 
         for (int i = 3; i >= 1; i--) {
@@ -110,7 +105,7 @@ public class MenuRenderer {
             g2.setFont(customFont.deriveFont(titleSize + i * 2));
 
             FontMetrics glowFm = g2.getFontMetrics();
-            int glowX = (WIDTH - glowFm.stringWidth(title)) / 2;
+            int glowX = (screenWidth - glowFm.stringWidth(title)) / 2;
             int glowY = y + i * 2;
             g2.drawString(title, glowX, glowY);
         }
@@ -125,7 +120,7 @@ public class MenuRenderer {
     /**
      * Vẽ các tùy chọn menu
      */
-    private void drawMenuOptions(Graphics2D g2, String[] options, int selectedOption) {
+    private void drawMenuOptions(Graphics2D g2, String[] options, int selectedOption, int screenWidth, int screenHeight) {
         int startY = 350;
         int spacing = 60;
 
@@ -137,13 +132,13 @@ public class MenuRenderer {
 
             if (i == selectedOption) {
                 // Selected option - highlighted
-                drawSelectedOption(g2, options[i], y);
+                drawSelectedOption(g2, options[i], y, screenWidth);
             } else {
                 // Normal option
                 g2.setColor(TEXT_COLOR);
                 g2.setFont(menuFont); // ÁP DỤNG FONT TÙY CHỈNH
                 FontMetrics fm = g2.getFontMetrics();
-                int x = (WIDTH - fm.stringWidth(options[i])) / 2;
+                int x = (screenWidth - fm.stringWidth(options[i])) / 2;
                 g2.drawString(options[i], x, y);
             }
         }
@@ -152,13 +147,13 @@ public class MenuRenderer {
     /**
      * Vẽ tùy chọn được chọn với hiệu ứng
      */
-    private void drawSelectedOption(Graphics2D g2, String text, int y) {
+    private void drawSelectedOption(Graphics2D g2, String text, int y, int screenWidth) {
         Font selectedFont = loadCustomFont(28f).deriveFont(Font.BOLD); // ÁP DỤNG FONT TÙY CHỈNH
         g2.setFont(selectedFont);
 
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(text);
-        int x = (WIDTH - textWidth) / 2;
+        int x = (screenWidth - textWidth) / 2;
 
         // Background highlight
         RoundRectangle2D background = new RoundRectangle2D.Float(
@@ -217,30 +212,30 @@ public class MenuRenderer {
     /**
      * Vẽ hướng dẫn ở cuối màn hình (Giữ nguyên font Arial nhỏ)
      */
-    private void drawFooterInstructions(Graphics2D g2) {
+    private void drawFooterInstructions(Graphics2D g2, int screenWidth, int screenHeight) {
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
         String instruction = "Use ↑↓ or MOUSE to navigate, ENTER or CLICK to select, ESC to go back";
         FontMetrics fm = g2.getFontMetrics();
-        int x = (WIDTH - fm.stringWidth(instruction)) / 2;
-        int y = HEIGHT - 30;
+        int x = (screenWidth - fm.stringWidth(instruction)) / 2;
+        int y = screenHeight - 30;
         g2.drawString(instruction, x, y);
     }
 
 
-    public void drawSettings(Graphics g, boolean soundEnabled, int difficulty, String[] difficultyNames) {
+    public void drawSettings(Graphics g, boolean soundEnabled, int difficulty, String[] difficultyNames, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Background
-        drawBackground(g2);
+        drawBackground(g2, screenWidth, screenHeight);
 
         // Title
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
         String title = "SETTINGS";
-        int titleX = (WIDTH - fm.stringWidth(title)) / 2;
+        int titleX = (screenWidth - fm.stringWidth(title)) / 2;
         int titleY = 150;
         g2.drawString(title, titleX, titleY);
 
@@ -277,19 +272,19 @@ public class MenuRenderer {
     /**
      * Vẽ hướng dẫn chơi
      */
-    public void drawInstructions(Graphics g) {
+    public void drawInstructions(Graphics g, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Background
-        drawBackground(g2);
+        drawBackground(g2, screenWidth, screenHeight);
 
         // Title
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 36));
         FontMetrics fm = g2.getFontMetrics();
         String title = "HOW TO PLAY";
-        int titleX = (WIDTH - fm.stringWidth(title)) / 2;
+        int titleX = (screenWidth - fm.stringWidth(title)) / 2;
         int titleY = 100;
         g2.drawString(title, titleX, titleY);
 
@@ -334,27 +329,27 @@ public class MenuRenderer {
         // Return instruction
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
-        g2.drawString("Press ESC to return to main menu", WIDTH - 300, HEIGHT - 50);
+        g2.drawString("Press ESC to return to main menu", screenWidth - 300, screenHeight - 50);
     }
 
     /**
      * Vẽ overlay tạm dừng
      */
-    public void drawPauseOverlay(Graphics g) {
+    public void drawPauseOverlay(Graphics g, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Semi-transparent overlay
         g2.setColor(new Color(0, 0, 0, 150));
-        g2.fillRect(0, 0, WIDTH, HEIGHT);
+        g2.fillRect(0, 0, screenWidth, screenHeight);
 
         // Pause text
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
         String text = "PAUSED";
-        int x = (WIDTH - fm.stringWidth(text)) / 2;
-        int y = (HEIGHT + fm.getAscent()) / 2 - 50;
+        int x = (screenWidth - fm.stringWidth(text)) / 2;
+        int y = (screenHeight + fm.getAscent()) / 2 - 50;
         g2.drawString(text, x, y);
 
         // Instructions
@@ -362,7 +357,7 @@ public class MenuRenderer {
         g2.setColor(Color.GRAY);
         String instruction = "Press ESC to resume";
         fm = g2.getFontMetrics();
-        x = (WIDTH - fm.stringWidth(instruction)) / 2;
+        x = (screenWidth - fm.stringWidth(instruction)) / 2;
         y += 60;
         g2.drawString(instruction, x, y);
     }
@@ -370,13 +365,13 @@ public class MenuRenderer {
     /**
      * Vẽ đếm ngược khi bắt đầu game
      */
-    public void drawCountdown(Graphics g, int countdownValue) {
+    public void drawCountdown(Graphics g, int countdownValue, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Semi-transparent overlay
         g2.setColor(new Color(0, 0, 0, 100));
-        g2.fillRect(0, 0, WIDTH, HEIGHT);
+        g2.fillRect(0, 0, screenWidth, screenHeight);
 
         // Countdown text
         String countdownText = String.valueOf(countdownValue);
@@ -386,8 +381,8 @@ public class MenuRenderer {
         g2.setFont(countdownFont);
         
         FontMetrics fm = g2.getFontMetrics();
-        int x = (WIDTH - fm.stringWidth(countdownText)) / 2;
-        int y = (HEIGHT + fm.getAscent()) / 2;
+        int x = (screenWidth - fm.stringWidth(countdownText)) / 2;
+        int y = (screenHeight + fm.getAscent()) / 2;
 
         // Vẽ hiệu ứng glow cho số đếm ngược
         for (int i = 5; i >= 1; i--) {
@@ -396,8 +391,8 @@ public class MenuRenderer {
             g2.setFont(countdownFont.deriveFont(200f + i * 10));
             
             FontMetrics glowFm = g2.getFontMetrics();
-            int glowX = (WIDTH - glowFm.stringWidth(countdownText)) / 2;
-            int glowY = (HEIGHT + glowFm.getAscent()) / 2;
+            int glowX = (screenWidth - glowFm.stringWidth(countdownText)) / 2;
+            int glowY = (screenHeight + glowFm.getAscent()) / 2;
             g2.drawString(countdownText, glowX, glowY);
         }
 
@@ -412,7 +407,7 @@ public class MenuRenderer {
             g2.setFont(new Font("Arial", Font.BOLD, 36));
             fm = g2.getFontMetrics();
             String readyText = "GET READY!";
-            int readyX = (WIDTH - fm.stringWidth(readyText)) / 2;
+            int readyX = (screenWidth - fm.stringWidth(readyText)) / 2;
             int readyY = y - 100;
             g2.drawString(readyText, readyX, readyY);
         }
@@ -421,19 +416,19 @@ public class MenuRenderer {
     /**
      * Vẽ màn hình Game Over
      */
-    public void drawGameOver(Graphics g, int score) {
+    public void drawGameOver(Graphics g, int score, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Background
-        drawBackground(g2);
+        drawBackground(g2, screenWidth, screenHeight);
 
         // Game Over text
         g2.setColor(Color.RED);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
         String text = "GAME OVER";
-        int x = (WIDTH - fm.stringWidth(text)) / 2;
+        int x = (screenWidth - fm.stringWidth(text)) / 2;
         int y = 200;
         g2.drawString(text, x, y);
 
@@ -442,7 +437,7 @@ public class MenuRenderer {
         g2.setFont(new Font("Arial", Font.PLAIN, 24));
         String scoreText = "Final Score: " + score;
         fm = g2.getFontMetrics();
-        x = (WIDTH - fm.stringWidth(scoreText)) / 2;
+        x = (screenWidth - fm.stringWidth(scoreText)) / 2;
         y += 80;
         g2.drawString(scoreText, x, y);
 
@@ -451,7 +446,7 @@ public class MenuRenderer {
         g2.setFont(new Font("Arial", Font.PLAIN, 20));
         String instruction = "Press ENTER to return to main menu";
         fm = g2.getFontMetrics();
-        x = (WIDTH - fm.stringWidth(instruction)) / 2;
+        x = (screenWidth - fm.stringWidth(instruction)) / 2;
         y += 100;
         g2.drawString(instruction, x, y);
     }
@@ -459,21 +454,21 @@ public class MenuRenderer {
     /**
      * Vẽ background với gradient
      */
-    private void drawBackground(Graphics2D g2) {
+    private void drawBackground(Graphics2D g2, int screenWidth, int screenHeight) {
         // Dark background
         g2.setColor(BACKGROUND_COLOR);
-        g2.fillRect(0, 0, WIDTH, HEIGHT);
+        g2.fillRect(0, 0, screenWidth, screenHeight);
 
         // Gradient effect
-        for (int i = 0; i < HEIGHT; i++) {
-            float ratio = (float) i / HEIGHT;
+        for (int i = 0; i < screenHeight; i++) {
+            float ratio = (float) i / screenHeight;
             Color color = new Color(
                     (int) (BACKGROUND_COLOR.getRed() + (PRIMARY_COLOR.getRed() - BACKGROUND_COLOR.getRed()) * ratio * 0.1),
                     (int) (BACKGROUND_COLOR.getGreen() + (PRIMARY_COLOR.getGreen() - BACKGROUND_COLOR.getGreen()) * ratio * 0.1),
                     (int) (BACKGROUND_COLOR.getBlue() + (PRIMARY_COLOR.getBlue() - BACKGROUND_COLOR.getBlue()) * ratio * 0.1)
             );
             g2.setColor(color);
-            g2.drawLine(0, i, WIDTH, i);
+            g2.drawLine(0, i, screenWidth, i);
         }
     }
     public Rectangle getLeaderboardButtonBounds() {
