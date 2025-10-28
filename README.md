@@ -7,3 +7,4 @@
 
 https://github.com/user-attachments/assets/f2765ee5-be4d-4b31-8f06-79465985e0ae
 
+demo tuần 7: [![Xem video demo](rsc/demo7.png)](https://drive.google.com/file/d/1igQ6vb2PpFakNAGnV7LLOQo2ScQ-htQZ/view?t=15)
