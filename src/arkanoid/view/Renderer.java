@@ -311,9 +311,9 @@ public class Renderer {
         for (int i = 0; i < 3; i++) {
                 if (i < lives) {
                     // Nhấp nháy bằng alpha
-                    int alpha = (int) (150 + 100 * pulse);
+                    int alpha = (int) (150 + 100 * pulse); // chạy từ 150 đến 250
                     g2.setComposite(
-                            java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
+                            java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha / 255f)); // chỉnh độ trong suốt của icon
                     g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
                     g2.setComposite(java.awt.AlphaComposite.SrcOver);
                 } else {
