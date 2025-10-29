@@ -28,8 +28,15 @@ public class FastBallPowerUp extends PowerUp {
          Sound powerUpSound = new Sound();
         powerUpSound.loadSound("/powerup.wav");
         powerUpSound.playOnce();
-        // Luôn reset thời gian về 10 giây khi nhặt PowerUp (không cộng dồn)
-        ball.setSpeedMultiplier(multiplier, durationMillis);
+
+        if (game != null && game.getBalls() != null) {
+            for (Ball currentBall : game.getBalls()) {
+                if (currentBall != null) {
+                    currentBall.setSpeedMultiplier(multiplier, durationMillis);
+                }
+            }
+        }
+
         deactivate(); // Sau khi kích hoạt, tắt power-up (không thể kích hoạt lại)
     }
 }
