@@ -284,7 +284,7 @@ public class Renderer {
     }
 
     /**
-     * Vẽ Lives với icon bóng thay vì số
+     * Vẽ Lives với icon tim thay vì số
      */
     private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, int textY, FontMetrics fm, int pad) {
         String livesLabel = "Lives: ";
