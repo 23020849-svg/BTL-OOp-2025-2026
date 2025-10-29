@@ -15,7 +15,7 @@ public class FastBallPowerUp extends PowerUp {
     private double multiplier;     // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
     // ======= Constructor =======
     public FastBallPowerUp(int x, int y) {
-        super(x, y, 20, 12);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
+        super(x, y, 100, 60);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
         this.multiplier = 1.6;        // Bóng nhanh gấp 1.6 lần tốc độ gốc
         this.durationMillis = 10_000;  // Hiệu ứng kéo dài 10 giây (10000 ms)
     }

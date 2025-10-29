@@ -373,11 +373,11 @@ public class GameManager extends JPanel {
     private void spawnRandomPowerUp(int x, int y) {
         double chance = rand.nextDouble();
         if (chance < 0.33) {
-            powerUps.add(new ExpandPaddlePowerUp(x - 10, y));
+            powerUps.add(new ExpandPaddlePowerUp(x - 50, y));
         } else if (chance < 0.66) {
-            powerUps.add(new FastBallPowerUp(x - 10, y));
+            powerUps.add(new FastBallPowerUp(x - 50, y));
         } else {
-            powerUps.add(new MultiBallPowerUp(x - 10, y));
+            powerUps.add(new MultiBallPowerUp(x - 50, y));
         }
     }
 
