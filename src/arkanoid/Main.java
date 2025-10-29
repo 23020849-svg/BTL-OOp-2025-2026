@@ -2,8 +2,6 @@ package arkanoid; // Đặt class trong package arkanoid
 
 import java.awt.Image;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -28,21 +26,14 @@ public class Main {
             JFrame frame = new JFrame("Arkanoid"); // Tiêu đề cửa sổ game
             ImageIcon logo = new ImageIcon("rsc/logo.png");
             frame.setIconImage(logo.getImage());
-            // ======= 2. Cấu hình full màn hình =======
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thoát chương trình khi đóng cửa sổ
-            frame.setUndecorated(true); // Bỏ viền và thanh tiêu đề
-            frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Phóng to toàn màn hình
-
-            // ======= 3. Xử lý ảnh nền (background) =======
+            // ======= 2. Xử lý ảnh nền (background) =======
             // Lấy kích thước màn hình thực tế
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
             // add image
             ImageIcon icon = new ImageIcon("rsc/testbg.jpg");
             Image img = icon.getImage();
 
             // Scale ảnh nền cho vừa đúng kích thước màn hình
-            Image scaled = img.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
+            Image scaled = img.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT, Image.SCALE_SMOOTH);
 
             JLabel background = new JLabel(new ImageIcon(scaled));
 
@@ -55,6 +46,9 @@ public class Main {
 
             //Thêm panel game vào giữa
             background.add(menu, BorderLayout.CENTER);
+
+            frame.pack();
+            frame.setLocationRelativeTo(null);
 
 
             // Hiển thị cửa sổ

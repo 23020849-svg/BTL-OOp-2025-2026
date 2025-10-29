@@ -60,7 +60,7 @@
         private JFrame mainFrame;
         private JLabel backgroundLabel;
         private Image originalBackgroundImg;
-        private boolean isFullScreen = true;
+        private boolean isFullScreen = false;
         
         // Menu options
         private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Leaderboard","Exit"};
