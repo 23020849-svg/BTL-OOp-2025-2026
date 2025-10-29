@@ -119,7 +119,6 @@ public boolean isExpanded() {
         if (expandEndTime == 0) return 0;
         long remainingMillis = expandEndTime - System.currentTimeMillis();
         if (remainingMillis <= 0) {
-            expandEndTime = 0; // Đặt lại nếu đã hết hạn
             return 0;
         }
 

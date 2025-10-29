@@ -494,7 +494,7 @@
                 }
                 
                 // Update paddle during countdown so player can position it
-                gameManager.getPaddle().update(deltaTime);
+                gameManager.getPaddle().update(deltaTime, getWidth());
                 gameManager.updateGame(deltaTime, getWidth(), getHeight());               
                 if (!gameManager.isBallLaunched()) {
                     gameManager.alignBallToPaddle();
