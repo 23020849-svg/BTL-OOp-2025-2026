@@ -117,7 +117,7 @@ public class GameManager extends JPanel {
         createLevel(w, h);
     }
 
-    private void createLevel(int screenWidth, int screenHeight) {
+    public void createLevel(int screenWidth, int screenHeight) {
         bricks = levelLoader.loadLevel(currentLevel, screenWidth);  
         ballLaunched = false;
         paddle.setX(screenWidth / 2 - paddle.getWidth() / 2);

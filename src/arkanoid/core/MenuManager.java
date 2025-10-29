@@ -122,6 +122,10 @@
                 // Đặt lại chế độ full màn hình
                 mainFrame.setUndecorated(true);
                 mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
+                    gameManager.createLevel(screenSize.width, screenSize.height);
+                }
             } else {
                 // Chuyển qua cửa sổ
                 mainFrame.setContentPane(this);
@@ -140,6 +144,10 @@
                 mainFrame.pack();
                 
                 mainFrame.setLocationRelativeTo(null);
+
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
+                    gameManager.createLevel(MenuManager.WIDTH, MenuManager.HEIGHT);
+                }
             }
 
             mainFrame.setVisible(true);
