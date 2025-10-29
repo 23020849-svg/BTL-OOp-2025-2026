@@ -125,6 +125,14 @@
             } else {
                 // Chuyển qua cửa sổ
                 mainFrame.setContentPane(this);
+                
+                Image scaled = originalBackgroundImg.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT, Image.SCALE_SMOOTH);
+                backgroundLabel.setIcon(new ImageIcon(scaled));
+                backgroundLabel.setLayout(new BorderLayout());
+
+                mainFrame.setContentPane(backgroundLabel);
+
+                backgroundLabel.add(this, BorderLayout.CENTER);
 
                 mainFrame.setUndecorated(false);
                 mainFrame.setExtendedState(JFrame.NORMAL);
