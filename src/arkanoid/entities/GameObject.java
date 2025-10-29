@@ -49,4 +49,12 @@ public abstract class GameObject {
 
     public void setX(double x) { this.x = x; }  // Đặt lại tọa độ x
     public void setY(double y) { this.y = y; }  // Đặt lại tọa độ y
+
+    // Hàm co giãn vị trí và kích thước
+    public void rescale(double scaleX, double scaleY) {
+        this.x *= scaleX;
+        this.y *= scaleY;
+        this.width = (int) (this.width * scaleX);
+        this.height = (int) (this.height * scaleY);
+    }
 }

@@ -124,4 +124,10 @@ public boolean isExpanded() {
 
         return (int) Math.ceil(remainingMillis / 1000.0);
     }
+
+    @Override
+    public void rescale(double scaleX, double scaleY) {
+        super.rescale(scaleX, scaleY);
+        this.defaultWidth = (int) (this.defaultWidth * scaleX);
+    }
 }

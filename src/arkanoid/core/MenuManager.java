@@ -124,7 +124,7 @@
                 mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
                 if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                    gameManager.createLevel(screenSize.width, screenSize.height);
+                    gameManager.rescaleGame(screenSize.width, screenSize.height);
                 }
             } else {
                 // Chuyển qua cửa sổ
@@ -146,7 +146,7 @@
                 mainFrame.setLocationRelativeTo(null);
 
                 if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                    gameManager.createLevel(MenuManager.WIDTH, MenuManager.HEIGHT);
+                    gameManager.rescaleGame(MenuManager.WIDTH, MenuManager.HEIGHT);
                 }
             }
 
