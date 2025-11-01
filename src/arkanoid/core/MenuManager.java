@@ -60,7 +60,7 @@
         private JFrame mainFrame;
         private JLabel backgroundLabel;
         private Image originalBackgroundImg;
-        private boolean isFullScreen = true;
+        private boolean isFullScreen = false;
         
         // Menu options
         private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Leaderboard","Exit"};
@@ -122,9 +122,21 @@
                 // Đặt lại chế độ full màn hình
                 mainFrame.setUndecorated(true);
                 mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
+                    gameManager.rescaleGame(screenSize.width, screenSize.height);
+                }
             } else {
                 // Chuyển qua cửa sổ
                 mainFrame.setContentPane(this);
+                
+                Image scaled = originalBackgroundImg.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT, Image.SCALE_SMOOTH);
+                backgroundLabel.setIcon(new ImageIcon(scaled));
+                backgroundLabel.setLayout(new BorderLayout());
+
+                mainFrame.setContentPane(backgroundLabel);
+
+                backgroundLabel.add(this, BorderLayout.CENTER);
 
                 mainFrame.setUndecorated(false);
                 mainFrame.setExtendedState(JFrame.NORMAL);
@@ -132,6 +144,10 @@
                 mainFrame.pack();
                 
                 mainFrame.setLocationRelativeTo(null);
+
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
+                    gameManager.rescaleGame(MenuManager.WIDTH, MenuManager.HEIGHT);
+                }
             }
 
             mainFrame.setVisible(true);
@@ -486,7 +502,7 @@
                 }
                 
                 // Update paddle during countdown so player can position it
-                gameManager.getPaddle().update(deltaTime);
+                gameManager.getPaddle().update(deltaTime, getWidth());
                 gameManager.updateGame(deltaTime, getWidth(), getHeight());               
                 if (!gameManager.isBallLaunched()) {
                     gameManager.alignBallToPaddle();

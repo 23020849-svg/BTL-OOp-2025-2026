@@ -150,39 +150,40 @@ public class Ball extends MovableObject {
     }
 
     public double getX() { return x; }
-public double getY() { return y; }
-public int getWidth() { return width; }
-public int getHeight() { return height; }
-public int getRadiusPixels() { return radius * 2; } // đường kính (tuỳ em có cần)
+    public double getY() { return y; }
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+    public int getRadiusPixels() { return radius * 2; } // đường kính (tuỳ em có cần)
 
-// === Setter vị trí ===
-public void setPosition(double nx, double ny) {
-    this.x = nx;
-    this.y = ny;
-}
+    // === Setter vị trí ===
+    public void setPosition(double nx, double ny) {
+        this.x = nx;
+        this.y = ny;
+    }
 
-public double getSpeedMultiplier() {
-    return speedMultiplier;
-}
+    public double getSpeedMultiplier() {
+        return speedMultiplier;
+    }
 
-public long getFastEndTime() {
-    return fastEndTime;
-}
-// === Getter/Setter vận tốc ===
-public double getVX() { return dx; }
-public double getVY() { return dy; }
-public void setVelocity(double nvx, double nvy) {
-    this.dx = nvx;
-    this.dy = nvy;
-}
+    public long getFastEndTime() {
+        return fastEndTime;
+    }
+    // === Getter/Setter vận tốc ===
+    public double getVX() { return dx; }
+    public double getVY() { return dy; }
+    public void setVelocity(double nvx, double nvy) {
+        this.dx = nvx;
+        this.dy = nvy;
+    }
 
-// === Tốc độ hiện tại (độ lớn vector) ===
-public double getSpeed() {
-    return Math.sqrt(dx*dx + dy*dy);
-}
-
-
+    // === Tốc độ hiện tại (độ lớn vector) ===
+    public double getSpeed() {
+        return Math.sqrt(dx*dx + dy*dy);
+    }
     
-
-   
+    @Override
+    public void rescale(double scaleX, double scaleY) {
+        super.rescale(scaleX, scaleY);
+        this.radius = (int) (this.radius * scaleX);
+    }
 }

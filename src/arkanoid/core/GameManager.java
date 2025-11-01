@@ -69,6 +69,9 @@ public class GameManager extends JPanel {
     private Sound collisionSound;
     private Sound losingSound;
 
+    private int currentScreenWidth = 1440;
+    private int currentScreenHeight = 800;
+
     public GameManager() {
         setPreferredSize(new Dimension(1440, 800));
         setOpaque(false);
@@ -84,6 +87,42 @@ public class GameManager extends JPanel {
         renderer = new Renderer();
     }
 
+    // Hàm co giãn toàn bộ trạng thái game
+    public void rescaleGame(int newWidth, int newHeight) {
+        if (currentScreenWidth == 0 || currentScreenHeight == 0) return; // Tránh chia cho 0
+        if (currentScreenWidth == newWidth && currentScreenHeight == newHeight) return; // Không thay đổi
+
+        double scaleX = (double) newWidth / currentScreenWidth;
+        double scaleY = (double) newHeight / currentScreenHeight;
+
+        // Co giãn Paddle
+        if (paddle != null) {
+            paddle.rescale(scaleX, scaleY);
+        }
+        // Co giãn Bóng
+        if (balls != null) {
+            for (Ball b : balls) {
+                b.rescale(scaleX, scaleY);
+            }
+        }
+        // Co giãn Gạch
+        if (bricks != null) {
+            for (Brick b : bricks) {
+                b.rescale(scaleX, scaleY);
+            }
+        }
+        // Co giãn Power-up
+        if (powerUps != null) {
+            for (PowerUp p : powerUps) {
+                p.rescale(scaleX, scaleY);
+            }
+        }
+
+        // Lưu kích thước mới
+        this.currentScreenWidth = newWidth;
+        this.currentScreenHeight = newHeight;
+    }
+
     public void initGame() {
 
         int w = getWidth();
@@ -91,13 +130,16 @@ public class GameManager extends JPanel {
         if (w == 0) w = 1440;
         if (h == 0) h = 800;
 
+        this.currentScreenWidth = w;
+        this.currentScreenHeight = h;
+
         paddle = new Paddle(w / 2 - 40, h - 40, 120, 12);
         balls = new ArrayList<>();
         balls.add(new Ball(WIDTH / 2 - 8, HEIGHT - 60, 8, 3, -3));
         
         levelLoader = new LevelLoader();  
         currentLevel = 1;
-        createLevel();
+        createLevel(w, h);
         
         powerUps = new ArrayList<>();
         running = true;
@@ -110,16 +152,16 @@ public class GameManager extends JPanel {
     }
 
     private void createLevel() {
-        int w = getWidth();
-        int h = getHeight();
-        if (w == 0) w = 1440;
-        if (h == 0) h = 800;
-        createLevel(w, h);
+        createLevel(1440, 800);
     }
 
-    private void createLevel(int screenWidth, int screenHeight) {
+    public void createLevel(int screenWidth, int screenHeight) {
         bricks = levelLoader.loadLevel(currentLevel, screenWidth);  
         ballLaunched = false;
+
+        this.currentScreenWidth = screenWidth;
+        this.currentScreenHeight = screenHeight;
+
         paddle.setX(screenWidth / 2 - paddle.getWidth() / 2);
         paddle.setY(screenHeight - 40);
         balls.clear();
@@ -373,11 +415,11 @@ public class GameManager extends JPanel {
     private void spawnRandomPowerUp(int x, int y) {
         double chance = rand.nextDouble();
         if (chance < 0.33) {
-            powerUps.add(new ExpandPaddlePowerUp(x - 10, y));
+            powerUps.add(new ExpandPaddlePowerUp(x - 50, y));
         } else if (chance < 0.66) {
-            powerUps.add(new FastBallPowerUp(x - 10, y));
+            powerUps.add(new FastBallPowerUp(x - 50, y));
         } else {
-            powerUps.add(new MultiBallPowerUp(x - 10, y));
+            powerUps.add(new MultiBallPowerUp(x - 50, y));
         }
     }
 
