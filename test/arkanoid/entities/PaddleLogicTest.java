@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
+import java.awt.Color;
 @DisplayName("Kiểm tra Logic của Paddle")
 public class PaddleLogicTest {
 
@@ -17,7 +17,7 @@ public class PaddleLogicTest {
     @BeforeEach
     // Thiết lập một Paddle mới trước mỗi bài test
     void setUp() {
-        paddle = new Paddle(100, 100, defaultWidth, 20);
+        paddle = new Paddle(100, 100, defaultWidth, 20, Color.BLUE);
     }
 
     @Test

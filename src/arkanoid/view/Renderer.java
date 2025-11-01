@@ -33,7 +33,7 @@ public class Renderer {
 
     private Image ballImage;
     private Image heart;
-    private static final double BALL_SCALE = 2.5; // phóng to khi VẼ
+    private static final double BALL_SCALE = 2.54; // phóng to khi VẼ
     private static final int ARROW_GAP = 2; // khoảng hở giữa mép bóng & mũi tên
     private static final int LIFE_ICON_SIZE = 20;
 
@@ -50,7 +50,9 @@ public class Renderer {
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
             Paddle paddle,
+            Color paddleColor,
             List<Ball> balls,
+            Color ballColor,
             List<Brick> bricks,
             List<PowerUp> powerUps,
             int score,
@@ -102,12 +104,16 @@ public class Renderer {
                         g2.fillOval((int) pos[0] - haloSz, (int) pos[1] - haloSz, haloSz * 2, haloSz * 2);
                     }
                 }
+                g2.setColor(ballColor); // lấy màu mà người chơi đã chọn
+                g2.fillOval(cx - rDraw, cy - rDraw, rDraw * 2, rDraw * 2);
 
-                // ---- Vẽ ảnh bóng phóng to 2.5x, căn giữa theo (cx, cy) ----
+               /*
+               ---- Vẽ ảnh bóng phóng to 2.5x, căn giữa theo (cx, cy) ----
                 if (ballImage != null) {
                     int drawD = rDraw * 2;
                     g2.drawImage(ballImage, cx - rDraw, cy - rDraw, drawD, drawD, null);
                 }
+                */ 
             }
         }
 
@@ -131,8 +137,7 @@ public class Renderer {
             Rectangle r = paddle.getBounds();
             float arc = 10f;
             RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
-            Color base = new Color(80, 240, 255);
-
+            Color base = paddleColor; // lấy màu mà người chơi đã chọn
             for (int i = 2; i >= 1; i--) {
                 float t = (float) i / 2f;
                 float alpha = 0.03f + 0.18f * t;

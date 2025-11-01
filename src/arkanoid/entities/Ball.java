@@ -9,7 +9,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.awt.Color;
 import arkanoid.utils.Sound;
 
 // Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
@@ -21,16 +21,16 @@ public class Ball extends MovableObject {
     private Sound CollisionWall;
     private List<double[]> trail = new ArrayList<>();
     private static final int TRAIL_SIZE = 12;
-    
+    private Color ballColor; // Màu sắc của bóng
 
     // Constructor: khởi tạo vị trí, kích thước, và tốc độ ban đầu
-    public Ball(int x, int y, int radius, double initialSpeedX, double initialSpeedY) {
+    public Ball(int x, int y, int radius, double initialSpeedX, double initialSpeedY, Color ballColor) {
         super(x, y, radius * 2, radius * 2); // Gọi constructor của MovableObject (width/height = đường kính)
         this.radius = radius;                // Lưu bán kính
         this.dx = initialSpeedX;             // Tốc độ theo trục X
         this.dy = initialSpeedY;             // Tốc độ theo trục Y
         CollisionWall = new Sound();
-
+        this.ballColor = ballColor;
         CollisionWall.loadSound("/tapwall.wav");
         normalizeSpeed(baseSpeed); // Chuẩn hóa độ lớn vector vận tốc về baseSpeed
     }
@@ -174,6 +174,11 @@ public class Ball extends MovableObject {
     public void setVelocity(double nvx, double nvy) {
         this.dx = nvx;
         this.dy = nvy;
+    }
+
+    // === Màu sắc của bóng ===
+    public Color getBallColor() {
+        return ballColor;
     }
 
     // === Tốc độ hiện tại (độ lớn vector) ===

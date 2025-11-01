@@ -1,473 +1,534 @@
-    package arkanoid.core;
+package arkanoid.core;
 
-    import java.awt.BorderLayout;
-    import java.awt.Dimension;
-    import java.awt.Graphics;
-    import java.awt.Window;
-    import java.awt.event.ActionEvent;
-    import java.awt.event.ActionListener;
-    import java.awt.event.MouseAdapter;
-    import java.awt.event.MouseEvent;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.Color;
+import javax.swing.JColorChooser;
 
-    import javax.swing.AbstractAction;
-    import javax.swing.JPanel;
-    import javax.swing.KeyStroke;
-    import javax.swing.SwingUtilities;
-    import javax.swing.Timer;
-    import javax.swing.JFrame;
-    import javax.swing.JLabel;
-    import javax.swing.ImageIcon;
-    import java.awt.Image;
+import javax.swing.AbstractAction;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
 
-    import arkanoid.utils.Sound;
-    import arkanoid.view.LeaderboardDialog;
-    import arkanoid.view.MenuRenderer;
+import java.awt.Image;
 
-    import java.awt.Toolkit;
+import arkanoid.utils.Sound;
+import arkanoid.view.LeaderboardDialog;
+import arkanoid.view.MenuRenderer;
+
+import java.awt.Toolkit;
+
+/**
+ * MenuManager.java
+ * 
+ * Quản lý menu chính của game Arkanoid với các tùy chọn:
+ * - Start Game: Bắt đầu chơi game
+ * - Settings: Cài đặt game
+ * - Instructions: Hướng dẫn chơi
+ * - Exit: Thoát game
+ */
+public class MenuManager extends JPanel implements ActionListener {
+
+    public static final int WIDTH = 1440;
+    public static final int HEIGHT = 800;
+
+    // Các trạng thái menu
+    public enum MenuState {
+        MAIN_MENU,
+        CUSTOM,
+        SETTINGS,
+        INSTRUCTIONS,
+        COUNTDOWN,
+        GAME,
+        PAUSED,
+        GAME_OVER
+    }
+
+    private MenuState currentState = MenuState.MAIN_MENU;
+    private MenuRenderer menuRenderer;
+    private GameManager gameManager;
+    private Timer timer;
+    private Sound selectingSound; // Âm thanh khi chọn menu
+
+    // Biến để quản lý fullscreen
+    private JFrame mainFrame;
+    private JLabel backgroundLabel;
+    private Image originalBackgroundImg;
+    private boolean isFullScreen = false;
+
+    // Menu options
+    private String[] mainMenuOptions = { "Start Game", "Custom", "Settings", "Instructions", "Leaderboard", "Exit" };
+    private int selectedOption = 0;
+
+    // Settings
+    private boolean soundEnabled = true;
+    private int difficulty = 1; // 1: Easy, 2: Medium, 3: Hard
+    private String[] difficultyNames = { "Easy", "Medium", "Hard" };
+
+    // Countdown variables
+    private int countdownValue = 3;
+    private long countdownStartTime;
+    private static final long COUNTDOWN_DURATION = 1000; // 1 second per count
+
+    // Customization
+    private Color paddleColor = Color.BLUE; // Màu mặc định của paddle
+    private Color ballColor = Color.RED;    // Màu mặc định của ball
+
+    public MenuManager(JFrame frame, JLabel background, Image originalImg) {
+        this.mainFrame = frame;
+        this.backgroundLabel = background;
+        this.originalBackgroundImg = originalImg;
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setFocusable(true);
+        setOpaque(false);
+
+        menuRenderer = new MenuRenderer();
+        gameManager = new GameManager();
+        gameManager.setPaddleColor(paddleColor);
+        gameManager.setBallColor(ballColor);
+        // Khởi tạo âm thanh
+        selectingSound = new Sound();
+        selectingSound.loadSound("/selecting.wav");
+
+        initKeyBindings();
+        initMouseListeners();
+
+        timer = new Timer(16, this);
+        timer.start();
+    }
 
     /**
-     * MenuManager.java
-     * 
-     * Quản lý menu chính của game Arkanoid với các tùy chọn:
-     * - Start Game: Bắt đầu chơi game
-     * - Settings: Cài đặt game
-     * - Instructions: Hướng dẫn chơi
-     * - Exit: Thoát game
+     * Bật/tắt chế độ toàn màn hình
      */
-    public class MenuManager extends JPanel implements ActionListener {
-        
-        public static final int WIDTH = 1440;
-        public static final int HEIGHT = 800;
-        
-        // Các trạng thái menu
-        public enum MenuState {
-            MAIN_MENU,
-            SETTINGS,
-            INSTRUCTIONS,
-            COUNTDOWN,
-            GAME,
-            PAUSED,
-            GAME_OVER
-        }
-        
-        private MenuState currentState = MenuState.MAIN_MENU;
-        private MenuRenderer menuRenderer;
-        private GameManager gameManager;
-        private Timer timer;
-        private Sound selectingSound; // Âm thanh khi chọn menu
+    private void toggleFullScreen() {
+        isFullScreen = !isFullScreen; // Đảo trạng thái
+        mainFrame.dispose(); // Hủy cửa sổ hiện tại để thay đổi thuộc tính
 
-        // Biến để quản lý fullscreen
-        private JFrame mainFrame;
-        private JLabel backgroundLabel;
-        private Image originalBackgroundImg;
-        private boolean isFullScreen = false;
-        
-        // Menu options
-        private String[] mainMenuOptions = {"Start Game", "Settings", "Instructions", "Leaderboard","Exit"};
-        private int selectedOption = 0;
-        
-        // Settings
-        private boolean soundEnabled = true;
-        private int difficulty = 1; // 1: Easy, 2: Medium, 3: Hard
-        private String[] difficultyNames = {"Easy", "Medium", "Hard"};
-        
-        // Countdown variables
-        private int countdownValue = 3;
-        private long countdownStartTime;
-        private static final long COUNTDOWN_DURATION = 1000; // 1 second per count
-        
-        public MenuManager(JFrame frame, JLabel background, Image originalImg) {
-            this.mainFrame = frame;
-            this.backgroundLabel = background;
-            this.originalBackgroundImg = originalImg;
-            setPreferredSize(new Dimension(WIDTH, HEIGHT));
-            setFocusable(true);
-            setOpaque(false);
-            
-            menuRenderer = new MenuRenderer();
-            gameManager = new GameManager();
-            
-            // Khởi tạo âm thanh
-            selectingSound = new Sound();
-            selectingSound.loadSound("/selecting.wav");
-            
-            initKeyBindings();
-            initMouseListeners();
-            
-            timer = new Timer(16, this);
-            timer.start();
+        if (isFullScreen) {
+            // Chuyển sang fullscreen
+
+            // Lấy kích thước màn hình và scale ảnh nền
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            Image scaled = originalBackgroundImg.getScaledInstance(screenSize.width, screenSize.height,
+                    Image.SCALE_SMOOTH);
+            backgroundLabel.setIcon(new ImageIcon(scaled));
+            backgroundLabel.setLayout(new BorderLayout());
+
+            // Đặt lại ContentPane là cái background
+            mainFrame.setContentPane(backgroundLabel);
+            // Thêm game (this) vào giữa background
+            backgroundLabel.add(this, BorderLayout.CENTER);
+
+            // Đặt lại chế độ full màn hình
+            mainFrame.setUndecorated(true);
+            mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+            if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                    || currentState == MenuState.COUNTDOWN) {
+                gameManager.rescaleGame(screenSize.width, screenSize.height);
+            }
+        } else {
+            // Chuyển qua cửa sổ
+            mainFrame.setContentPane(this);
+
+            Image scaled = originalBackgroundImg.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT,
+                    Image.SCALE_SMOOTH);
+            backgroundLabel.setIcon(new ImageIcon(scaled));
+            backgroundLabel.setLayout(new BorderLayout());
+
+            mainFrame.setContentPane(backgroundLabel);
+
+            backgroundLabel.add(this, BorderLayout.CENTER);
+
+            mainFrame.setUndecorated(false);
+            mainFrame.setExtendedState(JFrame.NORMAL);
+
+            mainFrame.pack();
+
+            mainFrame.setLocationRelativeTo(null);
+
+            if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                    || currentState == MenuState.COUNTDOWN) {
+                gameManager.rescaleGame(MenuManager.WIDTH, MenuManager.HEIGHT);
+            }
         }
 
-        /**
-         * Bật/tắt chế độ toàn màn hình
-         */
-        private void toggleFullScreen() {
-            isFullScreen = !isFullScreen; // Đảo trạng thái
-            mainFrame.dispose(); // Hủy cửa sổ hiện tại để thay đổi thuộc tính
+        mainFrame.setVisible(true);
 
-            if (isFullScreen) {
-                // Chuyển sang fullscreen
-                
-                // Lấy kích thước màn hình và scale ảnh nền
-                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-                Image scaled = originalBackgroundImg.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
-                backgroundLabel.setIcon(new ImageIcon(scaled));
-                backgroundLabel.setLayout(new BorderLayout());
+        requestFocusInWindow();
+    }
 
-                // Đặt lại ContentPane là cái background
-                mainFrame.setContentPane(backgroundLabel);
-                // Thêm game (this) vào giữa background
-                backgroundLabel.add(this, BorderLayout.CENTER);
-                
-                // Đặt lại chế độ full màn hình
-                mainFrame.setUndecorated(true);
-                mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                    gameManager.rescaleGame(screenSize.width, screenSize.height);
-                }
-            } else {
-                // Chuyển qua cửa sổ
-                mainFrame.setContentPane(this);
-                
-                Image scaled = originalBackgroundImg.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT, Image.SCALE_SMOOTH);
-                backgroundLabel.setIcon(new ImageIcon(scaled));
-                backgroundLabel.setLayout(new BorderLayout());
-
-                mainFrame.setContentPane(backgroundLabel);
-
-                backgroundLabel.add(this, BorderLayout.CENTER);
-
-                mainFrame.setUndecorated(false);
-                mainFrame.setExtendedState(JFrame.NORMAL);
-
-                mainFrame.pack();
-                
-                mainFrame.setLocationRelativeTo(null);
-
-                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                    gameManager.rescaleGame(MenuManager.WIDTH, MenuManager.HEIGHT);
+    private void initKeyBindings() {
+        // Navigation keys
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
+        getActionMap().put("up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.MAIN_MENU) {
+                    selectedOption = (selectedOption - 1 + mainMenuOptions.length) % mainMenuOptions.length;
+                    if (soundEnabled)
+                        selectingSound.playOnce();
+                } else if (currentState == MenuState.SETTINGS) {
+                    // Navigate settings options
                 }
             }
+        });
 
-            mainFrame.setVisible(true);
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
+        getActionMap().put("down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.MAIN_MENU) {
+                    selectedOption = (selectedOption + 1) % mainMenuOptions.length;
+                    if (soundEnabled)
+                        selectingSound.playOnce();
+                } else if (currentState == MenuState.SETTINGS) {
+                    // Navigate settings options
+                }
+            }
+        });
 
-            requestFocusInWindow();
-        }
-        
-        private void initKeyBindings() {
-            // Navigation keys
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
-            getActionMap().put("up", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.MAIN_MENU) {
-                        selectedOption = (selectedOption - 1 + mainMenuOptions.length) % mainMenuOptions.length;
-                        if (soundEnabled) selectingSound.playOnce();
-                    } else if (currentState == MenuState.SETTINGS) {
-                        // Navigate settings options
+        // Enter key
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "enter");
+        getActionMap().put("enter", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleEnterKey();
+            }
+        });
+
+        // Escape key
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
+        getActionMap().put("escape", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleEscapeKey();
+            }
+        });
+
+        // Left/Right for settings and game
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed LEFT"), "left_pressed");
+        getActionMap().put("left_pressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.SETTINGS) {
+                    if (difficulty > 1)
+                        difficulty--;
+                } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                        || currentState == MenuState.COUNTDOWN) {
+                    // Call game manager's left movement
+                    gameManager.getPaddle().setMovingLeft(true);
+                }
+            }
+        });
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released LEFT"), "left_released");
+        getActionMap().put("left_released", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                        || currentState == MenuState.COUNTDOWN) {
+                    gameManager.getPaddle().setMovingLeft(false);
+                }
+            }
+        });
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed RIGHT"), "right_pressed");
+        getActionMap().put("right_pressed", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.SETTINGS) {
+                    if (difficulty < 3)
+                        difficulty++;
+                } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                        || currentState == MenuState.COUNTDOWN) {
+                    gameManager.getPaddle().setMovingRight(true);
+                }
+            }
+        });
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released RIGHT"), "right_released");
+        getActionMap().put("right_released", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                        || currentState == MenuState.COUNTDOWN) {
+                    gameManager.getPaddle().setMovingRight(false);
+                }
+            }
+        });
+
+        // Space key for game
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SPACE"), "space");
+        getActionMap().put("space", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+                    // Launch ball if not already launched
+                    if (!gameManager.isBallLaunched()) {
+                        gameManager.launchBall();
                     }
                 }
-            });
-            
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
-            getActionMap().put("down", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.MAIN_MENU) {
-                        selectedOption = (selectedOption + 1) % mainMenuOptions.length;
-                        if (soundEnabled) selectingSound.playOnce();
-                    } else if (currentState == MenuState.SETTINGS) {
-                        // Navigate settings options
+            }
+        });
+
+        // R key for restart
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("R"), "restart");
+        getActionMap().put("restart", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+                    gameManager.initGame();
+                }
+            }
+        });
+
+        // 4 and 6 keys for aiming
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("4"), "aim_left");
+        getActionMap().put("aim_left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+                    gameManager.adjustLaunchAngle(-5);
+                }
+            }
+        });
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("6"), "aim_right");
+        getActionMap().put("aim_right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+                    gameManager.adjustLaunchAngle(5);
+                }
+            }
+        });
+
+        // Phím F11 để bật/tắt toàn màn hình
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F11"), "toggle_fullscreen");
+        getActionMap().put("toggle_fullscreen", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                toggleFullScreen();
+            }
+        });
+        // Phím P để chọn màu Paddle
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("P"), "choose_paddle_color");
+        getActionMap().put("choose_paddle_color", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.CUSTOM) {
+                    Color newColor = JColorChooser.showDialog(
+                            MenuManager.this, "Choose Paddle Color", paddleColor);
+                    if (newColor != null) {
+                        gameManager.setPaddleColor(newColor);
                     }
                 }
-            });
-            
-            // Enter key
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "enter");
-            getActionMap().put("enter", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+            }
+        });
+
+        // Phím B để chọn màu Ball
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("B"), "choose_ball_color");
+        getActionMap().put("choose_ball_color", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentState == MenuState.CUSTOM) {
+                    Color newColor = JColorChooser.showDialog(
+                            MenuManager.this, "Choose Ball Color", ballColor);
+                    if (newColor != null) {
+                        gameManager.setBallColor(newColor);
+                    }
+                }
+            }
+        });
+
+    }
+
+    private void initMouseListeners() {
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleMouseClick(e);
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                handleMouseMove(e);
+            }
+        });
+
+        addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                handleMouseMove(e);
+            }
+        });
+    }
+
+    private void handleMouseClick(MouseEvent e) {
+        if (currentState == MenuState.MAIN_MENU) {
+            // Kiểm tra xem click có nằm trong vùng menu options không
+            int startY = 350;
+            int spacing = 60;
+            int clickY = e.getY();
+
+            for (int i = 0; i < mainMenuOptions.length; i++) {
+                int optionY = startY + i * spacing;
+                if (clickY >= optionY - 30 && clickY <= optionY + 10) {
+                    selectedOption = i;
                     handleEnterKey();
-                }
-            });
-            
-            // Escape key
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
-            getActionMap().put("escape", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    handleEscapeKey();
-                }
-            });
-            
-            // Left/Right for settings and game
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed LEFT"), "left_pressed");
-            getActionMap().put("left_pressed", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.SETTINGS) {
-                        if (difficulty > 1) difficulty--;
-                    } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                        // Call game manager's left movement
-                        gameManager.getPaddle().setMovingLeft(true);
-                    }
-                }
-            });
-            
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released LEFT"), "left_released");
-            getActionMap().put("left_released", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                        gameManager.getPaddle().setMovingLeft(false);
-                    }
-                }
-            });
-            
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed RIGHT"), "right_pressed");
-            getActionMap().put("right_pressed", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.SETTINGS) {
-                        if (difficulty < 3) difficulty++;
-                    } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                        gameManager.getPaddle().setMovingRight(true);
-                    }
-                }
-            });
-            
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released RIGHT"), "right_released");
-            getActionMap().put("right_released", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                        gameManager.getPaddle().setMovingRight(false);
-                    }
-                }
-            });
-            
-            // Space key for game
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SPACE"), "space");
-            getActionMap().put("space", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                        // Launch ball if not already launched
-                        if (!gameManager.isBallLaunched()) {
-                            gameManager.launchBall();
-                        }
-                    }
-                }
-            });
-            
-            // R key for restart
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("R"), "restart");
-            getActionMap().put("restart", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                        gameManager.initGame();
-                    }
-                }
-            });
-            
-            // 4 and 6 keys for aiming
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("4"), "aim_left");
-            getActionMap().put("aim_left", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                        gameManager.adjustLaunchAngle(-5);
-                    }
-                }
-            });
-            
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("6"), "aim_right");
-            getActionMap().put("aim_right", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                        gameManager.adjustLaunchAngle(5);
-                    }
-                }
-            });
-
-            // Phím F11 để bật/tắt toàn màn hình
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F11"), "toggle_fullscreen");
-            getActionMap().put("toggle_fullscreen", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    toggleFullScreen();
-                }
-            });
-        }
-        
-        private void initMouseListeners() {
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    handleMouseClick(e);
-                }
-                
-                @Override
-                public void mouseMoved(MouseEvent e) {
-                    handleMouseMove(e);
-                }
-            });
-            
-            addMouseMotionListener(new MouseAdapter() {
-                @Override
-                public void mouseMoved(MouseEvent e) {
-                    handleMouseMove(e);
-                }
-            });
-        }
-        
-        private void handleMouseClick(MouseEvent e) {
-            if (currentState == MenuState.MAIN_MENU) {
-                // Kiểm tra xem click có nằm trong vùng menu options không
-                int startY = 350;
-                int spacing = 60;
-                int clickY = e.getY();
-                
-                for (int i = 0; i < mainMenuOptions.length; i++) {
-                    int optionY = startY + i * spacing;
-                    if (clickY >= optionY - 30 && clickY <= optionY + 10) {
-                        selectedOption = i;
-                        handleEnterKey();
-                        break;
-                    }
-                }
-            } else if (currentState == MenuState.SETTINGS) {
-                // Click để toggle sound
-                soundEnabled = !soundEnabled;
-            } else if (currentState == MenuState.INSTRUCTIONS) {
-                // Click để quay về main menu
-                currentState = MenuState.MAIN_MENU;
-            } else if (currentState == MenuState.GAME_OVER) {
-                // Click để quay về main menu
-                currentState = MenuState.MAIN_MENU;
-            } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                // Click để bắn bóng nếu chưa bắn
-                if (!gameManager.isBallLaunched()) {
-                    gameManager.launchBall();
+                    break;
                 }
             }
-        }
-        
-        private void handleMouseMove(MouseEvent e) {
-            if (currentState == MenuState.MAIN_MENU) {
-                // Highlight menu option khi hover
-                int startY = 350;
-                int spacing = 60;
-                int mouseY = e.getY();
-                
-                for (int i = 0; i < mainMenuOptions.length; i++) {
-                    int optionY = startY + i * spacing;
-                    if (mouseY >= optionY - 30 && mouseY <= optionY + 10) {
-                        int oldSelected = selectedOption;
-                        selectedOption = i;
-                        // Phát âm thanh nếu thay đổi lựa chọn và có bật sound
-                        if (oldSelected != selectedOption && soundEnabled) {
-                            selectingSound.playOnce();
-                        }
-                        break;
-                    }
-                }
-            } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED || currentState == MenuState.COUNTDOWN) {
-                // Điều khiển paddle bằng chuột
-                int mouseX = e.getX();
-                int paddleWidth = gameManager.getPaddle().getWidth();
-                int newPaddleX = mouseX - paddleWidth / 2;
-                
-                // Giới hạn paddle trong màn hình
-                if (newPaddleX < 0) newPaddleX = 0;
-                if (newPaddleX > getWidth() - paddleWidth) newPaddleX = getWidth() - paddleWidth;
-                
-                gameManager.getPaddle().setX(newPaddleX);
-                
-                // Căn chỉnh bóng theo paddle nếu chưa bắn
-                if (!gameManager.isBallLaunched()) {
-                    gameManager.alignBallToPaddle();
-                }
+        } else if (currentState == MenuState.SETTINGS) {
+            // Click để toggle sound
+            soundEnabled = !soundEnabled;
+        } else if (currentState == MenuState.INSTRUCTIONS) {
+            // Click để quay về main menu
+            currentState = MenuState.MAIN_MENU;
+        } else if (currentState == MenuState.GAME_OVER) {
+            // Click để quay về main menu
+            currentState = MenuState.MAIN_MENU;
+        } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+            // Click để bắn bóng nếu chưa bắn
+            if (!gameManager.isBallLaunched()) {
+                gameManager.launchBall();
             }
         }
-        
-        private void handleEnterKey() {
-            switch (currentState) {
-                case MAIN_MENU:
-                    switch (selectedOption) {
-                        case 0: // Start Game
-                            startGame();
-                            break;
-                        case 1: // Settings
-                            currentState = MenuState.SETTINGS;
-                            break;
-                        case 2: // Instructions
-                            currentState = MenuState.INSTRUCTIONS;
-                            break;
+    }
 
-                        //Leaderboard
-                        case 3: 
+    private void handleMouseMove(MouseEvent e) {
+        if (currentState == MenuState.MAIN_MENU) {
+            // Highlight menu option khi hover
+            int startY = 350;
+            int spacing = 60;
+            int mouseY = e.getY();
+
+            for (int i = 0; i < mainMenuOptions.length; i++) {
+                int optionY = startY + i * spacing;
+                if (mouseY >= optionY - 30 && mouseY <= optionY + 10) {
+                    int oldSelected = selectedOption;
+                    selectedOption = i;
+                    // Phát âm thanh nếu thay đổi lựa chọn và có bật sound
+                    if (oldSelected != selectedOption && soundEnabled) {
+                        selectingSound.playOnce();
+                    }
+                    break;
+                }
+            }
+        } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
+                || currentState == MenuState.COUNTDOWN) {
+            // Điều khiển paddle bằng chuột
+            int mouseX = e.getX();
+            int paddleWidth = gameManager.getPaddle().getWidth();
+            int newPaddleX = mouseX - paddleWidth / 2;
+
+            // Giới hạn paddle trong màn hình
+            if (newPaddleX < 0)
+                newPaddleX = 0;
+            if (newPaddleX > getWidth() - paddleWidth)
+                newPaddleX = getWidth() - paddleWidth;
+
+            gameManager.getPaddle().setX(newPaddleX);
+
+            // Căn chỉnh bóng theo paddle nếu chưa bắn
+            if (!gameManager.isBallLaunched()) {
+                gameManager.alignBallToPaddle();
+            }
+        }
+    }
+
+    private void handleEnterKey() {
+        switch (currentState) {
+            case MAIN_MENU:
+                switch (selectedOption) {
+                    case 0: // Start Game
+                        startGame();
+                        break;
+                    case 1: // Custom
+                        currentState = MenuState.CUSTOM;
+                        break;
+                    case 2: // Settings
+                        currentState = MenuState.SETTINGS;
+                        break;
+                    case 3: // Instructions
+                        currentState = MenuState.INSTRUCTIONS;
+                        break;
+
+                    // Leaderboard
+                    case 4:
                         showLeaderboard();
                         break;
 
-                        case 4: // Exit
-                            System.exit(0);
-                            break;
-                    }
-                    break;
-                case SETTINGS:
-                    // Toggle sound
-                    soundEnabled = !soundEnabled;
-                    break;
-                case INSTRUCTIONS:
-                    currentState = MenuState.MAIN_MENU;
-                    break;
-                case GAME_OVER:
-                    currentState = MenuState.MAIN_MENU;
-                    break;
-                case COUNTDOWN:
-                case GAME:
-                case PAUSED:
-                    // No action for these states
-                    break;
-            }
+                    case 5: // Exit
+                        System.exit(0);
+                        break;
+                }
+                break;
+            case SETTINGS:
+                // Toggle sound
+                soundEnabled = !soundEnabled;
+                break;
+            case INSTRUCTIONS:
+                currentState = MenuState.MAIN_MENU;
+                break;
+            case GAME_OVER:
+                currentState = MenuState.MAIN_MENU;
+                break;
+            case COUNTDOWN:
+            case GAME:
+            case PAUSED:
+                // No action for these states
+                break;
         }
-        
-        private void handleEscapeKey() {
-            switch (currentState) {
-                case SETTINGS:
-                case INSTRUCTIONS:
-                    currentState = MenuState.MAIN_MENU;
-                    break;
-                case GAME:
-                    currentState = MenuState.PAUSED;
-                    break;
-                case PAUSED:
-                    currentState = MenuState.GAME;
-                    break;
-                case COUNTDOWN:
-                case MAIN_MENU:
-                case GAME_OVER:
-                    // No action for these states
-                    break;
-            }
-        }
-        
-        private void startGame() {
-            currentState = MenuState.COUNTDOWN;
-            countdownValue = 3;
-            countdownStartTime = System.currentTimeMillis();
-            gameManager.initGame();
-            // Make sure MenuManager keeps focus but forwards input to game
-            setFocusable(true);
-            requestFocusInWindow();
-        }
+    }
 
-        private void showLeaderboard() {
-            // Tạm dừng game loop
+    private void handleEscapeKey() {
+        switch (currentState) {
+            case SETTINGS:
+            case CUSTOM:
+                currentState = MenuState.MAIN_MENU;
+                break;
+            case INSTRUCTIONS:
+                currentState = MenuState.MAIN_MENU;
+                break;
+            case GAME:
+                currentState = MenuState.PAUSED;
+                break;
+            case PAUSED:
+                currentState = MenuState.GAME;
+                break;
+            case COUNTDOWN:
+            case MAIN_MENU:
+            case GAME_OVER:
+                // No action for these states
+                break;
+        }
+    }
+
+    private void startGame() {
+        currentState = MenuState.COUNTDOWN;
+        countdownValue = 3;
+        countdownStartTime = System.currentTimeMillis();
+        gameManager.initGame();
+        // Make sure MenuManager keeps focus but forwards input to game
+        setFocusable(true);
+        requestFocusInWindow();
+    }
+
+    private void showLeaderboard() {
+        // Tạm dừng game loop
         timer.stop();
 
         Window parent = SwingUtilities.getWindowAncestor(this);
@@ -477,102 +538,113 @@
         // Khôi phục
         timer.start();
         requestFocusInWindow();
-        }
-        
-        public void gameOver() {
-            currentState = MenuState.GAME_OVER;
-        }
-        
-        private long lastUpdateTime = System.currentTimeMillis();
+    }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            // Tính Delta Time
-            long currentTime = System.currentTimeMillis();
-            double deltaTime = (currentTime - lastUpdateTime) / 1000.0; // Đổi sang giây
-            lastUpdateTime = currentTime; // Lưu lại thời gian cho các lần lặp sau
+    public void gameOver() {
+        currentState = MenuState.GAME_OVER;
+    }
 
-            if (currentState == MenuState.COUNTDOWN) {
-                // Handle countdown logic
-                long elapsed = currentTime - countdownStartTime;
-                int newCountdownValue = 3 - (int)(elapsed / COUNTDOWN_DURATION);
-                
-                if (newCountdownValue != countdownValue) {
-                    countdownValue = newCountdownValue;
-                }
-                
-                // Update paddle during countdown so player can position it
-                gameManager.getPaddle().update(deltaTime, getWidth());
-                gameManager.updateGame(deltaTime, getWidth(), getHeight());               
-                if (!gameManager.isBallLaunched()) {
-                    gameManager.alignBallToPaddle();
-                }
-                
-                // Khi đếm đến không thì bắt đầu Game
-                if (countdownValue <= 0) {
-                    currentState = MenuState.GAME;
-                    // Tự động bắn bóng nếu là mạng đầu tiên
-                    if (gameManager.isFirstLife() && !gameManager.isBallLaunched()) {
-                        gameManager.launchBall();
-                    }
-                }
+    private long lastUpdateTime = System.currentTimeMillis();
 
-            } else if (currentState == MenuState.GAME) {
-                // Truyền deltaTime vào GameManager
-                gameManager.updateGame(deltaTime, getWidth(), getHeight());
-                if (gameManager.isGameOver()) {
-                    gameOver();
-                }
-            } else if (currentState == MenuState.PAUSED) {
-                // Don't update game when paused, just repaint
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Tính Delta Time
+        long currentTime = System.currentTimeMillis();
+        double deltaTime = (currentTime - lastUpdateTime) / 1000.0; // Đổi sang giây
+        lastUpdateTime = currentTime; // Lưu lại thời gian cho các lần lặp sau
+
+        if (currentState == MenuState.COUNTDOWN) {
+            // Handle countdown logic
+            long elapsed = currentTime - countdownStartTime;
+            int newCountdownValue = 3 - (int) (elapsed / COUNTDOWN_DURATION);
+
+            if (newCountdownValue != countdownValue) {
+                countdownValue = newCountdownValue;
             }
-            repaint();
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
 
-            int w = getWidth();
-            int h = getHeight();
-            
-            switch (currentState) {
-                case MAIN_MENU:
-                    menuRenderer.drawMainMenu(g, mainMenuOptions, selectedOption, w, h);
-                    break;
-                case SETTINGS:
-                    menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames, w, h);
-                    break;
-                case INSTRUCTIONS:
-                    menuRenderer.drawInstructions(g, w, h);
-                    break;
-                case COUNTDOWN:
-                    gameManager.paintComponent(g, w, h);
-                    menuRenderer.drawCountdown(g, countdownValue, w, h);
-                    break;
-                case GAME:
-                    gameManager.paintComponent(g, w, h);
-                    break;
-                case PAUSED:
-                    gameManager.paintComponent(g, w, h);
-                    menuRenderer.drawPauseOverlay(g, w, h);
-                    break;
-                case GAME_OVER:
-                    menuRenderer.drawGameOver(g, gameManager.getScore(), w, h);
-                    break;
+            // Update paddle during countdown so player can position it
+            gameManager.getPaddle().update(deltaTime, getWidth());
+            gameManager.updateGame(deltaTime, getWidth(), getHeight());
+            if (!gameManager.isBallLaunched()) {
+                gameManager.alignBallToPaddle();
             }
+
+            // Khi đếm đến không thì bắt đầu Game
+            if (countdownValue <= 0) {
+                currentState = MenuState.GAME;
+                // Tự động bắn bóng nếu là mạng đầu tiên
+                if (gameManager.isFirstLife() && !gameManager.isBallLaunched()) {
+                    gameManager.launchBall();
+                }
+            }
+
+        } else if (currentState == MenuState.GAME) {
+            // Truyền deltaTime vào GameManager
+            gameManager.updateGame(deltaTime, getWidth(), getHeight());
+            if (gameManager.isGameOver()) {
+                gameOver();
+            }
+        } else if (currentState == MenuState.PAUSED) {
+            // Don't update game when paused, just repaint
         }
-        
-        // Getters for game state
-        public boolean isInGame() {
-            return currentState == MenuState.GAME;
-        }
-        
-        public boolean isPaused() {
-            return currentState == MenuState.PAUSED;
-        }
-        
-        public GameManager getGameManager() {
-            return gameManager;
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        int w = getWidth();
+        int h = getHeight();
+
+        switch (currentState) {
+            case MAIN_MENU:
+                menuRenderer.drawMainMenu(g, mainMenuOptions, selectedOption, w, h);
+                break;
+            case CUSTOM:
+                menuRenderer.drawCustom(g, w, h);
+                break;
+            case SETTINGS:
+                menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames, w, h);
+                break;
+            case INSTRUCTIONS:
+                menuRenderer.drawInstructions(g, w, h);
+                break;
+            case COUNTDOWN:
+                gameManager.paintComponent(g, w, h);
+                menuRenderer.drawCountdown(g, countdownValue, w, h);
+                break;
+            case GAME:
+                gameManager.paintComponent(g, w, h);
+                break;
+            case PAUSED:
+                gameManager.paintComponent(g, w, h);
+                menuRenderer.drawPauseOverlay(g, w, h);
+                break;
+            case GAME_OVER:
+                menuRenderer.drawGameOver(g, gameManager.getScore(), w, h);
+                break;
         }
     }
+
+    public Color getPaddleColor() {
+        return paddleColor;
+    }
+
+    public Color getBallColor() {
+        return ballColor;
+    }
+
+    // Getters for game state
+    public boolean isInGame() {
+        return currentState == MenuState.GAME;
+    }
+
+    public boolean isPaused() {
+        return currentState == MenuState.PAUSED;
+    }
+
+    public GameManager getGameManager() {
+        return gameManager;
+    }
+}
