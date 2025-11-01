@@ -24,6 +24,7 @@ public class Main {
 
             // ======= 1. Tạo cửa sổ JFrame =======
             JFrame frame = new JFrame("Arkanoid"); // Tiêu đề cửa sổ game
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thêm dòng này
             ImageIcon logo = new ImageIcon("rsc/logo.png");
             frame.setIconImage(logo.getImage());
             // ======= 2. Xử lý ảnh nền (background) =======
