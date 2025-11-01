@@ -5,12 +5,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel; 
 
-public class fasst extends JPanel {
+public class fast extends JPanel {
     private ImageIcon gifIcon; // Biến instance
     private static final long serialVersionUID = 1L;
 
     
-    public fasst() {
+    public fast() {
         JLabel lblNewLabel = new JLabel("");
 
         

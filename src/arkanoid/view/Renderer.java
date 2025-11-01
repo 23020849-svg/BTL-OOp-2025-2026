@@ -29,7 +29,7 @@ public class Renderer {
 
     private arkanoid.view.expandpaddle ex = new arkanoid.view.expandpaddle();
     private arkanoid.view.extraball exball = new arkanoid.view.extraball();
-    private arkanoid.view.fasst fast = new arkanoid.view.fasst();
+    private arkanoid.view.fast fast = new arkanoid.view.fast();
 
     private Image ballImage;
     private Image heart;
