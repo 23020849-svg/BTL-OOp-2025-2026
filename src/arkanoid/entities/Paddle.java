@@ -1,5 +1,7 @@
 package arkanoid.entities; // Đặt class trong package arkanoid
 
+import java.awt.Color;
+
 import arkanoid.core.GameManager;
 
 /**
@@ -15,15 +17,16 @@ public class Paddle extends MovableObject {
     private double speed = 420.0;             // Tốc độ di chuyển ngang
     private int defaultWidth;          // Chiều rộng ban đầu của paddle
     private long expandEndTime = 0;    // Thời điểm kết thúc hiệu ứng mở rộng (ms, dùng System.currentTimeMillis)
-
+    private Color color; // Màu sắc của paddle
     private boolean movingLeft = false;
     private boolean movingRight = false;
 
     // ======= Constructor =======
     // Nhận vị trí, kích thước ban đầu, và lưu lại chiều rộng mặc định.
-    public Paddle(int x, int y, int width, int height) {
+    public Paddle(int x, int y, int width, int height, Color color) {
         super(x, y, width, height);
         this.defaultWidth = width;
+        this.color = color;
     }
 
     // Hàm điều khiển phím sang trái
@@ -59,6 +62,8 @@ public class Paddle extends MovableObject {
             expandEndTime = 0;
         }
     }
+
+
 
     
 
@@ -119,10 +124,15 @@ public boolean isExpanded() {
         if (expandEndTime == 0) return 0;
         long remainingMillis = expandEndTime - System.currentTimeMillis();
         if (remainingMillis <= 0) {
-            expandEndTime = 0; // Đặt lại nếu đã hết hạn
             return 0;
         }
 
         return (int) Math.ceil(remainingMillis / 1000.0);
+    }
+
+    @Override
+    public void rescale(double scaleX, double scaleY) {
+        super.rescale(scaleX, scaleY);
+        this.defaultWidth = (int) (this.defaultWidth * scaleX);
     }
 }

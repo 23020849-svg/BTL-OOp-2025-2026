@@ -124,7 +124,7 @@ public class MenuRenderer {
         int startY = 350;
         int spacing = 60;
 
-        // Font tùy chỉnh cho menu options (cỡ nhỏ hơn title)
+
         Font menuFont = loadCustomFont(28f).deriveFont(Font.PLAIN);
 
         for (int i = 0; i < options.length; i++) {
@@ -330,6 +330,23 @@ public class MenuRenderer {
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
         g2.drawString("Press ESC to return to main menu", screenWidth - 300, screenHeight - 50);
+    }
+
+    // Vẽ Custom
+    public void drawCustom(Graphics g, int screenWidth, int screenHeight) {
+        Graphics2D g2 = (Graphics2D) g;
+
+        g.setColor(new Color(20, 20, 20)); // nền tối
+        drawBackground(g2, screenWidth, screenHeight);
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 28));
+        g.drawString("🎨 CUSTOM COLOR MENU", 150, 100);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        g.drawString("Press [P] to change Paddle color", 180, 180);
+        g.drawString("Press [B] to change Ball color", 180, 220);
+        g.drawString("Press [ESC] to return", 180, 260);
     }
 
     /**
