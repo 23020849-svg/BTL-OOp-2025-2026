@@ -1,8 +1,6 @@
-package arkanoid.entities; // Đặt class trong package arkanoid
+package arkanoid.entities;
 
 import java.awt.Color;
-
-import arkanoid.core.GameManager;
 
 /**
  * Paddle.java
@@ -10,129 +8,310 @@ import arkanoid.core.GameManager;
  * Thanh đỡ do người chơi điều khiển.
  * Hỗ trợ mở rộng (power-up), giới hạn di chuyển trong biên.
  */
-// Paddle là thanh đỡ dưới màn hình, do người chơi điều khiển để đỡ bóng.
-// Có thể mở rộng tạm thời khi nhận power-up.
 public class Paddle extends MovableObject {
 
-    private double speed = 420.0;             // Tốc độ di chuyển ngang
-    private int defaultWidth;          // Chiều rộng ban đầu của paddle
-    private long expandEndTime = 0;    // Thời điểm kết thúc hiệu ứng mở rộng (ms, dùng System.currentTimeMillis)
-    private Color color; // Màu sắc của paddle
-    private boolean movingLeft = false;
-    private boolean movingRight = false;
+    // Constants
+    private static final double DEFAULT_SPEED = 420.0;
+    private static final int MIN_WIDTH = 40;
+    private static final int MAX_WIDTH = 300;
+    
+    // Movement properties
+    private double speed;
+    private boolean movingLeft;
+    private boolean movingRight;
+    
+    // Expansion properties
+    private int defaultWidth;
+    private long expandEndTime;
+    
+    // Visual properties
+    private Color color;
 
-    // ======= Constructor =======
-    // Nhận vị trí, kích thước ban đầu, và lưu lại chiều rộng mặc định.
+    /**
+     * Constructor
+     * @param x vị trí X ban đầu
+     * @param y vị trí Y ban đầu
+     * @param width chiều rộng ban đầu
+     * @param height chiều cao
+     * @param color màu sắc
+     */
     public Paddle(int x, int y, int width, int height, Color color) {
         super(x, y, width, height);
         this.defaultWidth = width;
-        this.color = color;
+        this.color = color != null ? color : Color.BLUE;
+        this.speed = DEFAULT_SPEED;
+        this.movingLeft = false;
+        this.movingRight = false;
+        this.expandEndTime = 0;
     }
 
-    // Hàm điều khiển phím sang trái
+    /**
+     * Update paddle position and state
+     * @param dt delta time in seconds
+     * @param screenWidth screen width for boundary checking
+     */
+    public void update(double dt, int screenWidth) {
+        if (dt <= 0 || screenWidth <= 0) return;
+        
+        // Update position based on movement flags
+        updatePosition(dt, screenWidth);
+        
+        // Check and update expansion state
+        updateExpansionState();
+    }
+
+    /**
+     * Legacy update method (for compatibility)
+     */
+    @Override
+    public void update(double dt) {
+        // Intentionally empty - use update(double, int) instead
+    }
+
+    /**
+     * Update paddle position based on movement flags
+     */
+    private void updatePosition(double dt, int screenWidth) {
+        double movement = 0;
+        
+        if (movingLeft) {
+            movement -= speed * dt;
+        }
+        if (movingRight) {
+            movement += speed * dt;
+        }
+        
+        // Apply movement
+        x += movement;
+        
+        // Clamp position to screen boundaries
+        clampToScreen(screenWidth);
+    }
+
+    /**
+     * Keep paddle within screen boundaries
+     */
+    private void clampToScreen(int screenWidth) {
+        if (x < 0) {
+            x = 0;
+        }
+        if (x + width > screenWidth) {
+            x = screenWidth - width;
+        }
+    }
+
+    /**
+     * Check and update expansion state
+     */
+    private void updateExpansionState() {
+        if (expandEndTime > 0 && System.currentTimeMillis() >= expandEndTime) {
+            resetWidth();
+        }
+    }
+
+    /**
+     * Reset paddle to default width
+     */
+    private void resetWidth() {
+        width = defaultWidth;
+        expandEndTime = 0;
+    }
+
+    /**
+     * Apply expansion power-up
+     * @param extraPixels additional pixels to add to default width
+     * @param durationMillis duration of the effect in milliseconds
+     * @param screenWidth screen width for boundary adjustment
+     */
+    public void applyExpand(int extraPixels, long durationMillis, int screenWidth) {
+        if (extraPixels <= 0 || durationMillis <= 0) return;
+        
+        // Calculate new width
+        int newWidth = defaultWidth + extraPixels;
+        
+        // Clamp to reasonable limits
+        newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
+        
+        // Apply new width
+        width = newWidth;
+        
+        // Adjust position if paddle goes out of bounds
+        if (x + width > screenWidth) {
+            x = Math.max(0, screenWidth - width);
+        }
+        
+        // Set expiration time
+        expandEndTime = System.currentTimeMillis() + durationMillis;
+    }
+
+    /**
+     * Cancel expansion immediately
+     */
+    public void cancelExpansion() {
+        resetWidth();
+    }
+
+    /**
+     * Rescale paddle (for screen resize)
+     */
+    @Override
+    public void rescale(double scaleX, double scaleY) {
+        if (scaleX <= 0 || scaleY <= 0) return;
+        
+        // Rescale position and dimensions
+        super.rescale(scaleX, scaleY);
+        
+        // Rescale default width
+        defaultWidth = (int) Math.round(defaultWidth * scaleX);
+        
+        // Ensure default width stays within limits
+        defaultWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, defaultWidth));
+    }
+
+    // ======= Movement Control Methods =======
+    
     public void setMovingLeft(boolean movingLeft) {
         this.movingLeft = movingLeft;
     }
 
-    // Hàm điều khiển phím sang phải
     public void setMovingRight(boolean movingRight) {
         this.movingRight = movingRight;
     }
 
-    @Override
-    public void update(double dt) {
-
-    }
-
-    public void update(double dt, int screenWidth) {
-        // Di chuyển mượt
-        if (movingLeft) x -= speed * dt;
-        if (movingRight) x += speed * dt;
-
-        // ======= 1. Giữ paddle trong giới hạn màn hình =======
-        // Nếu paddle chạm biên trái → đưa về 0
-        if (x < 0) x = 0;
-        // Nếu paddle chạm biên phải → giới hạn lại để không vượt ra ngoài
-        if (x + width > screenWidth) x = screenWidth - width;
-
-        // ======= 2. Kiểm tra hiệu ứng mở rộng =======
-        // Nếu hiệu ứng mở rộng hết hạn, khôi phục lại chiều rộng ban đầu
-        if (expandEndTime > 0 && System.currentTimeMillis() > expandEndTime) {
-            width = defaultWidth;
-            expandEndTime = 0;
-        }
-    }
-
-
-
-    
-
-    // ======= Di chuyển sang trái =======
-    public void moveLeft() {
-        dx = -speed; // Tốc độ âm → đi sang trái
-    }
-
-    // ======= Di chuyển sang phải =======
-    public void moveRight() {
-        dx = speed;  // Tốc độ dương → đi sang phải
-    }
-
     public void stopMoving() {
-        dx = 0;
+        this.movingLeft = false;
+        this.movingRight = false;
+        this.dx = 0;
     }
 
     /**
-     * Áp dụng hiệu ứng mở rộng paddle trong thời gian xác định.
-     * @param extraPixels số pixel mở rộng thêm so với kích thước mặc định
-     * @param durationMillis thời lượng hiệu ứng (ms)
+     * Legacy movement methods (for compatibility)
      */
-    public void applyExpand(int extraPixels, long durationMillis, int screenWidth) {
-        // Tăng chiều rộng paddle
-        width = defaultWidth + extraPixels;
-
-        // Nếu paddle vượt biên phải, điều chỉnh lại cho vừa khung
-        if (x + width > screenWidth) x = screenWidth - width;
-
-        // Lưu thời điểm kết thúc hiệu ứng (tính từ thời điểm hiện tại)
-        expandEndTime = System.currentTimeMillis() + durationMillis;
+    public void moveLeft() {
+        this.movingLeft = true;
+        this.movingRight = false;
     }
 
-    // ======= Getter/Setter =======
-    public double getSpeed() { return speed; }        // Lấy tốc độ hiện tại
-    public void setSpeed(int speed) { this.speed = speed; } // Đặt tốc độ mới
-    // Thêm vào Paddle.java
-public void setPosition(double x, double y) {
-    this.x = x;
-    this.y = y;
-}
+    public void moveRight() {
+        this.movingRight = true;
+        this.movingLeft = false;
+    }
 
-public void setWidth(int width) {
-    this.width = width;
-}
-
-public long getExpandRemainMs() {
-    if (expandEndTime == 0) return 0;
-    return Math.max(0, expandEndTime - System.currentTimeMillis());
-}
-
-public boolean isExpanded() {
-    return width > defaultWidth;
-}
+    // ======= Position and Size Setters =======
     
-    // Lấy thời gian còn lại của hiệu ứng mở rộng (tính bằng giây)
+    public void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void setWidth(int width) {
+        if (width > 0) {
+            this.width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width));
+        }
+    }
+
+    // ======= Expansion State Getters =======
+    
+    /**
+     * Get remaining expansion time in milliseconds
+     */
+    public long getExpandRemainMs() {
+        if (expandEndTime == 0) {
+            return 0;
+        }
+        return Math.max(0, expandEndTime - System.currentTimeMillis());
+    }
+
+    /**
+     * Get remaining expansion time in seconds (rounded up)
+     */
     public int getExpandRemainingTime() {
-        if (expandEndTime == 0) return 0;
-        long remainingMillis = expandEndTime - System.currentTimeMillis();
+        long remainingMillis = getExpandRemainMs();
         if (remainingMillis <= 0) {
             return 0;
         }
-
         return (int) Math.ceil(remainingMillis / 1000.0);
     }
 
+    /**
+     * Check if paddle is currently expanded
+     */
+    public boolean isExpanded() {
+        return width > defaultWidth && expandEndTime > 0;
+    }
+
+    // ======= Property Getters =======
+    
+    public double getSpeed() {
+        return speed;
+    }
+
+    public int getDefaultWidth() {
+        return defaultWidth;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public boolean isMovingLeft() {
+        return movingLeft;
+    }
+
+    public boolean isMovingRight() {
+        return movingRight;
+    }
+
+    // ======= Property Setters =======
+    
+    public void setSpeed(double speed) {
+        if (speed > 0) {
+            this.speed = speed;
+        }
+    }
+
+    public void setColor(Color color) {
+        if (color != null) {
+            this.color = color;
+        }
+    }
+
+    public void setDefaultWidth(int defaultWidth) {
+        if (defaultWidth > 0) {
+            this.defaultWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, defaultWidth));
+        }
+    }
+
+    // ======= Utility Methods =======
+    
+    /**
+     * Reset paddle to initial state
+     */
+    public void reset(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.width = defaultWidth;
+        this.movingLeft = false;
+        this.movingRight = false;
+        this.expandEndTime = 0;
+        this.dx = 0;
+        this.dy = 0;
+    }
+
+    /**
+     * Get expansion progress (0.0 to 1.0)
+     */
+    public double getExpansionProgress(long totalDuration) {
+        if (!isExpanded() || totalDuration <= 0) {
+            return 0.0;
+        }
+        long remaining = getExpandRemainMs();
+        return Math.max(0.0, Math.min(1.0, remaining / (double) totalDuration));
+    }
+
     @Override
-    public void rescale(double scaleX, double scaleY) {
-        super.rescale(scaleX, scaleY);
-        this.defaultWidth = (int) (this.defaultWidth * scaleX);
+    public String toString() {
+        return String.format("Paddle[x=%.1f, y=%.1f, w=%d, h=%d, speed=%.1f, expanded=%b]",
+                x, y, width, height, speed, isExpanded());
     }
 }

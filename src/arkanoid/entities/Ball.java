@@ -1,161 +1,158 @@
-package arkanoid.entities; // Đặt class trong package arkanoid.entities
+package arkanoid.entities;
 
-/**
- * Ball.java
- *
- * Quả bóng di chuyển, xử lý bật tường, bật paddle, va chạm bricks.
- */
+import java.awt.Color;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Color;
+
+import javax.swing.ImageIcon;
+
 import arkanoid.utils.Sound;
 
-// Lớp Ball kế thừa MovableObject (có sẵn các thuộc tính x, y, width, height, dx, dy)
 public class Ball extends MovableObject {
-    private double baseSpeed = 360.0; // tốc độ gốc ban đầu
-    private int radius; // Bán kính của quả bóng
-    private double speedMultiplier = 1.0; // Hệ số nhân tốc độ (dùng khi tăng tốc tạm thời)
-    private long fastEndTime = 0; // Thời điểm kết thúc hiệu ứng tăng tốc (tính bằng mili-giây)
+    private double baseSpeed = 360.0;
+    private int radius;
+    private double speedMultiplier = 1.0;
+    private long fastEndTime = 0;
     private Sound CollisionWall;
     private List<double[]> trail = new ArrayList<>();
-    private static final int TRAIL_SIZE = 12;
-    private Color ballColor; // Màu sắc của bóng
+    private static final int TRAIL_SIZE = 8;
+    private Color ballColor;
+    private String ballImagePath = "/balls/ball_red.png";
+    private Image ballImage = null;
 
-    // Constructor: khởi tạo vị trí, kích thước, và tốc độ ban đầu
     public Ball(int x, int y, int radius, double initialSpeedX, double initialSpeedY, Color ballColor) {
-        super(x, y, radius * 2, radius * 2); // Gọi constructor của MovableObject (width/height = đường kính)
-        this.radius = radius;                // Lưu bán kính
-        this.dx = initialSpeedX;             // Tốc độ theo trục X
-        this.dy = initialSpeedY;             // Tốc độ theo trục Y
-        CollisionWall = new Sound();
+        super(x, y, radius * 2, radius * 2);
+        this.radius = radius;
+        this.dx = initialSpeedX;
+        this.dy = initialSpeedY;
         this.ballColor = ballColor;
+        CollisionWall = new Sound();
         CollisionWall.loadSound("/tapwall.wav");
-        normalizeSpeed(baseSpeed); // Chuẩn hóa độ lớn vector vận tốc về baseSpeed
+        normalizeSpeed(baseSpeed);
+    }
+
+    public void setBallImagePath(String imagePath) {
+        this.ballImagePath = imagePath;
+        try {
+            ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
+            this.ballImage = icon.getImage();
+        } catch (Exception e) {
+            System.err.println("Không thể load ảnh ball: " + imagePath);
+            this.ballImage = null;
+        }
+    }
+
+    public Image getBallImage() {
+        return ballImage;
+    }
+
+    public String getBallImagePath() {
+        return ballImagePath;
+    }
+
+    public void setBallColor(Color color) {
+        this.ballColor = color;
     }
 
     @Override
-    public void update (double dt) {
-
+    public void update(double dt) {
+        // Empty
     }
 
     public void update(double dt, int screenWidth, int screenHeight) {
-
-        // Lưu vị trí hiện tại vào vệt
-        trail.add(new double[]{x + width/2.0,y+height/2.0});
-        if(trail.size()> TRAIL_SIZE) trail.remove(0);
+        trail.add(new double[]{x + width/2.0, y + height/2.0});
+        if(trail.size() > TRAIL_SIZE) trail.remove(0);
         move(dt);
 
-        // ======= Xử lý va chạm với tường trái/phải =======
-        if (x <= 0) {            // Chạm tường trái
-            x = 0;                 // Giữ không vượt ra ngoài
-            dx = -dx;     
+        if (x <= 0) {
+            x = 0;
+            dx = -dx;
             CollisionWall.playOnce();
-                     // Đảo hướng X
         }
-        if (x + width >= screenWidth) { // Chạm tường phải
-            x = screenWidth - width;      // Giữ lại trong màn hình
-            dx = -dx;    
-            CollisionWall.playOnce();                       // Đảo hướng X
-        }
-
-        // ======= Bật trần =======
-        if (y <= 0) {    // Chạm đỉnh màn hình
-            y = 0;         // Giữ lại vị trí
-            dy = -dy;      // Đảo hướng Y
+        if (x + width >= screenWidth) {
+            x = screenWidth - width;
+            dx = -dx;
             CollisionWall.playOnce();
         }
 
-        // ======= Hết thời gian tăng tốc =======
+        if (y <= 0) {
+            y = 0;
+            dy = -dy;
+            CollisionWall.playOnce();
+        }
+
         if (fastEndTime > 0 && System.currentTimeMillis() > fastEndTime) {
-            speedMultiplier = 1.0; // Trở về tốc độ bình thường
-            fastEndTime = 0;       // Reset thời gian
-            // Ghi chú: dx, dy vẫn giữ nguyên hướng và tốc độ hiện tại,
-            // vì code này không nhân ngược lại (tránh đổi tốc độ đột ngột).
+            speedMultiplier = 1.0;
+            fastEndTime = 0;
         }
 
-        // Giữ vận tốc ổn định
         normalizeSpeed(baseSpeed * speedMultiplier);
     }
-    public List<double[]> getTrail() {return trail;}
-    
 
-    // ======= Xử lý khi bóng va chạm với đối tượng khác (gạch/paddle) =======
+    public List<double[]> getTrail() {
+        return trail;
+    }
+
     public void bounceOff(GameObject other) {
         Rectangle b = getBounds();
         Rectangle o = other.getBounds();
 
-        // Xác định vùng giao nhau
         Rectangle intersection = b.intersection(o);
-        if (intersection.isEmpty()) return; // Không giao nhau thật
+        if (intersection.isEmpty()) return;
 
-        // Nếu giao nhau hẹp hơn theo trục X → nghĩa là va chạm theo trục X
         if (intersection.width < intersection.height) {
-            // Đảo hướng X
             dx = -dx;
-
-            // Đẩy bóng ra khỏi gạch theo hướng phù hợp
             if (b.getCenterX() < o.getCenterX()) {
-                x -= intersection.width; // bóng ở bên trái gạch
+                x -= intersection.width;
             } else {
-                x += intersection.width; // bóng ở bên phải gạch
+                x += intersection.width;
             }
-
         } else {
-            // Đảo hướng Y
             dy = -dy;
-
-            // Đẩy bóng ra khỏi gạch theo hướng phù hợp
             if (b.getCenterY() < o.getCenterY()) {
-                y -= intersection.height; // bóng ở phía trên
+                y -= intersection.height;
             } else {
-                y += intersection.height; // bóng ở phía dưới
+                y += intersection.height;
             }
         }
     }
-    
 
-    // ======= Áp dụng hiệu ứng tăng tốc bóng trong thời gian ngắn =======
     public void setSpeedMultiplier(double m, long durationMillis) {
-        speedMultiplier = m;                                  // Ghi hệ số nhân tốc độ
-        fastEndTime = System.currentTimeMillis() + durationMillis; // Lưu thời điểm kết thúc hiệu ứng
-
-        // Nhân dx, dy theo multiplier (giữ nguyên hướng, chỉ thay đổi độ lớn)
+        speedMultiplier = m;
+        fastEndTime = System.currentTimeMillis() + durationMillis;
         dx *= m;
         dy *= m;
     }
 
-    // ======= Chuẩn hóa vận tốc bóng (giữ độ lớn nhất định) =======
     public void normalizeSpeed(double targetMagnitude) {
-        double mag = Math.sqrt(dx * dx + dy * dy); // Tính độ lớn của vector vận tốc
-        if (mag == 0) return;                      // Tránh chia cho 0
-        dx = dx / mag * targetMagnitude;           // Tính lại dx theo độ lớn mới
-        dy = dy / mag * targetMagnitude;           // Tính lại dy theo độ lớn mới
+        double mag = Math.sqrt(dx * dx + dy * dy);
+        if (mag == 0) return;
+        dx = dx / mag * targetMagnitude;
+        dy = dy / mag * targetMagnitude;
     }
 
-    // ======= Getter cho bán kính =======
     public int getRadius() { return radius; }
     
-    // Lấy thời gian còn lại của hiệu ứng tăng tốc (tính bằng giây)
     public int getFastRemainingTime() {
         if (fastEndTime == 0) return 0;
         long remaining = fastEndTime - System.currentTimeMillis();
         return Math.max((int)(remaining / 1000), 0);
     }
 
-    /** Hình ellipse để View/Renderer vẽ. */
     public Ellipse2D getShape() {
         return new Ellipse2D.Double(x, y, width, height);
     }
 
     public double getX() { return x; }
     public double getY() { return y; }
+    public double getdx() { return dx; }
+    public double getdy() { return dy; }
     public int getWidth() { return width; }
     public int getHeight() { return height; }
-    public int getRadiusPixels() { return radius * 2; } // đường kính (tuỳ em có cần)
 
-    // === Setter vị trí ===
     public void setPosition(double nx, double ny) {
         this.x = nx;
         this.y = ny;
@@ -168,20 +165,19 @@ public class Ball extends MovableObject {
     public long getFastEndTime() {
         return fastEndTime;
     }
-    // === Getter/Setter vận tốc ===
+
     public double getVX() { return dx; }
     public double getVY() { return dy; }
+    
     public void setVelocity(double nvx, double nvy) {
         this.dx = nvx;
         this.dy = nvy;
     }
 
-    // === Màu sắc của bóng ===
     public Color getBallColor() {
         return ballColor;
     }
 
-    // === Tốc độ hiện tại (độ lớn vector) ===
     public double getSpeed() {
         return Math.sqrt(dx*dx + dy*dy);
     }
@@ -192,3 +188,5 @@ public class Ball extends MovableObject {
         this.radius = (int) (this.radius * scaleX);
     }
 }
+
+

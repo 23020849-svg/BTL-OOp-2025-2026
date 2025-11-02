@@ -27,19 +27,76 @@ public class MenuRenderer {
     private static Font ARKANOID_TITLE_FONT = null;
 
     private Rectangle leaderboardButtonBounds = new Rectangle();
+    
+    // Custom Store - Color boxes bounds
+    private Rectangle[] paddleColorBoxes = new Rectangle[8];
+    private Rectangle[] ballColorBoxes = new Rectangle[8];
+
+    // Các màu mẫu cho paddle và ball
+    private Color[] PADDLE_COLORS = {
+        new Color(255, 100, 100),  // Red
+        new Color(100, 255, 100),  // Green
+        new Color(100, 100, 255),  // Blue
+        new Color(255, 255, 100),  // Yellow
+        new Color(255, 100, 255),  // Magenta
+        new Color(100, 255, 255),  // Cyan
+        new Color(255, 200, 100),  // Orange
+        Color.WHITE                // White
+    };
+
+    private Color[] BALL_COLORS = {
+        new Color(255, 50, 50),    // Red
+        new Color(50, 255, 50),    // Green
+        new Color(50, 50, 255),    // Blue
+        new Color(255, 255, 50),   // Yellow
+        new Color(255, 50, 255),   // Magenta
+        new Color(50, 255, 255),   // Cyan
+        new Color(255, 150, 50),   // Orange
+        Color.WHITE                // White
+    };
+
+    // Các đường dẫn đến file ảnh ball
+    private String[] BALL_IMAGE_PATHS = {
+        "/balls/ball_red.png",
+        "/balls/ball_blue.png",
+        "/balls/ball_gradient.png",
+        "/balls/ball_green.png",
+        "/balls/ball_orange.png",
+        "/balls/ball_pink.png",
+        "/balls/ball_violet.png",
+        "/balls/ball_xanhlo.png"
+    };
+
+    // Cache ảnh ball để không phải load lại nhiều lần
+    private Image[] ballImages = new Image[8];
+
+    /**
+     * Load ảnh ball từ resources
+     */
+    private Image loadBallImage(int index) {
+        if (index < 0 || index >= BALL_IMAGE_PATHS.length) {
+            return null;
+        }
+        
+        if (ballImages[index] == null) {
+            try {
+                ImageIcon icon = new ImageIcon(getClass().getResource(BALL_IMAGE_PATHS[index]));
+                ballImages[index] = icon.getImage();
+            } catch (Exception e) {
+                System.err.println("Không thể load ảnh ball: " + BALL_IMAGE_PATHS[index]);
+                ballImages[index] = null;
+            }
+        }
+        return ballImages[index];
+    }
 
     public static Font loadCustomFont(float size) {
-
         if (ARKANOID_TITLE_FONT == null) {
             try {
-
                 InputStream is = MenuRenderer.class.getResourceAsStream("/font.otf");
-
                 if (is == null) {
                     throw new IOException("Font file not found in resources: /font.otf");
                 }
-
-
                 ARKANOID_TITLE_FONT = Font.createFont(Font.TRUETYPE_FONT, is);
                 is.close();
             } catch (IOException | FontFormatException e) {
@@ -48,15 +105,9 @@ public class MenuRenderer {
                 ARKANOID_TITLE_FONT = new Font("Arial", Font.BOLD, (int) size);
             }
         }
-
-        // Trả về font với kích thước mong muốn
         return ARKANOID_TITLE_FONT.deriveFont(size);
     }
 
-
-    /**
-     * Vẽ menu chính
-     */
     public void drawMainMenu(Graphics g, String[] options, int selectedOption, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -64,7 +115,6 @@ public class MenuRenderer {
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/menu.gif"));
             Image img = icon.getImage();
-
             if (img != null) {
                 g2.drawImage(img, 0, 0, screenWidth, screenHeight, null);
             } else {
@@ -74,69 +124,46 @@ public class MenuRenderer {
             drawBackground(g2, screenWidth, screenHeight);
         }
 
-        // Title
         drawTitle(g2, screenWidth, screenHeight);
-        
-        // Menu options
         drawMenuOptions(g2, options, selectedOption, screenWidth, screenHeight);
-       
-        // Instructions
         drawFooterInstructions(g2, screenWidth, screenHeight);
     }
 
     private void drawTitle(Graphics2D g2, int screenWidth, int screenHeight) {
         String title = "ARKANOID";
         int y = 200;
-        float titleSize = 100f; // Tăng kích thước tiêu đề
-
-        // Lấy Font tùy chỉnh
+        float titleSize = 100f;
         Font customFont = loadCustomFont(titleSize);
         g2.setFont(customFont);
-
         FontMetrics fm = g2.getFontMetrics();
         int x = (screenWidth - fm.stringWidth(title)) / 2;
 
-
         for (int i = 3; i >= 1; i--) {
-
             g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), 50 / i));
-
-
             g2.setFont(customFont.deriveFont(titleSize + i * 2));
-
             FontMetrics glowFm = g2.getFontMetrics();
             int glowX = (screenWidth - glowFm.stringWidth(title)) / 2;
             int glowY = y + i * 2;
             g2.drawString(title, glowX, glowY);
         }
 
-        // Main title (Màu chính: PRIMARY_COLOR)
         g2.setColor(PRIMARY_COLOR);
         g2.setFont(customFont.deriveFont(titleSize));
         g2.drawString(title, x, y);
     }
 
-
-    /**
-     * Vẽ các tùy chọn menu
-     */
     private void drawMenuOptions(Graphics2D g2, String[] options, int selectedOption, int screenWidth, int screenHeight) {
         int startY = 350;
         int spacing = 60;
-
-
         Font menuFont = loadCustomFont(28f).deriveFont(Font.PLAIN);
 
         for (int i = 0; i < options.length; i++) {
             int y = startY + i * spacing;
-
             if (i == selectedOption) {
-                // Selected option - highlighted
                 drawSelectedOption(g2, options[i], y, screenWidth);
             } else {
-                // Normal option
                 g2.setColor(TEXT_COLOR);
-                g2.setFont(menuFont); // ÁP DỤNG FONT TÙY CHỈNH
+                g2.setFont(menuFont);
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (screenWidth - fm.stringWidth(options[i])) / 2;
                 g2.drawString(options[i], x, y);
@@ -144,74 +171,203 @@ public class MenuRenderer {
         }
     }
 
-    /**
-     * Vẽ tùy chọn được chọn với hiệu ứng
-     */
     private void drawSelectedOption(Graphics2D g2, String text, int y, int screenWidth) {
-        Font selectedFont = loadCustomFont(28f).deriveFont(Font.BOLD); // ÁP DỤNG FONT TÙY CHỈNH
+        Font selectedFont = loadCustomFont(28f).deriveFont(Font.BOLD);
         g2.setFont(selectedFont);
-
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(text);
         int x = (screenWidth - textWidth) / 2;
 
-        // Background highlight
         RoundRectangle2D background = new RoundRectangle2D.Float(
                 x - 20, y - 30, textWidth + 40, 40, 20, 20
         );
 
-        // Glow effect (giữ nguyên màu SELECTED_COLOR)
         g2.setColor(new Color(SELECTED_COLOR.getRed(), SELECTED_COLOR.getGreen(), SELECTED_COLOR.getBlue(), 50));
         g2.fill(background);
 
-        // Border
         g2.setColor(SELECTED_COLOR);
         g2.setStroke(new BasicStroke(2));
         g2.draw(background);
 
-        // Text
         g2.setColor(SELECTED_COLOR);
         g2.drawString(text, x, y);
     }
 
-    // vẽ Leaderboard
-    private void drawLeaderboardButton(Graphics2D g2, int width, int height){
-        String label = "BẢNG XẾP HẠNG";
-        Font btnFont = loadCustomFont(20f).deriveFont(Font.BOLD);
-        g2.setFont(btnFont);
+    /**
+     * Vẽ Custom Store với ảnh ball thực tế
+     */
+    public void drawCustomStore(Graphics g, int screenWidth, int screenHeight, 
+                                Color currentPaddleColor, Color currentBallColor,
+                                String currentBallImagePath) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
+        drawBackground(g2, screenWidth, screenHeight);
+
+        // Title
+        g2.setColor(PRIMARY_COLOR);
+        Font titleFont = loadCustomFont(48f).deriveFont(Font.BOLD);
+        g2.setFont(titleFont);
         FontMetrics fm = g2.getFontMetrics();
-        int textW = fm.stringWidth(label);
-        int textH = fm.getAscent();
+        String title = "🎨 CUSTOM COLOR MENU";
+        int titleX = (screenWidth - fm.stringWidth(title)) / 2;
+        g2.drawString(title, titleX, 100);
 
-        int padX = 22;
-        int padY= 14;
-        int w = textW + padX*2;
-        int h = textH + padY;
-         int x = Math.max(24, width - w - 36);   // cách mép phải 36px
-        int y = Math.max(24, height - h - 36);  // cách mép dưới 36px
-        
-        RoundRectangle2D pill = new RoundRectangle2D.Float(x,y,w,h,h,h);
+        int leftMargin = 150;
+        int topMargin = 180;
+        int boxSize = 80;
+        int spacing = 20;
+        int cols = 4;
 
-        g2.setColor(new Color(255,255,255,28));
-        g2.fill(pill);
-        g2.setColor(PRIMARY_COLOR);
-        g2.setStroke(new BasicStroke(2f));
-        g2.draw(pill);
-        g2.setColor(PRIMARY_COLOR);
-        int tx = x + (w - textW) / 2;
-        int ty = y + (h + textH) / 2 - 3;
-        g2.drawString(label, tx, ty);
+        // === PADDLE SECTION ===
+        g2.setColor(SELECTED_COLOR);
+        g2.setFont(loadCustomFont(28f).deriveFont(Font.BOLD));
+        g2.drawString("PADDLE COLOR", leftMargin, topMargin);
 
-        // save bounds (nới thêm 4px cho dễ bấm)
-        leaderboardButtonBounds = new Rectangle(x - 4, y - 4, w + 8, h + 8);
+        for (int i = 0; i < PADDLE_COLORS.length; i++) {
+            int row = i / cols;
+            int col = i % cols;
+            int x = leftMargin + col * (boxSize + spacing);
+            int y = topMargin + 20 + row * (boxSize + spacing);
 
+            paddleColorBoxes[i] = new Rectangle(x, y, boxSize, boxSize);
 
+            g2.setColor(PADDLE_COLORS[i]);
+            RoundRectangle2D box = new RoundRectangle2D.Float(x, y, boxSize, boxSize, 15, 15);
+            g2.fill(box);
+
+            if (PADDLE_COLORS[i].equals(currentPaddleColor)) {
+                g2.setColor(PRIMARY_COLOR);
+                g2.setStroke(new BasicStroke(4));
+                g2.draw(box);
+                
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 12));
+                FontMetrics smallFm = g2.getFontMetrics();
+                String selected = "✓";
+                int sx = x + (boxSize - smallFm.stringWidth(selected)) / 2;
+                int sy = y + (boxSize + smallFm.getAscent()) / 2;
+                g2.drawString(selected, sx, sy);
+            } else {
+                g2.setColor(new Color(255, 255, 255, 100));
+                g2.setStroke(new BasicStroke(2));
+                g2.draw(box);
+            }
+        }
+
+        // === BALL SECTION ===
+        int ballSectionY = topMargin + 240;
+        g2.setColor(SELECTED_COLOR);
+        g2.setFont(loadCustomFont(28f).deriveFont(Font.BOLD));
+        g2.drawString("BALL SKIN", leftMargin, ballSectionY);
+
+        for (int i = 0; i < BALL_IMAGE_PATHS.length; i++) {
+            int row = i / cols;
+            int col = i % cols;
+            int x = leftMargin + col * (boxSize + spacing);
+            int y = ballSectionY + 20 + row * (boxSize + spacing);
+
+            ballColorBoxes[i] = new Rectangle(x, y, boxSize, boxSize);
+
+            // Vẽ background box tối màu
+            g2.setColor(new Color(30, 30, 50));
+            RoundRectangle2D box = new RoundRectangle2D.Float(x, y, boxSize, boxSize, 15, 15);
+            g2.fill(box);
+
+            // Vẽ ảnh ball (chỉ hiển thị ảnh, không có fallback)
+            Image ballImg = loadBallImage(i);
+            if (ballImg != null) {
+                int imgSize = 50;
+                int imgX = x + (boxSize - imgSize) / 2;
+                int imgY = y + (boxSize - imgSize) / 2;
+                g2.drawImage(ballImg, imgX, imgY, imgSize, imgSize, null);
+            }
+
+            // Kiểm tra xem có phải ball đang chọn không
+            boolean isSelected = (currentBallImagePath != null && 
+                                currentBallImagePath.equals(BALL_IMAGE_PATHS[i]));
+
+            if (isSelected) {
+                g2.setColor(PRIMARY_COLOR);
+                g2.setStroke(new BasicStroke(4));
+                g2.draw(box);
+                
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                FontMetrics smallFm = g2.getFontMetrics();
+                String selected = "✓";
+                int sx = x + (boxSize - smallFm.stringWidth(selected)) / 2;
+                int sy = y + boxSize - 10;
+                g2.drawString(selected, sx, sy);
+            } else {
+                g2.setColor(new Color(255, 255, 255, 100));
+                g2.setStroke(new BasicStroke(2));
+                g2.draw(box);
+            }
+        }
+
+        // === INSTRUCTIONS ===
+        g2.setColor(Color.GRAY);
+        g2.setFont(new Font("Arial", Font.PLAIN, 18));
+        g2.drawString("Click on a color/skin to select it", leftMargin, screenHeight - 80);
+        g2.drawString("Press ESC to return to main menu", leftMargin, screenHeight - 50);
     }
 
     /**
-     * Vẽ hướng dẫn ở cuối màn hình (Giữ nguyên font Arial nhỏ)
+     * Kiểm tra xem click có trúng ô màu paddle nào không
      */
+    public int getPaddleColorBoxClicked(int mouseX, int mouseY) {
+        for (int i = 0; i < paddleColorBoxes.length; i++) {
+            if (paddleColorBoxes[i] != null && paddleColorBoxes[i].contains(mouseX, mouseY)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Kiểm tra xem click có trúng ô màu ball nào không
+     */
+    public int getBallColorBoxClicked(int mouseX, int mouseY) {
+        for (int i = 0; i < ballColorBoxes.length; i++) {
+            if (ballColorBoxes[i] != null && ballColorBoxes[i].contains(mouseX, mouseY)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Lấy màu paddle theo index
+     */
+    public Color getPaddleColor(int index) {
+        if (index >= 0 && index < PADDLE_COLORS.length) {
+            return PADDLE_COLORS[index];
+        }
+        return Color.BLUE;
+    }
+
+    /**
+     * Lấy màu ball theo index
+     */
+    public Color getBallColor(int index) {
+        if (index >= 0 && index < BALL_COLORS.length) {
+            return BALL_COLORS[index];
+        }
+        return Color.RED;
+    }
+
+    /**
+     * Lấy đường dẫn ảnh ball theo index - PHƯƠNG THỨC THIẾU
+     */
+    public String getBallImagePath(int index) {
+        if (index >= 0 && index < BALL_IMAGE_PATHS.length) {
+            return BALL_IMAGE_PATHS[index];
+        }
+        return "/balls/ball_red.png"; // Default
+    }
+
     private void drawFooterInstructions(Graphics2D g2, int screenWidth, int screenHeight) {
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -222,15 +378,11 @@ public class MenuRenderer {
         g2.drawString(instruction, x, y);
     }
 
-
     public void drawSettings(Graphics g, boolean soundEnabled, int difficulty, String[] difficultyNames, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Background
         drawBackground(g2, screenWidth, screenHeight);
 
-        // Title
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
@@ -239,19 +391,16 @@ public class MenuRenderer {
         int titleY = 150;
         g2.drawString(title, titleX, titleY);
 
-        // Sound setting
         int y = 250;
         g2.setFont(new Font("Arial", Font.PLAIN, 24));
         String soundText = "Sound: " + (soundEnabled ? "ON" : "OFF");
         g2.setColor(soundEnabled ? PRIMARY_COLOR : Color.GRAY);
         g2.drawString(soundText, 100, y);
 
-
         y += 60;
         g2.setColor(TEXT_COLOR);
         String diffText = "Difficulty: " + difficultyNames[difficulty - 1];
         g2.drawString(diffText, 100, y);
-
 
         int indicatorX = 400;
         int indicatorY = y - 20;
@@ -261,7 +410,6 @@ public class MenuRenderer {
             g2.fillOval(indicatorX + i * 30, indicatorY, 15, 15);
         }
 
-        // Instructions
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
         g2.drawString("Use LEFT/RIGHT to change difficulty", 100, y + 40);
@@ -269,17 +417,11 @@ public class MenuRenderer {
         g2.drawString("Press ESC to return to main menu", 100, y + 80);
     }
 
-    /**
-     * Vẽ hướng dẫn chơi
-     */
     public void drawInstructions(Graphics g, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Background
         drawBackground(g2, screenWidth, screenHeight);
 
-        // Title
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 36));
         FontMetrics fm = g2.getFontMetrics();
@@ -288,7 +430,6 @@ public class MenuRenderer {
         int titleY = 100;
         g2.drawString(title, titleX, titleY);
 
-        // Instructions
         g2.setFont(new Font("Arial", Font.PLAIN, 20));
         g2.setColor(TEXT_COLOR);
 
@@ -321,46 +462,22 @@ public class MenuRenderer {
                 g2.setColor(TEXT_COLOR);
                 g2.setFont(new Font("Arial", Font.PLAIN, 20));
             }
-
             g2.drawString(instruction, 100, y);
             y += 30;
         }
 
-        // Return instruction
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
         g2.drawString("Press ESC to return to main menu", screenWidth - 300, screenHeight - 50);
     }
 
-    // Vẽ Custom
-    public void drawCustom(Graphics g, int screenWidth, int screenHeight) {
-        Graphics2D g2 = (Graphics2D) g;
-
-        g.setColor(new Color(20, 20, 20)); // nền tối
-        drawBackground(g2, screenWidth, screenHeight);
-
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 28));
-        g.drawString("🎨 CUSTOM COLOR MENU", 150, 100);
-
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.drawString("Press [P] to change Paddle color", 180, 180);
-        g.drawString("Press [B] to change Ball color", 180, 220);
-        g.drawString("Press [ESC] to return", 180, 260);
-    }
-
-    /**
-     * Vẽ overlay tạm dừng
-     */
     public void drawPauseOverlay(Graphics g, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Semi-transparent overlay
         g2.setColor(new Color(0, 0, 0, 150));
         g2.fillRect(0, 0, screenWidth, screenHeight);
 
-        // Pause text
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
@@ -369,7 +486,6 @@ public class MenuRenderer {
         int y = (screenHeight + fm.getAscent()) / 2 - 50;
         g2.drawString(text, x, y);
 
-        // Instructions
         g2.setFont(new Font("Arial", Font.PLAIN, 20));
         g2.setColor(Color.GRAY);
         String instruction = "Press ESC to resume";
@@ -379,21 +495,14 @@ public class MenuRenderer {
         g2.drawString(instruction, x, y);
     }
 
-    /**
-     * Vẽ đếm ngược khi bắt đầu game
-     */
     public void drawCountdown(Graphics g, int countdownValue, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Semi-transparent overlay
         g2.setColor(new Color(0, 0, 0, 100));
         g2.fillRect(0, 0, screenWidth, screenHeight);
 
-        // Countdown text
         String countdownText = String.valueOf(countdownValue);
-        
-        // Sử dụng font tùy chỉnh với kích thước lớn
         Font countdownFont = loadCustomFont(200f).deriveFont(Font.BOLD);
         g2.setFont(countdownFont);
         
@@ -401,7 +510,6 @@ public class MenuRenderer {
         int x = (screenWidth - fm.stringWidth(countdownText)) / 2;
         int y = (screenHeight + fm.getAscent()) / 2;
 
-        // Vẽ hiệu ứng glow cho số đếm ngược
         for (int i = 5; i >= 1; i--) {
             float alpha = 0.1f + 0.15f * (6 - i) / 5f;
             g2.setColor(new Color(PRIMARY_COLOR.getRed(), PRIMARY_COLOR.getGreen(), PRIMARY_COLOR.getBlue(), (int)(alpha * 255)));
@@ -413,12 +521,10 @@ public class MenuRenderer {
             g2.drawString(countdownText, glowX, glowY);
         }
 
-        // Vẽ số chính
         g2.setColor(PRIMARY_COLOR);
         g2.setFont(countdownFont);
         g2.drawString(countdownText, x, y);
 
-        // Vẽ text "GET READY" khi countdown = 3
         if (countdownValue == 3) {
             g2.setColor(TEXT_COLOR);
             g2.setFont(new Font("Arial", Font.BOLD, 36));
@@ -430,17 +536,12 @@ public class MenuRenderer {
         }
     }
 
-    /**
-     * Vẽ màn hình Game Over
-     */
     public void drawGameOver(Graphics g, int score, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Background
         drawBackground(g2, screenWidth, screenHeight);
 
-        // Game Over text
         g2.setColor(Color.RED);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         FontMetrics fm = g2.getFontMetrics();
@@ -449,7 +550,6 @@ public class MenuRenderer {
         int y = 200;
         g2.drawString(text, x, y);
 
-        // Score
         g2.setColor(TEXT_COLOR);
         g2.setFont(new Font("Arial", Font.PLAIN, 24));
         String scoreText = "Final Score: " + score;
@@ -458,7 +558,6 @@ public class MenuRenderer {
         y += 80;
         g2.drawString(scoreText, x, y);
 
-        // Continue instruction
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 20));
         String instruction = "Press ENTER to return to main menu";
@@ -468,15 +567,10 @@ public class MenuRenderer {
         g2.drawString(instruction, x, y);
     }
 
-    /**
-     * Vẽ background với gradient
-     */
     private void drawBackground(Graphics2D g2, int screenWidth, int screenHeight) {
-        // Dark background
         g2.setColor(BACKGROUND_COLOR);
         g2.fillRect(0, 0, screenWidth, screenHeight);
 
-        // Gradient effect
         for (int i = 0; i < screenHeight; i++) {
             float ratio = (float) i / screenHeight;
             Color color = new Color(
@@ -488,7 +582,8 @@ public class MenuRenderer {
             g2.drawLine(0, i, screenWidth, i);
         }
     }
+    
     public Rectangle getLeaderboardButtonBounds() {
-    return new Rectangle(leaderboardButtonBounds);
+        return new Rectangle(leaderboardButtonBounds);
     }
 }

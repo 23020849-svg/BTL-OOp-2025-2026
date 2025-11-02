@@ -1,43 +1,32 @@
+// ==================== MenuManager.java (FIXED - HOÀN CHỈNH) ====================
 package arkanoid.core;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.Color;
-import javax.swing.JColorChooser;
 
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.ImageIcon;
-import javax.swing.JColorChooser;
-
-import java.awt.Image;
 
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.MenuRenderer;
 
-import java.awt.Toolkit;
-
-/**
- * MenuManager.java
- * 
- * Quản lý menu chính của game Arkanoid với các tùy chọn:
- * - Start Game: Bắt đầu chơi game
- * - Settings: Cài đặt game
- * - Instructions: Hướng dẫn chơi
- * - Exit: Thoát game
- */
 public class MenuManager extends JPanel implements ActionListener {
 
     public static final int WIDTH = 1440;
@@ -59,7 +48,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private MenuRenderer menuRenderer;
     private GameManager gameManager;
     private Timer timer;
-    private Sound selectingSound; // Âm thanh khi chọn menu
+    private Sound selectingSound;
 
     // Biến để quản lý fullscreen
     private JFrame mainFrame;
@@ -73,17 +62,18 @@ public class MenuManager extends JPanel implements ActionListener {
 
     // Settings
     private boolean soundEnabled = true;
-    private int difficulty = 1; // 1: Easy, 2: Medium, 3: Hard
+    private int difficulty = 1;
     private String[] difficultyNames = { "Easy", "Medium", "Hard" };
 
     // Countdown variables
     private int countdownValue = 3;
     private long countdownStartTime;
-    private static final long COUNTDOWN_DURATION = 1000; // 1 second per count
+    private static final long COUNTDOWN_DURATION = 1000;
 
     // Customization
-    private Color paddleColor = Color.BLUE; // Màu mặc định của paddle
-    private Color ballColor = Color.RED;    // Màu mặc định của ball
+    private Color paddleColor = Color.BLUE;
+    private Color ballColor = Color.RED;
+    private String ballImagePath = "/balls/ball_red.png";
 
     public MenuManager(JFrame frame, JLabel background, Image originalImg) {
         this.mainFrame = frame;
@@ -97,7 +87,8 @@ public class MenuManager extends JPanel implements ActionListener {
         gameManager = new GameManager();
         gameManager.setPaddleColor(paddleColor);
         gameManager.setBallColor(ballColor);
-        // Khởi tạo âm thanh
+        gameManager.setBallImagePath(ballImagePath);
+
         selectingSound = new Sound();
         selectingSound.loadSound("/selecting.wav");
 
@@ -108,29 +99,20 @@ public class MenuManager extends JPanel implements ActionListener {
         timer.start();
     }
 
-    /**
-     * Bật/tắt chế độ toàn màn hình
-     */
     private void toggleFullScreen() {
-        isFullScreen = !isFullScreen; // Đảo trạng thái
-        mainFrame.dispose(); // Hủy cửa sổ hiện tại để thay đổi thuộc tính
+        isFullScreen = !isFullScreen;
+        mainFrame.dispose();
 
         if (isFullScreen) {
-            // Chuyển sang fullscreen
-
-            // Lấy kích thước màn hình và scale ảnh nền
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             Image scaled = originalBackgroundImg.getScaledInstance(screenSize.width, screenSize.height,
                     Image.SCALE_SMOOTH);
             backgroundLabel.setIcon(new ImageIcon(scaled));
             backgroundLabel.setLayout(new BorderLayout());
 
-            // Đặt lại ContentPane là cái background
             mainFrame.setContentPane(backgroundLabel);
-            // Thêm game (this) vào giữa background
             backgroundLabel.add(this, BorderLayout.CENTER);
 
-            // Đặt lại chế độ full màn hình
             mainFrame.setUndecorated(true);
             mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
@@ -139,23 +121,18 @@ public class MenuManager extends JPanel implements ActionListener {
                 gameManager.rescaleGame(screenSize.width, screenSize.height);
             }
         } else {
-            // Chuyển qua cửa sổ
-            mainFrame.setContentPane(this);
-
             Image scaled = originalBackgroundImg.getScaledInstance(MenuManager.WIDTH, MenuManager.HEIGHT,
                     Image.SCALE_SMOOTH);
             backgroundLabel.setIcon(new ImageIcon(scaled));
             backgroundLabel.setLayout(new BorderLayout());
 
             mainFrame.setContentPane(backgroundLabel);
-
             backgroundLabel.add(this, BorderLayout.CENTER);
 
             mainFrame.setUndecorated(false);
             mainFrame.setExtendedState(JFrame.NORMAL);
 
             mainFrame.pack();
-
             mainFrame.setLocationRelativeTo(null);
 
             if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
@@ -165,22 +142,17 @@ public class MenuManager extends JPanel implements ActionListener {
         }
 
         mainFrame.setVisible(true);
-
         requestFocusInWindow();
     }
 
     private void initKeyBindings() {
-        // Navigation keys
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
         getActionMap().put("up", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption - 1 + mainMenuOptions.length) % mainMenuOptions.length;
-                    if (soundEnabled)
-                        selectingSound.playOnce();
-                } else if (currentState == MenuState.SETTINGS) {
-                    // Navigate settings options
+                    if (soundEnabled) selectingSound.playOnce();
                 }
             }
         });
@@ -191,15 +163,11 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption + 1) % mainMenuOptions.length;
-                    if (soundEnabled)
-                        selectingSound.playOnce();
-                } else if (currentState == MenuState.SETTINGS) {
-                    // Navigate settings options
+                    if (soundEnabled) selectingSound.playOnce();
                 }
             }
         });
 
-        // Enter key
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "enter");
         getActionMap().put("enter", new AbstractAction() {
             @Override
@@ -208,7 +176,6 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // Escape key
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
         getActionMap().put("escape", new AbstractAction() {
             @Override
@@ -217,17 +184,14 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // Left/Right for settings and game
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("pressed LEFT"), "left_pressed");
         getActionMap().put("left_pressed", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                    if (difficulty > 1)
-                        difficulty--;
+                    if (difficulty > 1) difficulty--;
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
-                    // Call game manager's left movement
                     gameManager.getPaddle().setMovingLeft(true);
                 }
             }
@@ -249,8 +213,7 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                    if (difficulty < 3)
-                        difficulty++;
+                    if (difficulty < 3) difficulty++;
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingRight(true);
@@ -269,13 +232,11 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // Space key for game
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SPACE"), "space");
         getActionMap().put("space", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-                    // Launch ball if not already launched
                     if (!gameManager.isBallLaunched()) {
                         gameManager.launchBall();
                     }
@@ -283,7 +244,6 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // R key for restart
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("R"), "restart");
         getActionMap().put("restart", new AbstractAction() {
             @Override
@@ -294,7 +254,6 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // 4 and 6 keys for aiming
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("4"), "aim_left");
         getActionMap().put("aim_left", new AbstractAction() {
             @Override
@@ -315,7 +274,6 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         });
 
-        // Phím F11 để bật/tắt toàn màn hình
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F11"), "toggle_fullscreen");
         getActionMap().put("toggle_fullscreen", new AbstractAction() {
             @Override
@@ -323,36 +281,34 @@ public class MenuManager extends JPanel implements ActionListener {
                 toggleFullScreen();
             }
         });
-        // Phím P để chọn màu Paddle
+
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("P"), "choose_paddle_color");
         getActionMap().put("choose_paddle_color", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.CUSTOM) {
-                    Color newColor = JColorChooser.showDialog(
-                            MenuManager.this, "Choose Paddle Color", paddleColor);
+                    Color newColor = JColorChooser.showDialog(MenuManager.this, "Choose Paddle Color", paddleColor);
                     if (newColor != null) {
+                        paddleColor = newColor;
                         gameManager.setPaddleColor(newColor);
                     }
                 }
             }
         });
 
-        // Phím B để chọn màu Ball
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("B"), "choose_ball_color");
         getActionMap().put("choose_ball_color", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.CUSTOM) {
-                    Color newColor = JColorChooser.showDialog(
-                            MenuManager.this, "Choose Ball Color", ballColor);
+                    Color newColor = JColorChooser.showDialog(MenuManager.this, "Choose Ball Color", ballColor);
                     if (newColor != null) {
+                        ballColor = newColor;
                         gameManager.setBallColor(newColor);
                     }
                 }
             }
         });
-
     }
 
     private void initMouseListeners() {
@@ -360,11 +316,6 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 handleMouseClick(e);
-            }
-
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                handleMouseMove(e);
             }
         });
 
@@ -378,7 +329,6 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private void handleMouseClick(MouseEvent e) {
         if (currentState == MenuState.MAIN_MENU) {
-            // Kiểm tra xem click có nằm trong vùng menu options không
             int startY = 350;
             int spacing = 60;
             int clickY = e.getY();
@@ -391,17 +341,41 @@ public class MenuManager extends JPanel implements ActionListener {
                     break;
                 }
             }
-        } else if (currentState == MenuState.SETTINGS) {
-            // Click để toggle sound
+        } 
+        else if (currentState == MenuState.CUSTOM) {
+            int mouseX = e.getX();
+            int mouseY = e.getY();
+            
+            // Kiểm tra click vào ô màu paddle
+            int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
+            if (paddleIndex >= 0) {
+                paddleColor = menuRenderer.getPaddleColor(paddleIndex);
+                gameManager.setPaddleColor(paddleColor);
+                if (soundEnabled) selectingSound.playOnce();
+                return;
+            }
+            
+            // Kiểm tra click vào ô ảnh ball
+            int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
+            if (ballIndex >= 0) {
+                ballImagePath = menuRenderer.getBallImagePath(ballIndex);
+                ballColor = menuRenderer.getBallColor(ballIndex);
+                gameManager.setBallImagePath(ballImagePath);
+                gameManager.setBallColor(ballColor);
+                if (soundEnabled) selectingSound.playOnce();
+                return;
+            }
+        }
+        else if (currentState == MenuState.SETTINGS) {
             soundEnabled = !soundEnabled;
-        } else if (currentState == MenuState.INSTRUCTIONS) {
-            // Click để quay về main menu
+        } 
+        else if (currentState == MenuState.INSTRUCTIONS) {
             currentState = MenuState.MAIN_MENU;
-        } else if (currentState == MenuState.GAME_OVER) {
-            // Click để quay về main menu
+        } 
+        else if (currentState == MenuState.GAME_OVER) {
             currentState = MenuState.MAIN_MENU;
-        } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-            // Click để bắn bóng nếu chưa bắn
+        } 
+        else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
             if (!gameManager.isBallLaunched()) {
                 gameManager.launchBall();
             }
@@ -410,7 +384,6 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private void handleMouseMove(MouseEvent e) {
         if (currentState == MenuState.MAIN_MENU) {
-            // Highlight menu option khi hover
             int startY = 350;
             int spacing = 60;
             int mouseY = e.getY();
@@ -420,7 +393,6 @@ public class MenuManager extends JPanel implements ActionListener {
                 if (mouseY >= optionY - 30 && mouseY <= optionY + 10) {
                     int oldSelected = selectedOption;
                     selectedOption = i;
-                    // Phát âm thanh nếu thay đổi lựa chọn và có bật sound
                     if (oldSelected != selectedOption && soundEnabled) {
                         selectingSound.playOnce();
                     }
@@ -429,20 +401,15 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                 || currentState == MenuState.COUNTDOWN) {
-            // Điều khiển paddle bằng chuột
             int mouseX = e.getX();
             int paddleWidth = gameManager.getPaddle().getWidth();
             int newPaddleX = mouseX - paddleWidth / 2;
 
-            // Giới hạn paddle trong màn hình
-            if (newPaddleX < 0)
-                newPaddleX = 0;
-            if (newPaddleX > getWidth() - paddleWidth)
-                newPaddleX = getWidth() - paddleWidth;
+            if (newPaddleX < 0) newPaddleX = 0;
+            if (newPaddleX > getWidth() - paddleWidth) newPaddleX = getWidth() - paddleWidth;
 
             gameManager.getPaddle().setX(newPaddleX);
 
-            // Căn chỉnh bóng theo paddle nếu chưa bắn
             if (!gameManager.isBallLaunched()) {
                 gameManager.alignBallToPaddle();
             }
@@ -453,43 +420,25 @@ public class MenuManager extends JPanel implements ActionListener {
         switch (currentState) {
             case MAIN_MENU:
                 switch (selectedOption) {
-                    case 0: // Start Game
-                        startGame();
-                        break;
-                    case 1: // Custom
-                        currentState = MenuState.CUSTOM;
-                        break;
-                    case 2: // Settings
-                        currentState = MenuState.SETTINGS;
-                        break;
-                    case 3: // Instructions
-                        currentState = MenuState.INSTRUCTIONS;
-                        break;
-
-                    // Leaderboard
-                    case 4:
-                        showLeaderboard();
-                        break;
-
-                    case 5: // Exit
-                        System.exit(0);
-                        break;
+                    case 0: startGame(); break;
+                    case 1: currentState = MenuState.CUSTOM; break;
+                    case 2: currentState = MenuState.SETTINGS; break;
+                    case 3: currentState = MenuState.INSTRUCTIONS; break;
+                    case 4: showLeaderboard(); break;
+                    case 5: System.exit(0); break;
                 }
                 break;
             case SETTINGS:
-                // Toggle sound
                 soundEnabled = !soundEnabled;
                 break;
             case INSTRUCTIONS:
-                currentState = MenuState.MAIN_MENU;
-                break;
             case GAME_OVER:
                 currentState = MenuState.MAIN_MENU;
                 break;
-            case COUNTDOWN:
-            case GAME:
-            case PAUSED:
-                // No action for these states
+            case CUSTOM:
+                currentState = MenuState.MAIN_MENU;
+                break;
+            default:
                 break;
         }
     }
@@ -498,8 +447,6 @@ public class MenuManager extends JPanel implements ActionListener {
         switch (currentState) {
             case SETTINGS:
             case CUSTOM:
-                currentState = MenuState.MAIN_MENU;
-                break;
             case INSTRUCTIONS:
                 currentState = MenuState.MAIN_MENU;
                 break;
@@ -509,10 +456,7 @@ public class MenuManager extends JPanel implements ActionListener {
             case PAUSED:
                 currentState = MenuState.GAME;
                 break;
-            case COUNTDOWN:
-            case MAIN_MENU:
-            case GAME_OVER:
-                // No action for these states
+            default:
                 break;
         }
     }
@@ -522,20 +466,14 @@ public class MenuManager extends JPanel implements ActionListener {
         countdownValue = 3;
         countdownStartTime = System.currentTimeMillis();
         gameManager.initGame();
-        // Make sure MenuManager keeps focus but forwards input to game
         setFocusable(true);
         requestFocusInWindow();
     }
 
     private void showLeaderboard() {
-        // Tạm dừng game loop
         timer.stop();
-
         Window parent = SwingUtilities.getWindowAncestor(this);
-        // Hiển thị Top 10 (tùy bạn chỉnh)
         LeaderboardDialog.showTop(parent, 10);
-
-        // Khôi phục
         timer.start();
         requestFocusInWindow();
     }
@@ -548,13 +486,11 @@ public class MenuManager extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Tính Delta Time
         long currentTime = System.currentTimeMillis();
-        double deltaTime = (currentTime - lastUpdateTime) / 1000.0; // Đổi sang giây
-        lastUpdateTime = currentTime; // Lưu lại thời gian cho các lần lặp sau
+        double deltaTime = (currentTime - lastUpdateTime) / 1000.0;
+        lastUpdateTime = currentTime;
 
         if (currentState == MenuState.COUNTDOWN) {
-            // Handle countdown logic
             long elapsed = currentTime - countdownStartTime;
             int newCountdownValue = 3 - (int) (elapsed / COUNTDOWN_DURATION);
 
@@ -562,30 +498,23 @@ public class MenuManager extends JPanel implements ActionListener {
                 countdownValue = newCountdownValue;
             }
 
-            // Update paddle during countdown so player can position it
             gameManager.getPaddle().update(deltaTime, getWidth());
             gameManager.updateGame(deltaTime, getWidth(), getHeight());
             if (!gameManager.isBallLaunched()) {
                 gameManager.alignBallToPaddle();
             }
 
-            // Khi đếm đến không thì bắt đầu Game
             if (countdownValue <= 0) {
                 currentState = MenuState.GAME;
-                // Tự động bắn bóng nếu là mạng đầu tiên
                 if (gameManager.isFirstLife() && !gameManager.isBallLaunched()) {
                     gameManager.launchBall();
                 }
             }
-
         } else if (currentState == MenuState.GAME) {
-            // Truyền deltaTime vào GameManager
             gameManager.updateGame(deltaTime, getWidth(), getHeight());
             if (gameManager.isGameOver()) {
                 gameOver();
             }
-        } else if (currentState == MenuState.PAUSED) {
-            // Don't update game when paused, just repaint
         }
         repaint();
     }
@@ -602,7 +531,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 menuRenderer.drawMainMenu(g, mainMenuOptions, selectedOption, w, h);
                 break;
             case CUSTOM:
-                menuRenderer.drawCustom(g, w, h);
+                menuRenderer.drawCustomStore(g, w, h, paddleColor, ballColor, ballImagePath);
                 break;
             case SETTINGS:
                 menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames, w, h);
@@ -635,7 +564,6 @@ public class MenuManager extends JPanel implements ActionListener {
         return ballColor;
     }
 
-    // Getters for game state
     public boolean isInGame() {
         return currentState == MenuState.GAME;
     }

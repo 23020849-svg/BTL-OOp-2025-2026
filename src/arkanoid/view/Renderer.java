@@ -8,9 +8,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.LinearGradientPaint;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
+import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.List;
 
@@ -28,52 +29,51 @@ import arkanoid.entities.powerups.PowerUp;
 public class Renderer {
 
     private arkanoid.view.expandpaddle ex = new arkanoid.view.expandpaddle();
-    private arkanoid.view.extraball exball = new arkanoid.view.extraball();
-    private arkanoid.view.fast fast = new arkanoid.view.fast();
+    private arkanoid.view.extraball   exball = new arkanoid.view.extraball();
+    private arkanoid.view.fast        fast = new arkanoid.view.fast();
 
     private Image ballImage;
     private Image heart;
-    private static final double BALL_SCALE = 2.54; // phóng to khi VẼ
-    private static final int ARROW_GAP = 2; // khoảng hở giữa mép bóng & mũi tên
-    private static final int LIFE_ICON_SIZE = 20;
+
+    private static final double BALL_SCALE   = 3.0; // phóng to khi vẽ
+    private static final int    ARROW_GAP    = 2;   // khoảng hở giữa mép bóng & mũi tên
+    private static final int    LIFE_ICON_SIZE = 20;
 
     public Renderer() {
         try {
-            ballImage = new ImageIcon(getClass().getResource("/ball.png")).getImage();
-            heart = new ImageIcon(getClass().getResource("/heart.png")).getImage();
-
+            
+            heart     = new ImageIcon(getClass().getResource("/heart.png")).getImage();
         } catch (Exception e) {
-            System.err.println("Không thể load ảnh ball.png: " + e.getMessage());
+            System.err.println("Không thể load ảnh: " + e.getMessage());
         }
     }
 
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
-            Paddle paddle,
-            Color paddleColor,
-            List<Ball> balls,
-            Color ballColor,
-            List<Brick> bricks,
-            List<PowerUp> powerUps,
-            int score,
-            int lives,
-            boolean ballLaunched,
-            double launchAngle,
-            boolean paused,
-            List<PowerUp> activePowerUps,
-            boolean isFirstLife) {
+                     Paddle paddle,
+                     Color paddleColor,
+                     List<Ball> balls,
+                     Color ballColor,
+                     List<Brick> bricks,
+                     List<PowerUp> powerUps,
+                     int score,
+                     int lives,
+                     boolean ballLaunched,
+                     double launchAngle,
+                     boolean paused,
+                     List<PowerUp> activePowerUps,
+                     boolean isFirstLife) {
 
         Graphics2D g2 = (Graphics2D) g;
 
         // Khử răng cưa
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // ===== Ball =====
+        // ===== Balls & beam =====
         if (balls != null) {
-            for (Ball ball : balls) { // Lặp qua để vẽ từng quả bóng
-                if (ball == null)
-                    continue;
+            for (Ball ball : balls) {
+                if (ball == null) continue;
+
                 int bx = (int) ball.getX();
                 int by = (int) ball.getY();
                 int bw = ball.getWidth();
@@ -82,50 +82,40 @@ public class Renderer {
                 int cx = bx + bw / 2;
                 int cy = by + bh / 2;
                 int rLogic = Math.min(bw, bh) / 2;
-                int rDraw = (int) Math.round(rLogic * BALL_SCALE); // bán kính để VẼ (2.5x)
+                int rDraw  = (int) Math.round(rLogic * BALL_SCALE);
 
-                // ---- Vệt sáng (trail) theo TÂM, tỉ lệ theo rDraw ----
-                List<double[]> trail = ball.getTrail();
+               List<double[]> t = ball.getTrail();
+            double dirX = ball.getdx(), dirY = ball.getdy(); // fallback
+                if (t != null && t.size() >= 3) {
+            int k = Math.min(5, t.size());   // lấy tối đa 5 điểm cuối
+            double sx = 0, sy = 0;
+            for (int i = t.size()-k; i < t.size(); i++) {
+        sx += cx - t.get(i)[0];
+        sy += cy - t.get(i)[1];
+                        }
+            dirX = sx / k;
+            dirY = sy / k;
+}
+            drawTaperedBeamWhite(g2, cx,  cy, rDraw,  dirX, dirY); 
 
-                for (int i = 0; i < trail.size(); i++) {
-                    double[] pos = trail.get(i);
-                    float alpha = (float) (i + 1) / trail.size();
-
-                    int core = (int) (rDraw * (0.22 + 0.28 * alpha)); // cỡ đốm
-                    g2.setColor(new Color(236, 255, 153, (int) (alpha * 80))); // hồng đậm
-                    g2.fillOval((int) pos[0] - core, (int) pos[1] - core, core * 2, core * 2);
-
-                    // 2 lớp halo trắng
-                    for (int j = 2; j >= 1; j--) {
-                        float t = j / 2f;
-                        int haloA = (int) (alpha * 50 * t);
-                        int haloSz = (int) (core * (1 + 0.55f * t));
-                        g2.setColor(new Color(255, 255, 255, haloA));
-                        g2.fillOval((int) pos[0] - haloSz, (int) pos[1] - haloSz, haloSz * 2, haloSz * 2);
-                    }
+                // --- Vẽ bóng ---
+                Image ballImg = ball.getBallImage();
+                if (ballImg != null) {
+                    int d = rDraw * 2;
+                    g2.drawImage(ballImg, cx - rDraw, cy - rDraw, d, d, null);
+                } else {
+                    g2.setColor(ball.getBallColor());
+                    g2.fillOval(cx - rDraw, cy - rDraw, rDraw * 2, rDraw * 2);
                 }
-                g2.setColor(ballColor); // lấy màu mà người chơi đã chọn
-                g2.fillOval(cx - rDraw, cy - rDraw, rDraw * 2, rDraw * 2);
-
-               /*
-               ---- Vẽ ảnh bóng phóng to 2.5x, căn giữa theo (cx, cy) ----
-                if (ballImage != null) {
-                    int drawD = rDraw * 2;
-                    g2.drawImage(ballImage, cx - rDraw, cy - rDraw, drawD, drawD, null);
-                }
-                */ 
             }
         }
 
         // ===== Bricks =====
         if (bricks != null) {
             for (Brick b : bricks) {
-                if (b == null || b.isDestroyed())
-                    continue;
+                if (b == null || b.isDestroyed()) continue;
                 Rectangle r = b.getBounds();
-                int hp = b.getHitPoints();
-                Color base = colorForHP(hp);
-
+                Color base = colorForHP(b.getHitPoints());
                 Graphics2D g2c = (Graphics2D) g2.create();
                 drawNeonBrick(g2c, r, base);
                 g2c.dispose();
@@ -136,26 +126,23 @@ public class Renderer {
         if (paddle != null) {
             Rectangle r = paddle.getBounds();
             float arc = 10f;
-            RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
-            Color base = paddleColor; // lấy màu mà người chơi đã chọn
+            RoundRectangle2D rr = new RoundRectangle2D.Float(
+                    r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
+
+            Color base = paddleColor;
             for (int i = 2; i >= 1; i--) {
                 float t = (float) i / 2f;
                 float alpha = 0.03f + 0.18f * t;
                 int a255 = (int) (alpha * 255);
                 g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), a255));
                 g2.setStroke(new BasicStroke(
-                        4f + 6f * t,
-                        BasicStroke.CAP_ROUND,
-                        BasicStroke.JOIN_ROUND));
+                        4f + 6f * t, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                 g2.draw(rr);
             }
-
-            // core
             g2.setColor(base);
             g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
 
-            // lõi trắng
             g2.setColor(Color.WHITE);
             g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
@@ -164,29 +151,18 @@ public class Renderer {
         // ===== PowerUps =====
         if (powerUps != null) {
             for (PowerUp p : powerUps) {
-                if (p == null || !p.isActive())
-                    continue;
-
+                if (p == null || !p.isActive()) continue;
                 Rectangle r = p.getBounds();
 
                 if (p instanceof ExpandPaddlePowerUp) {
                     ImageIcon gif = ex.getGifIcon();
-                    if (gif != null) {
-                        Image img = gif.getImage();
-                        g2.drawImage(img, r.x, r.y, 100, 60, null);
-                    }
+                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
                 } else if (p instanceof FastBallPowerUp) {
                     ImageIcon gif = fast.getGifIcon();
-                    if (gif != null) {
-                        Image img = gif.getImage();
-                        g2.drawImage(img, r.x, r.y, 100, 60, null);
-                    }
+                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
                 } else if (p instanceof MultiBallPowerUp) {
                     ImageIcon gif = exball.getGifIcon();
-                    if (gif != null) {
-                        Image img = gif.getImage();
-                        g2.drawImage(img, r.x, r.y, 100, 60, null);
-                    }
+                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
                 } else {
                     g2.setColor(Color.YELLOW);
                     g2.fillRect(r.x, r.y, r.width, r.height);
@@ -197,10 +173,9 @@ public class Renderer {
         }
 
         // ===== HUD =====
-        int w = (g.getClipBounds() != null) ? g.getClipBounds().width : GameManager.WIDTH;
+        int w = (g.getClipBounds() != null) ? g.getClipBounds().width  : GameManager.WIDTH;
         int h = (g.getClipBounds() != null) ? g.getClipBounds().height : GameManager.HEIGHT;
 
-        // Sử dụng font tùy chỉnh từ MenuRenderer
         Font hudFont = MenuRenderer.loadCustomFont(22f);
         g2.setFont(hudFont);
         g2.setColor(Color.WHITE);
@@ -208,105 +183,76 @@ public class Renderer {
         FontMetrics fm = g2.getFontMetrics();
         int textY = pad + fm.getAscent();
 
-        // Vẽ score ở góc trái
-        String scoreText = "Score: " + score;
-        g2.drawString(scoreText, pad, textY);
-
-        // Vẽ Lives với icon bóng ở góc phải
+        g2.drawString("Score: " + score, pad, textY);
         drawLivesWithIcons(g2, lives, w, textY, fm, pad);
 
-        // Hiển thị tất cả PowerUp đang hoạt động
+        // Active powerups (ví dụ)
         int yOffset = 300;
-        g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 14));
-
-        if (paddle.getExpandRemainingTime() > 0) {
+        if (paddle != null && paddle.getExpandRemainingTime() > 0) {
             g2.drawString("PowerUp: ExpandPaddlePowerUp – " + paddle.getExpandRemainingTime() + "s", 10, yOffset);
-            yOffset += 30;
         }
 
-        if (balls != null && !balls.isEmpty()) {
-            int fastTime = balls.get(0).getFastRemainingTime();
-            if (fastTime > 0) {
-                g2.drawString("PowerUp: FastBallPowerUp - " + fastTime + "s", 10, yOffset);
-                yOffset += 30;
-            }
-        }
-
-        // ===== Overlay: mũi tên ngắm khi chưa bắn =====
-        if (!ballLaunched && !balls.isEmpty()) {
+        // ===== Overlay: aiming arrow =====
+        if (!ballLaunched && balls != null && !balls.isEmpty()) {
             Ball firstBall = balls.get(0);
-            int fbw = firstBall.getWidth();
-            int fbh = firstBall.getHeight();
+            int fbw = firstBall.getWidth(), fbh = firstBall.getHeight();
             int fcx = (int) firstBall.getX() + fbw / 2;
             int fcy = (int) firstBall.getY() + fbh / 2;
             int frLogic = Math.min(fbw, fbh) / 2;
-            int frDraw = (int) Math.round(frLogic * BALL_SCALE);
+            int frDraw  = (int) Math.round(frLogic * BALL_SCALE);
 
             double rad = Math.toRadians(launchAngle);
             int lineLength = 60;
 
-            // Bắt đầu từ mép ảnh đã phóng to + khoảng hở
             int startX = (int) (fcx + (frDraw + ARROW_GAP) * Math.cos(rad));
             int startY = (int) (fcy + (frDraw + ARROW_GAP) * Math.sin(rad));
-            int endX = (int) (fcx + (frDraw + ARROW_GAP + lineLength) * Math.cos(rad));
-            int endY = (int) (fcy + (frDraw + ARROW_GAP + lineLength) * Math.sin(rad));
+            int endX   = (int) (fcx + (frDraw + ARROW_GAP + lineLength) * Math.cos(rad));
+            int endY   = (int) (fcy + (frDraw + ARROW_GAP + lineLength) * Math.sin(rad));
 
             Graphics2D g2c = (Graphics2D) g2.create();
-            g2c.setColor(new Color(244, 63, 94)); // hồng đậm
-            g2c.setStroke(new BasicStroke(
-                    3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f,
-                    new float[] { 8f, 6f }, 0f));
+            g2c.setColor(new Color(244, 63, 94));
+            g2c.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                                          1f, new float[]{8f, 6f}, 0f));
             g2c.drawLine(startX, startY, endX, endY);
             g2c.dispose();
 
-            g2.setColor(Color.WHITE);
             g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
-            g2.drawString("Use 4/6 to aim", w / 2 - 50, h / 2 + 20);
+            g2.drawString("Use 4/6 to aim",       w / 2 - 50, h / 2 + 20);
         }
 
         // ===== Overlay: PAUSED =====
         if (paused) {
             String text = "PAUSED";
             Font old = g2.getFont();
-
-            // Sử dụng font tùy chỉnh từ MenuRenderer
             Font pauseFont = MenuRenderer.loadCustomFont(48f);
             g2.setFont(pauseFont);
 
-            FontMetrics pauseFm = g2.getFontMetrics();
-            int tx = (w - pauseFm.stringWidth(text)) / 2;
-            int ty = (h + pauseFm.getAscent()) / 2 - 10;
-            g2.setColor(Color.WHITE);
+            FontMetrics pfm = g2.getFontMetrics();
+            int tx = (w - pfm.stringWidth(text)) / 2;
+            int ty = (h + pfm.getAscent()) / 2 - 10;
             g2.drawString(text, tx, ty);
             g2.setFont(old);
         }
     }
 
-    // Màu gạch theo độ bền (HP)
+    // ===== Helpers =====
+
     private Color colorForHP(int hp) {
-        if (hp >= 3)
-            return new Color(0x7f8c8d);
-        if (hp == 2)
-            return new Color(0x9b59b6);
+        if (hp >= 3) return new Color(0x7f8c8d);
+        if (hp == 2) return new Color(0x9b59b6);
         return Color.ORANGE;
     }
 
-    /**
-     * Vẽ Lives với icon tim, có hiệu ứng nhấp nháy
-     */
     private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, int textY, FontMetrics fm, int pad) {
         String livesLabel = "Lives: ";
         int labelWidth = fm.stringWidth(livesLabel);
 
-        // Tính toán vị trí bắt đầu (căn phải)
         int totalIconsWidth = 3 * (LIFE_ICON_SIZE + 5); // giả định max 3 mạng
         int startX = screenWidth - pad - labelWidth - totalIconsWidth;
 
-        // Vẽ chữ "Lives: "
         g2.drawString(livesLabel, startX, textY);
 
-        // Hiệu ứng nhấp nháy (dựa vào thời gian)
         long time = System.currentTimeMillis();
         float pulse = (float) Math.abs(Math.sin(time / 400.0)); // 0 → 1 → 0 mỗi 800ms
 
@@ -314,63 +260,80 @@ public class Renderer {
         int iconY = textY - LIFE_ICON_SIZE + 3;
 
         for (int i = 0; i < 3; i++) {
-                if (i < lives) {
-                    // Nhấp nháy bằng alpha
-                    int alpha = (int) (150 + 100 * pulse); // chạy từ 150 đến 250
-                    g2.setComposite(
-                            java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha / 255f)); // chỉnh độ trong suốt của icon
-                    g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
-                    g2.setComposite(java.awt.AlphaComposite.SrcOver);
-                } else {
-                    // Tim tối
-                    g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.4f));
-                    g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
-                    g2.setComposite(java.awt.AlphaComposite.SrcOver);
-                }
-                iconX += LIFE_ICON_SIZE + 5;
-
+            if (i < lives) {
+                int alpha = (int) (150 + 100 * pulse);
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
+                g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
+                g2.setComposite(java.awt.AlphaComposite.SrcOver);
+            } else {
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.4f));
+                g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
+                g2.setComposite(java.awt.AlphaComposite.SrcOver);
             }
+            iconX += LIFE_ICON_SIZE + 5;
         }
-
-    // hình bao ngoài của power up
-    private void renderCapsule(Graphics2D g2, int x, int y, int w, int h, Image arrowFrame) {
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // vỏ
-        Shape outer = new RoundRectangle2D.Float(x, y, w, h, h, h);
-        LinearGradientPaint metal = new LinearGradientPaint(
-                x, y, x, y + h,
-                new float[] { 0f, 1f },
-                new Color[] { new Color(255, 255, 255, 200), new Color(200, 200, 200, 50) });
-        g2.setPaint(metal);
-        g2.fill(outer);
-
-        // ô bên trong
-        int pad = 6;
-        int iw = w - 2 * pad;
-        int ih = h - 2 * pad;
-        int ix = x + pad;
-        int iy = y + pad;
-
-        Shape inner = new RoundRectangle2D.Float(ix, iy, iw, ih, ih, ih);
-        g2.setColor(new Color(20, 20, 22));
-        g2.fill(inner);
-
-        // mũi tên
-        int imgW = arrowFrame.getWidth(null);
-        int imgH = arrowFrame.getHeight(null);
-
-        Shape oldClip = g2.getClip();
-        if (imgW > 0 && imgH > 0) {
-            g2.drawImage(arrowFrame, ix + (iw - imgW) / 2, iy + (ih - imgH) / 2, null);
-        }
-        g2.setClip(oldClip);
     }
 
-    // màu neon
+    /** Beam trắng mờ, thu nhọn ở đuôi */
+    private void drawTaperedBeamWhite(Graphics2D g2, double cx, double cy, int rDraw,
+                                      double dirX, double dirY) {
+         double L = Math.hypot(dirX, dirY);
+    if (L < 1e-6) return;
+    double ux = dirX / L, uy = dirY / L;
+
+    float len   = (float)Math.max(100, rDraw * 5.0f); // dài hơn -> cảm giác mềm
+    float headW = rDraw * 0.8f;
+    float tailW = rDraw * 0.06f; // vẫn nhọn
+
+    float headX = (float)cx, headY = (float)cy;
+    float tailX = (float)(cx - ux*len), tailY = (float)(cy - uy*len);
+
+    double nx = -uy, ny = ux;
+
+    // helper vẽ 1 lớp tapered với alpha đầu/giữa/đuôi
+    java.util.function.BiConsumer<float[], Integer> fillLayer = (ws, aHead) -> {
+        float wHead = ws[0], wTail = ws[1];  // [headW, tailW]
+
+        float hxL = (float)(headX - nx * (wHead*0.5f));
+        float hyL = (float)(headY - ny * (wHead*0.5f));
+        float hxR = (float)(headX + nx * (wHead*0.5f));
+        float hyR = (float)(headY + ny * (wHead*0.5f));
+        float txL = (float)(tailX - nx * (wTail*0.5f));
+        float tyL = (float)(tailY - ny * (wTail*0.5f));
+        float txR = (float)(tailX + nx * (wTail*0.5f));
+        float tyR = (float)(tailY + ny * (wTail*0.5f));
+
+        Path2D p = new Path2D.Float();
+        p.moveTo(txL, tyL); p.lineTo(hxL, hyL); p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
+
+        Paint old = g2.getPaint();
+        g2.setPaint(new LinearGradientPaint(
+                headX, headY, tailX, tailY,
+                new float[]{0f, 0.55f, 1f},
+                new Color[]{
+                    new Color(255,255,255, Math.min(255, aHead)), // đầu
+                    new Color(255,255,255, Math.max(0, aHead-70)),// giữa
+                    new Color(255,255,255, 0)                     // đuôi
+                }
+        ));
+        g2.fill(p);
+        g2.setPaint(old);
+    };
+
+    // feather ngoài cùng (rộng, rất mờ)
+    fillLayer.accept(new float[]{ headW*1.25f, rDraw*0.10f }, 50);
+    // feather giữa (vừa, mờ)
+    fillLayer.accept(new float[]{ headW*1.08f, rDraw*0.08f }, 30);
+    // lõi (hẹp, đậm)
+    fillLayer.accept(new float[]{ headW*0.90f, tailW          }, 20);
+    }
+
+    /** Gạch hiệu ứng neon */
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
         float arc = 10f;
-        RoundRectangle2D rr = new RoundRectangle2D.Float(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
+        RoundRectangle2D rr = new RoundRectangle2D.Float(
+                r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
+
         g2.setColor(new Color(10, 35, 50));
         g2.fill(rr);
 
@@ -380,23 +343,18 @@ public class Renderer {
         int layers = 3;
         for (int i = layers; i >= 1; i--) {
             float t = (float) i / layers;
-            float alpha = 0.03f + 0.18f * t;
+            float alpha = 0.03f + 0.3f * t;
             int a255 = (int) (alpha * 255);
             Color haloA = new Color(halo.getRed(), halo.getGreen(), halo.getBlue(), a255);
             g2.setColor(haloA);
-            g2.setStroke(new BasicStroke(
-                    5f + 10f * t,
-                    BasicStroke.CAP_ROUND,
-                    BasicStroke.JOIN_ROUND));
+            g2.setStroke(new BasicStroke(5f + 10f * t, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
         }
 
-        // viền core
         g2.setColor(core);
         g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.draw(rr);
 
-        // Lõi trắng
         g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.draw(rr);
