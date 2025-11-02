@@ -254,6 +254,7 @@ public class MenuRenderer {
                 g2.setStroke(new BasicStroke(2));
                 g2.draw(box);
             }
+            
         }
 
         // === BALL SECTION ===

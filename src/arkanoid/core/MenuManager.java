@@ -1,17 +1,20 @@
-// ==================== MenuManager.java (FIXED - HOÀN CHỈNH) ====================
 package arkanoid.core;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
@@ -75,6 +78,10 @@ public class MenuManager extends JPanel implements ActionListener {
     private Color ballColor = Color.RED;
     private String ballImagePath = "/balls/ball_red.png";
 
+    // ===== NÚT RETURN =====
+    private ReturnButton returnButton;
+    private Image returnIcon;
+
     public MenuManager(JFrame frame, JLabel background, Image originalImg) {
         this.mainFrame = frame;
         this.backgroundLabel = background;
@@ -91,6 +98,13 @@ public class MenuManager extends JPanel implements ActionListener {
 
         selectingSound = new Sound();
         selectingSound.loadSound("/selecting.wav");
+
+        // Load icon Return
+        try {
+            returnIcon = new ImageIcon(getClass().getResource("/return.png")).getImage();
+        } catch (Exception e) {
+            System.err.println("Không load được /return.png");
+        }
 
         initKeyBindings();
         initMouseListeners();
@@ -314,6 +328,20 @@ public class MenuManager extends JPanel implements ActionListener {
     private void initMouseListeners() {
         addMouseListener(new MouseAdapter() {
             @Override
+            public void mousePressed(MouseEvent e) {
+                if (returnButton != null) {
+                    returnButton.mousePressed(e);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (returnButton != null) {
+                    returnButton.mouseReleased(e);
+                }
+            }
+
+            @Override
             public void mouseClicked(MouseEvent e) {
                 handleMouseClick(e);
             }
@@ -322,6 +350,9 @@ public class MenuManager extends JPanel implements ActionListener {
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
+                if (returnButton != null) {
+                    returnButton.mouseMoved(e);
+                }
                 handleMouseMove(e);
             }
         });
@@ -346,7 +377,6 @@ public class MenuManager extends JPanel implements ActionListener {
             int mouseX = e.getX();
             int mouseY = e.getY();
             
-            // Kiểm tra click vào ô màu paddle
             int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
             if (paddleIndex >= 0) {
                 paddleColor = menuRenderer.getPaddleColor(paddleIndex);
@@ -355,7 +385,6 @@ public class MenuManager extends JPanel implements ActionListener {
                 return;
             }
             
-            // Kiểm tra click vào ô ảnh ball
             int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
             if (ballIndex >= 0) {
                 ballImagePath = menuRenderer.getBallImagePath(ballIndex);
@@ -420,12 +449,30 @@ public class MenuManager extends JPanel implements ActionListener {
         switch (currentState) {
             case MAIN_MENU:
                 switch (selectedOption) {
-                    case 0: startGame(); break;
-                    case 1: currentState = MenuState.CUSTOM; break;
-                    case 2: currentState = MenuState.SETTINGS; break;
-                    case 3: currentState = MenuState.INSTRUCTIONS; break;
-                    case 4: showLeaderboard(); break;
-                    case 5: System.exit(0); break;
+                    case 0: 
+                        startGame(); 
+                       
+                        break;
+                    case 1: 
+                        currentState = MenuState.CUSTOM;
+                        createReturnButton(); // BẬT NÚT RETURN
+                        break;
+                    case 2: 
+                        currentState = MenuState.SETTINGS;
+                        createReturnButton(); // BẬT NÚT RETURN
+                        break;
+                    case 3: 
+                        currentState = MenuState.INSTRUCTIONS;
+                        createReturnButton(); // BẬT NÚT RETURN
+                        break;
+                    case 4: 
+                        showLeaderboard(); 
+                        
+                        break;
+                    case 5: 
+                        System.exit(0); 
+                       
+                        break;
                 }
                 break;
             case SETTINGS:
@@ -433,10 +480,10 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
             case INSTRUCTIONS:
             case GAME_OVER:
-                currentState = MenuState.MAIN_MENU;
+                returnToMainMenu();
                 break;
             case CUSTOM:
-                currentState = MenuState.MAIN_MENU;
+                returnToMainMenu();
                 break;
             default:
                 break;
@@ -448,7 +495,7 @@ public class MenuManager extends JPanel implements ActionListener {
             case SETTINGS:
             case CUSTOM:
             case INSTRUCTIONS:
-                currentState = MenuState.MAIN_MENU;
+                returnToMainMenu();
                 break;
             case GAME:
                 currentState = MenuState.PAUSED;
@@ -466,6 +513,7 @@ public class MenuManager extends JPanel implements ActionListener {
         countdownValue = 3;
         countdownStartTime = System.currentTimeMillis();
         gameManager.initGame();
+        returnButton = null; // TẮT nút return khi vào game
         setFocusable(true);
         requestFocusInWindow();
     }
@@ -476,6 +524,17 @@ public class MenuManager extends JPanel implements ActionListener {
         LeaderboardDialog.showTop(parent, 10);
         timer.start();
         requestFocusInWindow();
+    }
+
+    private void returnToMainMenu() {
+        currentState = MenuState.MAIN_MENU;
+        returnButton = null; // TẮT nút return
+        repaint();
+    }
+
+    private void createReturnButton() {
+        int btnSize = 50;
+        returnButton = new ReturnButton(10, 10, btnSize, btnSize, () -> returnToMainMenu());
     }
 
     public void gameOver() {
@@ -553,6 +612,72 @@ public class MenuManager extends JPanel implements ActionListener {
             case GAME_OVER:
                 menuRenderer.drawGameOver(g, gameManager.getScore(), w, h);
                 break;
+        }
+
+        // VẼ NÚT RETURN (nếu có)
+        if (returnButton != null) {
+            returnButton.paint((Graphics2D) g);
+        }
+    }
+
+    // ========== INNER CLASS: RETURN BUTTON ==========
+    private class ReturnButton {
+        Rectangle bounds;
+        boolean hovered = false, pressed = false;
+        Runnable onClick = null;
+
+        ReturnButton(int x, int y, int w, int h, Runnable cb) {
+            this.bounds = new Rectangle(x, y, w, h);
+            this.onClick = cb;
+        }
+
+        void paint(Graphics2D g2) {
+            Graphics2D g = (Graphics2D) g2.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            RoundRectangle2D pill = new RoundRectangle2D.Float(
+                bounds.x, bounds.y, bounds.width, bounds.height,
+                bounds.height, bounds.height
+            );
+
+            int alpha = hovered ? 90 : 60;
+            g.setColor(new Color(255, 255, 255, alpha));
+            g.fill(pill);
+
+            g.setStroke(new java.awt.BasicStroke(2f));
+            g.setColor(new Color(255, 200, 0, hovered ? 200 : 120));
+            g.draw(pill);
+
+            if (returnIcon != null) {
+                int iw = (int)(bounds.height * 0.6), ih = iw;
+                int ix = bounds.x + (bounds.width - iw) / 2;
+                int iy = bounds.y + (bounds.height - ih) / 2 + (pressed ? 1 : 0);
+                g.drawImage(returnIcon, ix, iy, iw, ih, null);
+            } else {
+                g.setColor(Color.WHITE);
+                g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, bounds.height * 0.55f));
+                g.drawString("⟵", 
+                    bounds.x + bounds.width / 2 - (int)(bounds.height * 0.2),
+                    bounds.y + (int)(bounds.height * 0.72)
+                );
+            }
+            g.dispose();
+        }
+
+        void mouseMoved(MouseEvent e) {
+            hovered = bounds.contains(e.getPoint());
+        }
+
+        void mousePressed(MouseEvent e) {
+            pressed = bounds.contains(e.getPoint());
+        }
+
+        void mouseReleased(MouseEvent e) {
+            boolean fire = pressed && bounds.contains(e.getPoint());
+            pressed = false;
+            if (fire && onClick != null) {
+                onClick.run();
+            }
         }
     }
 

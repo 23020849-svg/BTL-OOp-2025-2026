@@ -32,17 +32,18 @@ public class Renderer {
     private arkanoid.view.extraball   exball = new arkanoid.view.extraball();
     private arkanoid.view.fast        fast = new arkanoid.view.fast();
 
-    private Image ballImage;
     private Image heart;
+    private Image returnIcon; // ảnh /return.png
 
     private static final double BALL_SCALE   = 3.0; // phóng to khi vẽ
     private static final int    ARROW_GAP    = 2;   // khoảng hở giữa mép bóng & mũi tên
     private static final int    LIFE_ICON_SIZE = 20;
 
+
     public Renderer() {
         try {
-            
-            heart     = new ImageIcon(getClass().getResource("/heart.png")).getImage();
+            heart      = new ImageIcon(getClass().getResource("/heart.png")).getImage();
+           
         } catch (Exception e) {
             System.err.println("Không thể load ảnh: " + e.getMessage());
         }
@@ -84,19 +85,19 @@ public class Renderer {
                 int rLogic = Math.min(bw, bh) / 2;
                 int rDraw  = (int) Math.round(rLogic * BALL_SCALE);
 
-               List<double[]> t = ball.getTrail();
-            double dirX = ball.getdx(), dirY = ball.getdy(); // fallback
+                List<double[]> t = ball.getTrail();
+                double dirX = ball.getdx(), dirY = ball.getdy(); // fallback theo vận tốc
                 if (t != null && t.size() >= 3) {
-            int k = Math.min(5, t.size());   // lấy tối đa 5 điểm cuối
-            double sx = 0, sy = 0;
-            for (int i = t.size()-k; i < t.size(); i++) {
-        sx += cx - t.get(i)[0];
-        sy += cy - t.get(i)[1];
-                        }
-            dirX = sx / k;
-            dirY = sy / k;
-}
-            drawTaperedBeamWhite(g2, cx,  cy, rDraw,  dirX, dirY); 
+                    int k = Math.min(5, t.size());   // lấy tối đa 5 điểm cuối để mượt hướng
+                    double sx = 0, sy = 0;
+                    for (int i = t.size() - k; i < t.size(); i++) {
+                        sx += cx - t.get(i)[0];
+                        sy += cy - t.get(i)[1];
+                    }
+                    dirX = sx / k;
+                    dirY = sy / k;
+                }
+                drawTaperedBeamWhite(g2, cx, cy, rDraw, dirX, dirY);
 
                 // --- Vẽ bóng ---
                 Image ballImg = ball.getBallImage();
@@ -221,6 +222,8 @@ public class Renderer {
             g2.drawString("Use 4/6 to aim",       w / 2 - 50, h / 2 + 20);
         }
 
+       
+
         // ===== Overlay: PAUSED =====
         if (paused) {
             String text = "PAUSED";
@@ -277,55 +280,55 @@ public class Renderer {
     /** Beam trắng mờ, thu nhọn ở đuôi */
     private void drawTaperedBeamWhite(Graphics2D g2, double cx, double cy, int rDraw,
                                       double dirX, double dirY) {
-         double L = Math.hypot(dirX, dirY);
-    if (L < 1e-6) return;
-    double ux = dirX / L, uy = dirY / L;
+        double L = Math.hypot(dirX, dirY);
+        if (L < 1e-6) return;
+        double ux = dirX / L, uy = dirY / L;
 
-    float len   = (float)Math.max(100, rDraw * 5.0f); // dài hơn -> cảm giác mềm
-    float headW = rDraw * 0.8f;
-    float tailW = rDraw * 0.06f; // vẫn nhọn
+        float len   = (float)Math.max(100, rDraw * 5.0f); // dài -> mềm
+        float headW = rDraw * 0.8f;
+        float tailW = rDraw * 0.06f; // nhọn
 
-    float headX = (float)cx, headY = (float)cy;
-    float tailX = (float)(cx - ux*len), tailY = (float)(cy - uy*len);
+        float headX = (float)cx, headY = (float)cy;
+        float tailX = (float)(cx - ux*len), tailY = (float)(cy - uy*len);
 
-    double nx = -uy, ny = ux;
+        double nx = -uy, ny = ux;
 
-    // helper vẽ 1 lớp tapered với alpha đầu/giữa/đuôi
-    java.util.function.BiConsumer<float[], Integer> fillLayer = (ws, aHead) -> {
-        float wHead = ws[0], wTail = ws[1];  // [headW, tailW]
+        // helper vẽ 1 lớp tapered với alpha đầu/giữa/đuôi
+        java.util.function.BiConsumer<float[], Integer> fillLayer = (ws, aHead) -> {
+            float wHead = ws[0], wTail = ws[1];  // [headW, tailW]
 
-        float hxL = (float)(headX - nx * (wHead*0.5f));
-        float hyL = (float)(headY - ny * (wHead*0.5f));
-        float hxR = (float)(headX + nx * (wHead*0.5f));
-        float hyR = (float)(headY + ny * (wHead*0.5f));
-        float txL = (float)(tailX - nx * (wTail*0.5f));
-        float tyL = (float)(tailY - ny * (wTail*0.5f));
-        float txR = (float)(tailX + nx * (wTail*0.5f));
-        float tyR = (float)(tailY + ny * (wTail*0.5f));
+            float hxL = (float)(headX - nx * (wHead*0.5f));
+            float hyL = (float)(headY - ny * (wHead*0.5f));
+            float hxR = (float)(headX + nx * (wHead*0.5f));
+            float hyR = (float)(headY + ny * (wHead*0.5f));
+            float txL = (float)(tailX - nx * (wTail*0.5f));
+            float tyL = (float)(tailY - ny * (wTail*0.5f));
+            float txR = (float)(tailX + nx * (wTail*0.5f));
+            float tyR = (float)(tailY + ny * (wTail*0.5f));
 
-        Path2D p = new Path2D.Float();
-        p.moveTo(txL, tyL); p.lineTo(hxL, hyL); p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
+            Path2D p = new Path2D.Float();
+            p.moveTo(txL, tyL); p.lineTo(hxL, hyL); p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
 
-        Paint old = g2.getPaint();
-        g2.setPaint(new LinearGradientPaint(
-                headX, headY, tailX, tailY,
-                new float[]{0f, 0.55f, 1f},
-                new Color[]{
-                    new Color(255,255,255, Math.min(255, aHead)), // đầu
-                    new Color(255,255,255, Math.max(0, aHead-70)),// giữa
-                    new Color(255,255,255, 0)                     // đuôi
-                }
-        ));
-        g2.fill(p);
-        g2.setPaint(old);
-    };
+            Paint old = g2.getPaint();
+            g2.setPaint(new LinearGradientPaint(
+                    headX, headY, tailX, tailY,
+                    new float[]{0f, 0.55f, 1f},
+                    new Color[]{
+                        new Color(255,255,255, Math.min(255, aHead)), // đầu
+                        new Color(255,255,255, Math.max(0, aHead-70)),// giữa
+                        new Color(255,255,255, 0)                     // đuôi
+                    }
+            ));
+            g2.fill(p);
+            g2.setPaint(old);
+        };
 
-    // feather ngoài cùng (rộng, rất mờ)
-    fillLayer.accept(new float[]{ headW*1.25f, rDraw*0.10f }, 50);
-    // feather giữa (vừa, mờ)
-    fillLayer.accept(new float[]{ headW*1.08f, rDraw*0.08f }, 30);
-    // lõi (hẹp, đậm)
-    fillLayer.accept(new float[]{ headW*0.90f, tailW          }, 20);
+        // feather ngoài cùng (rộng, rất mờ)
+        fillLayer.accept(new float[]{ headW*1.25f, rDraw*0.10f }, 50);
+        // feather giữa (vừa, mờ)
+        fillLayer.accept(new float[]{ headW*1.08f, rDraw*0.08f }, 30);
+        // lõi (hẹp, đậm)
+        fillLayer.accept(new float[]{ headW*0.90f, tailW          }, 20);
     }
 
     /** Gạch hiệu ứng neon */
@@ -359,4 +362,8 @@ public class Renderer {
         g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.draw(rr);
     }
+
+    
+
+   
 }
