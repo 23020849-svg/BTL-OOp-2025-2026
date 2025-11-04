@@ -28,7 +28,7 @@ Xem video demo tại đây:
 
 ## Demo Tuần 8
 VideoGame tuần 8
-[![VideoGame](rsc/VideoGame8.png)](https://drive.google.com/file/d/1ci3lZeX_j7mD5IJpPzf0DiY5H7qbT6r9/view?usp=drive_link)
+[![VideoGame](rsc/VideoGame8.png)](https://drive.google.com/file/d/1QxSSTgKddXKCFKmkctYDgc9lLbO4U9ai/view?usp=sharing)
 
-[![VideoJUNITtest](rsc/JUNITtest.png)](https://drive.google.com/file/d/12Gqo8a0qoj7UCUpo4KAuW9OTCP1KOdVk/view?usp=drive_link)
+[![VideoJUNITtest](rsc/JUNITtest.png)](https://drive.google.com/file/d/1Or0exNR3V1aYQu8y1YgmNH84KB0arcjk/view?usp=sharing)
 
