@@ -130,8 +130,8 @@ public class Ball extends MovableObject {
     public void normalizeSpeed(double targetMagnitude) {
         double mag = Math.sqrt(dx * dx + dy * dy);
         if (mag == 0) return;
-        dx = dx / mag * targetMagnitude;
-        dy = dy / mag * targetMagnitude;
+        dx = (dx / mag) * targetMagnitude;
+        dy = (dy / mag) * targetMagnitude;
     }
 
     public int getRadius() { return radius; }

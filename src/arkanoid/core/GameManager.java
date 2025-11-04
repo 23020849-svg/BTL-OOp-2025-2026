@@ -32,8 +32,8 @@ public class GameManager extends JPanel {
 
     private static final double BALL_SCALE = 2.5;
     private static final int VISUAL_GAP = 6;
-    private static final double MIN_BALL_SPEED = 2.0;
-    private static final double MAX_BALL_SPEED = 12.0;
+    private static final double MIN_BALL_SPEED = 122.0;
+    private static final double MAX_BALL_SPEED = 720.0;
     private static final int DEFAULT_WIDTH = 1440;
     private static final int DEFAULT_HEIGHT = 800;
     
@@ -644,7 +644,7 @@ public class GameManager extends JPanel {
             ballLaunched = true;
             isFirstLife = false;
             
-            double speed = 6.0;
+            double speed = 360.0;
             double rad = Math.toRadians(launchAngle);
             Ball ball = balls.get(0);
             ball.setDx(speed * Math.cos(rad));
