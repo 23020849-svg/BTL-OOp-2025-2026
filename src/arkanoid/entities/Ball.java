@@ -87,9 +87,9 @@ public class Ball extends MovableObject {
         if (fastEndTime > 0 && System.currentTimeMillis() > fastEndTime) {
             speedMultiplier = 1.0;
             fastEndTime = 0;
-        }
 
-        normalizeSpeed(baseSpeed * speedMultiplier);
+            normalizeSpeed(baseSpeed * speedMultiplier);
+        }
     }
 
     public List<double[]> getTrail() {
