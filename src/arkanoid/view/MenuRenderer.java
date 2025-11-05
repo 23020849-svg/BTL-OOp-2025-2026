@@ -210,7 +210,7 @@ public class MenuRenderer {
         Font titleFont = loadCustomFont(48f).deriveFont(Font.BOLD);
         g2.setFont(titleFont);
         FontMetrics fm = g2.getFontMetrics();
-        String title = "🎨 CUSTOM COLOR MENU";
+        String title = "CUSTOM COLOR MENU";
         int titleX = (screenWidth - fm.stringWidth(title)) / 2;
         g2.drawString(title, titleX, 100);
 

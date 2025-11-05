@@ -3,6 +3,7 @@ package arkanoid.core;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -29,6 +30,7 @@ import javax.swing.Timer;
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.MenuRenderer;
+import arkanoid.view.PauseMenuDialog;
 
 public class MenuManager extends JPanel implements ActionListener {
 
@@ -82,6 +84,9 @@ public class MenuManager extends JPanel implements ActionListener {
     private ReturnButton returnButton;
     private Image returnIcon;
 
+    //pause
+    private PauseButton pauseButton;
+
     public MenuManager(JFrame frame, JLabel background, Image originalImg) {
         this.mainFrame = frame;
         this.backgroundLabel = background;
@@ -106,6 +111,7 @@ public class MenuManager extends JPanel implements ActionListener {
             System.err.println("Không load được /return.png");
         }
 
+        pauseButton = new PauseButton();
         initKeyBindings();
         initMouseListeners();
 
@@ -158,6 +164,8 @@ public class MenuManager extends JPanel implements ActionListener {
         mainFrame.setVisible(true);
         requestFocusInWindow();
     }
+
+    
 
     private void initKeyBindings() {
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
@@ -329,6 +337,10 @@ public class MenuManager extends JPanel implements ActionListener {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                 if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
+                pauseButton.setPressed(true);
+                    }
+
                 if (returnButton != null) {
                     returnButton.mousePressed(e);
                 }
@@ -336,7 +348,10 @@ public class MenuManager extends JPanel implements ActionListener {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (returnButton != null) {
+                 if (pauseButton != null) {
+                    pauseButton.setPressed(false);
+                        }
+                if (pauseButton != null) {
                     returnButton.mouseReleased(e);
                 }
             }
@@ -359,6 +374,12 @@ public class MenuManager extends JPanel implements ActionListener {
     }
 
     private void handleMouseClick(MouseEvent e) {
+         if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
+        if (currentState == MenuState.GAME) {
+            showPauseMenu();
+            return;
+        }
+    }
         if (currentState == MenuState.MAIN_MENU) {
             int startY = 350;
             int spacing = 60;
@@ -410,8 +431,14 @@ public class MenuManager extends JPanel implements ActionListener {
             }
         }
     }
+    
 
     private void handleMouseMove(MouseEvent e) {
+
+        if (pauseButton != null) {
+        pauseButton.setHovered(pauseButton.contains(e.getX(), e.getY()));
+             }
+    
         if (currentState == MenuState.MAIN_MENU) {
             int startY = 350;
             int spacing = 60;
@@ -498,6 +525,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 returnToMainMenu();
                 break;
             case GAME:
+            showPauseMenu();
                 currentState = MenuState.PAUSED;
                 break;
             case PAUSED:
@@ -614,13 +642,21 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
         }
 
-        // VẼ NÚT RETURN (nếu có)
+        
         if (returnButton != null) {
             returnButton.paint((Graphics2D) g);
         }
+         if (returnButton != null) {
+        returnButton.paint((Graphics2D) g);
+    }
+    
+    // VẼ PAUSE BUTTON - THÊM DÒNG NÀY
+    if (pauseButton != null) {
+        pauseButton.paint((Graphics2D) g);
+    }
     }
 
-    // ========== INNER CLASS: RETURN BUTTON ==========
+    
     private class ReturnButton {
         Rectangle bounds;
         boolean hovered = false, pressed = false;
@@ -700,4 +736,114 @@ public class MenuManager extends JPanel implements ActionListener {
     public GameManager getGameManager() {
         return gameManager;
     }
+    private void showPauseMenu() {
+    // Tạm dừng game
+    currentState = MenuState.PAUSED;
+    timer.stop();
+    
+    // Hiển thị dialog
+    Window parent = javax.swing.SwingUtilities.getWindowAncestor(this);
+    PauseMenuDialog dialog = new PauseMenuDialog(parent);
+    dialog.setVisible(true);
+    
+    // Xử lý sau khi đóng dialog
+    if (dialog.isResumeClicked()) {
+        // Chơi tiếp
+        currentState = MenuState.GAME;
+        timer.start();
+        requestFocusInWindow();
+    } 
+    else if (dialog.isRestartClicked()) {
+        // Chơi lại
+        gameManager.initGame();
+        currentState = MenuState.COUNTDOWN;
+        countdownValue = 3;
+        countdownStartTime = System.currentTimeMillis();
+        timer.start();
+        requestFocusInWindow();
+    } 
+    else if (dialog.isExitClicked()) {
+        // Về menu chính
+        returnToMainMenu();
+        timer.start();
+    }
+    else {
+        // Nhấn ESC hoặc đóng dialog -> tiếp tục game
+        currentState = MenuState.GAME;
+        timer.start();
+        requestFocusInWindow();
+    }
+}
+
+private class PauseButton {
+    private java.awt.Rectangle bounds;
+    private boolean hovered = false;
+    private boolean pressed = false;
+    private java.awt.Image pauseIcon;
+    
+    PauseButton() {
+        // Load icon pause
+        try {
+            pauseIcon = new javax.swing.ImageIcon(
+                getClass().getResource("/pausebutton.png")
+            ).getImage();
+        } catch (Exception e) {
+            System.err.println("Không load được /pausebutton.png");
+        }
+        
+        updateBounds();
+    }
+    
+    void updateBounds() {
+        int size = 50;
+        int margin = 20;
+        bounds = new Rectangle(
+            getWidth() - size - margin ,  
+            margin -20,                       
+            size, size
+        );
+    }
+    
+    void paint(Graphics2D g2) {
+        if (currentState != MenuState.GAME && currentState != MenuState.COUNTDOWN) {
+            return;
+        }
+        
+        updateBounds(); // Cập nhật vị trí theo kích thước màn hình
+        
+        g2 = (Graphics2D) g2.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+       
+        // Icon
+        if (pauseIcon != null) {
+            int iconSize = (int)(bounds.width * 1.7);
+            int iconX = bounds.x + (bounds.width - iconSize) / 2;
+            int iconY = bounds.y + (bounds.height - iconSize) / 2 + (pressed ? 2 : 0);
+            g2.drawImage(pauseIcon, iconX, iconY, iconSize, iconSize, null);
+        } else {
+            // Vẽ ký hiệu ||
+            g2.setColor(new Color(76, 175, 80));
+            g2.setFont(new Font("Arial", Font.BOLD, 24));
+            g2.drawString("| |", 
+                bounds.x + bounds.width / 2 - 12,
+                bounds.y + bounds.height / 2 + 8
+            );
+        }
+        
+        g2.dispose();
+    }
+    
+    boolean contains(int x, int y) {
+        return bounds != null && bounds.contains(x, y);
+    }
+    
+    void setHovered(boolean h) {
+        this.hovered = h;
+    }
+    
+    void setPressed(boolean p) {
+        this.pressed = p;
+    }
+}
 }

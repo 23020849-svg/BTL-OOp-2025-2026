@@ -1,0 +1,212 @@
+package arkanoid.view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Window;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
+import javax.swing.SwingConstants;
+import java.awt.event.ActionListener;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.event.ActionEvent;
+import java.awt.Component;
+import java.awt.Dimension;
+
+public class PauseMenuDialog extends JDialog {
+	
+	
+	private static final long serialVersionUID = 1L;
+	 private static final Color BG_COLOR = new Color(20, 30, 45, 230);
+	 private static final Color BUTTON_COLOR = new Color(76, 175, 80);
+	 private static final Color BUTTON_HOVER = new Color(56, 142, 60);
+	private JPanel contentPanel = new JPanel();
+	
+	private boolean resumeClicked = false;
+	private boolean restartClicked = false;
+	private boolean exitClicked = false;
+	
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			PauseMenuDialog dialog = new PauseMenuDialog(null);
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Create the dialog.
+	 */
+	public PauseMenuDialog(Window parent) {
+		
+		super(parent);
+		setModal(true);
+	    setUndecorated(true);
+	    setBackground(new Color(0, 0, 0, 0));
+		setBounds(100, 100, 450, 300);
+		getContentPane().setLayout(new BorderLayout());
+		
+		contentPanel = new JPanel() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                                   RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                
+                RoundRectangle2D bg = new RoundRectangle2D.Float(
+                    0, 0, getWidth(), getHeight(), 30, 30
+                );
+                g2.setColor(BG_COLOR);
+                g2.fill(bg);
+                
+                g2.setColor(new Color(80, 240, 255));
+                g2.setStroke(new java.awt.BasicStroke(3f));
+                g2.draw(bg);
+            }
+        };
+        contentPanel.setOpaque(false);
+		contentPanel.setToolTipText("PAUSE");
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		contentPanel.setLayout(new BorderLayout(0, 0));
+		{
+			JPanel mainPanel = new JPanel();
+			mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+			{
+				JButton btnResume = new JButton("  Chơi Tiếp");
+				btnResume.setAlignmentX(0.5f);
+				mainPanel.add(btnResume);
+				btnResume.setPreferredSize(new Dimension(280, 55));
+				btnResume.setMaximumSize(new Dimension(280, 55));
+				btnResume.setAlignmentY(1.5f);
+				btnResume.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						resumeClicked = true;
+				        dispose();
+					}
+				});
+				btnResume.setFont(new Font("Arial", Font.BOLD, 18));
+			}
+			mainPanel.setOpaque(false);
+			contentPanel.add(mainPanel, BorderLayout.CENTER);
+
+			mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+			mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+			{
+				JButton btnRestart = new JButton("Chơi lại");
+				btnRestart.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						restartClicked = true;
+		                dispose();
+					}
+				});
+				btnRestart.setPreferredSize(new Dimension(280, 55));
+				btnRestart.setMaximumSize(new Dimension(280, 55));
+				btnRestart.setFont(new Font("Arial", Font.BOLD, 18));
+				btnRestart.setAlignmentY(1.5f);
+				btnRestart.setAlignmentX(0.5f);
+				mainPanel.add(btnRestart);
+			}
+			{
+				Component rigidArea = Box.createRigidArea(new Dimension(0, 15));
+				mainPanel.add(rigidArea);
+			}
+			{
+				JButton btnExit = new JButton("Về Menu Chính");
+				btnExit.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						 exitClicked = true;
+			             dispose();
+					}
+				});
+				btnExit.setPreferredSize(new Dimension(280, 55));
+				btnExit.setMaximumSize(new Dimension(280, 55));
+				btnExit.setFont(new Font("Arial", Font.BOLD, 18));
+				btnExit.setAlignmentY(1.5f);
+				btnExit.setAlignmentX(0.5f);
+				mainPanel.add(btnExit);
+			}
+			
+		}
+		{
+			JLabel titleLabel = new JLabel("GAME PAUSE");
+			titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+			titleLabel.setForeground(new Color(80, 240, 255));
+			try {
+	            titleLabel.setFont(MenuRenderer.loadCustomFont(42f).deriveFont(Font.BOLD));
+	        } catch (Exception e) {
+	            titleLabel.setFont(new Font("Arial", Font.BOLD, 42));
+	        }
+			contentPanel.add(titleLabel, BorderLayout.NORTH);
+			titleLabel.setForeground(new Color(0, 0, 128));
+			titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
+		}
+		
+	}
+	  private JButton createStyledButton(String text) {
+	        JButton btn = new JButton(text) {
+	            private static final long serialVersionUID = 1L;
+
+	            @Override
+	            protected void paintComponent(Graphics g) {
+	                Graphics2D g2 = (Graphics2D) g;
+	                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+	                                   RenderingHints.VALUE_ANTIALIAS_ON);
+	                
+	                RoundRectangle2D shape = new RoundRectangle2D.Float(
+	                    0, 0, getWidth(), getHeight(), 15, 15
+	                );
+	                
+	                if (getModel().isPressed()) {
+	                    g2.setColor(BUTTON_HOVER.darker());
+	                } else if (getModel().isRollover()) {
+	                    g2.setColor(BUTTON_HOVER);
+	                } else {
+	                    g2.setColor(BUTTON_COLOR);
+	                }
+	                g2.fill(shape);
+	                
+	                g2.setColor(Color.WHITE);
+	                g2.setStroke(new java.awt.BasicStroke(2f));
+	                g2.draw(shape);
+	                
+	                super.paintComponent(g);
+	            }
+	        };
+	        
+	        btn.setFont(new Font("Arial", Font.BOLD, 18));
+	        btn.setForeground(Color.WHITE);
+	        btn.setFocusPainted(false);
+	        btn.setBorderPainted(false);
+	        btn.setContentAreaFilled(false);
+	        btn.setPreferredSize(new Dimension(280, 55));
+	        btn.setMaximumSize(new Dimension(280, 55));
+	        btn.setMinimumSize(new Dimension(280, 55));
+	        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+	        
+	        return btn;
+	    }
+	public boolean isResumeClicked() { return resumeClicked; }
+	public boolean isRestartClicked() { return restartClicked; }
+	public boolean isExitClicked() { return exitClicked; }
+
+}

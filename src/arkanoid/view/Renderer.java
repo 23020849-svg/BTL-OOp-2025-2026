@@ -249,17 +249,17 @@ public class Renderer {
 
     private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, int textY, FontMetrics fm, int pad) {
         String livesLabel = "Lives: ";
-        int labelWidth = fm.stringWidth(livesLabel);
+        int scoreWidth = fm.stringWidth("Score: 999999"); // Ước tính độ rộng Score
 
         int totalIconsWidth = 3 * (LIFE_ICON_SIZE + 5); // giả định max 3 mạng
-        int startX = screenWidth - pad - labelWidth - totalIconsWidth;
+        int startX = scoreWidth + pad ;
 
         g2.drawString(livesLabel, startX, textY);
 
         long time = System.currentTimeMillis();
         float pulse = (float) Math.abs(Math.sin(time / 400.0)); // 0 → 1 → 0 mỗi 800ms
 
-        int iconX = startX + labelWidth;
+        int iconX = startX + fm.stringWidth(livesLabel);
         int iconY = textY - LIFE_ICON_SIZE + 3;
 
         for (int i = 0; i < 3; i++) {
