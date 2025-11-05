@@ -455,7 +455,7 @@ public class GameManager extends JPanel {
                 
                 currentBall.setDx(newDx);
                 currentBall.setDy(newDy);
-                
+
                 currentBall.setY(paddle.getY() - currentBall.getHeight() - 1);
             }
         }
@@ -565,20 +565,45 @@ public class GameManager extends JPanel {
         Ball originalBall = balls.get(0);
         double x = originalBall.getX();
         double y = originalBall.getY();
-        double speed = Math.sqrt(originalBall.getDx() * originalBall.getDx() + 
-                                originalBall.getDy() * originalBall.getDy());
+        double speed;
+
+        if (!ballLaunched) {
+            speed = originalBall.getBaseSpeed() * originalBall.getSpeedMultiplier();
+            
+            double rad = Math.toRadians(launchAngle);
+            originalBall.setDx(speed * Math.cos(rad));
+            originalBall.setDy(speed * Math.sin(rad));
         
-        // Create ball going left
-        Ball ball2 = createBall((int) x, (int) y);
-        ball2.setDx(-speed * Math.cos(Math.toRadians(30)));
-        ball2.setDy(-speed * Math.sin(Math.toRadians(30)));
-        balls.add(ball2);
-        
-        // Create ball going right
-        Ball ball3 = createBall((int) x, (int) y);
-        ball3.setDx(speed * Math.cos(Math.toRadians(30)));
-        ball3.setDy(-speed * Math.sin(Math.toRadians(30)));
-        balls.add(ball3);
+            // Create ball going left
+            Ball ball2 = createBall((int) x, (int) y);
+            double rad2 = Math.toRadians(launchAngle + 30);
+            ball2.setDx(speed * Math.cos(rad2));
+            ball2.setDy(speed * Math.sin(rad2));
+            balls.add(ball2);
+            
+            // Create ball going right
+            Ball ball3 = createBall((int) x, (int) y);
+            double rad3 = Math.toRadians(launchAngle - 30);
+            ball3.setDx(speed * Math.cos(rad3));
+            ball3.setDy(speed * Math.sin(rad3));
+            balls.add(ball3);
+
+            ballLaunched = true;
+            isFirstLife = false;
+        } else {
+            speed = Math.sqrt(originalBall.getDx() * originalBall.getDx() +
+                            originalBall.getDy() * originalBall.getDy());
+
+            Ball ball2 = createBall((int) x, (int) y);
+            ball2.setDx(-speed * Math.cos(Math.toRadians(30)));
+            ball2.setDy(-speed * Math.sin(Math.toRadians(30)));
+            balls.add(ball2);
+
+            Ball ball3 = createBall((int) x, (int) y);
+            ball3.setDx(speed * Math.cos(Math.toRadians(30)));
+            ball3.setDy(speed * Math.sin(Math.toRadians(30)));
+            balls.add(ball3);
+        }
     }
 
     private void onGameOver() {
