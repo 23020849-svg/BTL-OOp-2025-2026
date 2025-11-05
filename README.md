@@ -8,7 +8,10 @@ Dưới đây là sơ đồ UML đã được hoàn thiện cho hệ thống:
 
 ## Demo Tuần 6
 Xem video demo tại đây:  
-[Demo Tuần 6](https://github.com/user-attachments/assets/f2765ee5-be4d-4b31-8f06-79465985e0ae)
+
+
+https://github.com/user-attachments/assets/abaa276c-26ba-4703-aa86-f28dd132b512
+
 
 ---
 
