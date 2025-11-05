@@ -37,7 +37,7 @@ public class Renderer {
 
     private static final double BALL_SCALE   = 3.0; // phóng to khi vẽ
     private static final int    ARROW_GAP    = 2;   // khoảng hở giữa mép bóng & mũi tên
-    private static final int    LIFE_ICON_SIZE = 20;
+    private static final int    LIFE_ICON_SIZE = 40;
 
 
     public Renderer() {
@@ -260,7 +260,7 @@ public class Renderer {
         float pulse = (float) Math.abs(Math.sin(time / 400.0)); // 0 → 1 → 0 mỗi 800ms
 
         int iconX = startX + fm.stringWidth(livesLabel);
-        int iconY = textY - LIFE_ICON_SIZE + 3;
+        int iconY = textY - LIFE_ICON_SIZE + 14;
 
         for (int i = 0; i < 3; i++) {
             if (i < lives) {

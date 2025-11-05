@@ -2,27 +2,27 @@ package arkanoid.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Window;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
-
-import javax.swing.SwingConstants;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.event.ActionEvent;
-import java.awt.Component;
-import java.awt.Dimension;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 
 public class PauseMenuDialog extends JDialog {
 	
@@ -59,7 +59,7 @@ public class PauseMenuDialog extends JDialog {
 		setModal(true);
 	    setUndecorated(true);
 	    setBackground(new Color(0, 0, 0, 0));
-		setBounds(100, 100, 450, 300);
+		setBounds(600, 300, 430, 350);
 		getContentPane().setLayout(new BorderLayout());
 		
 		contentPanel = new JPanel() {
@@ -93,6 +93,13 @@ public class PauseMenuDialog extends JDialog {
 			mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
 			{
 				JButton btnResume = new JButton("  Chơi Tiếp");
+				btnResume.setForeground(new Color(0, 255, 255));
+				ImageIcon originalIcon = new ImageIcon("rsc/button.png");
+				Image scaledImage = originalIcon.getImage().getScaledInstance(280, 55, Image.SCALE_SMOOTH);
+				btnResume.setIcon(new ImageIcon(scaledImage));
+				btnResume.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnResume.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnResume.setBackground(new Color(100, 149, 237));
 				btnResume.setAlignmentX(0.5f);
 				mainPanel.add(btnResume);
 				btnResume.setPreferredSize(new Dimension(280, 55));
@@ -113,6 +120,13 @@ public class PauseMenuDialog extends JDialog {
 			mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 			{
 				JButton btnRestart = new JButton("Chơi lại");
+				btnRestart.setForeground(new Color(0, 255, 255));
+				ImageIcon originalIcon = new ImageIcon("rsc/button.png");
+				Image scaledImage = originalIcon.getImage().getScaledInstance(280, 55, Image.SCALE_SMOOTH);
+				btnRestart.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnRestart.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnRestart.setIcon(new ImageIcon(scaledImage));
+				btnRestart.setBackground(new Color(100, 149, 237));
 				btnRestart.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						restartClicked = true;
@@ -132,6 +146,12 @@ public class PauseMenuDialog extends JDialog {
 			}
 			{
 				JButton btnExit = new JButton("Về Menu Chính");
+				btnExit.setForeground(new Color(0, 255, 255));
+				ImageIcon originalIcon = new ImageIcon("rsc/button.png");
+				Image scaledImage = originalIcon.getImage().getScaledInstance(285, 60, Image.SCALE_SMOOTH);
+				btnExit.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnExit.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+				btnExit.setIcon(new ImageIcon(scaledImage));
 				btnExit.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						 exitClicked = true;
@@ -150,14 +170,13 @@ public class PauseMenuDialog extends JDialog {
 		{
 			JLabel titleLabel = new JLabel("GAME PAUSE");
 			titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-			titleLabel.setForeground(new Color(80, 240, 255));
 			try {
 	            titleLabel.setFont(MenuRenderer.loadCustomFont(42f).deriveFont(Font.BOLD));
 	        } catch (Exception e) {
 	            titleLabel.setFont(new Font("Arial", Font.BOLD, 42));
 	        }
 			contentPanel.add(titleLabel, BorderLayout.NORTH);
-			titleLabel.setForeground(new Color(0, 0, 128));
+			titleLabel.setForeground(new Color(0, 255, 255));
 			titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
 		}
 		

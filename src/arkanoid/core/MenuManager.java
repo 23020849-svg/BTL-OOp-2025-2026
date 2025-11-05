@@ -797,11 +797,11 @@ private class PauseButton {
     }
     
     void updateBounds() {
-        int size = 50;
+        int size = 35;
         int margin = 20;
         bounds = new Rectangle(
             getWidth() - size - margin ,  
-            margin -20,                       
+            margin -10,                       
             size, size
         );
     }
