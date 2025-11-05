@@ -23,7 +23,7 @@ public abstract class MovableObject extends GameObject {
      * (tức là thay đổi tọa độ x, y mỗi frame theo vận tốc hiện tại).
      */
     public void move(double dt) {
-        x += dx * dt;
+        x += dx * dt ;
         y += dy * dt;
     }
 

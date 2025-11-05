@@ -573,9 +573,11 @@ public class MenuManager extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+
         long currentTime = System.currentTimeMillis();
         double deltaTime = (currentTime - lastUpdateTime) / 1000.0;
         lastUpdateTime = currentTime;
+        System.out.println("deltaTime = " + deltaTime);
 
         if (currentState == MenuState.COUNTDOWN) {
             long elapsed = currentTime - countdownStartTime;

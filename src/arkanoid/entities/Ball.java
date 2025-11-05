@@ -87,9 +87,9 @@ public class Ball extends MovableObject {
         if (fastEndTime > 0 && System.currentTimeMillis() > fastEndTime) {
             speedMultiplier = 1.0;
             fastEndTime = 0;
-        }
 
-        normalizeSpeed(baseSpeed * speedMultiplier);
+            normalizeSpeed(baseSpeed * speedMultiplier);
+        }
     }
 
     public List<double[]> getTrail() {
@@ -130,8 +130,8 @@ public class Ball extends MovableObject {
     public void normalizeSpeed(double targetMagnitude) {
         double mag = Math.sqrt(dx * dx + dy * dy);
         if (mag == 0) return;
-        dx = dx / mag * targetMagnitude;
-        dy = dy / mag * targetMagnitude;
+        dx = (dx / mag) * targetMagnitude;
+        dy = (dy / mag) * targetMagnitude;
     }
 
     public int getRadius() { return radius; }
@@ -187,6 +187,8 @@ public class Ball extends MovableObject {
         super.rescale(scaleX, scaleY);
         this.radius = (int) (this.radius * scaleX);
     }
+
+    public double getBaseSpeed() {
+        return baseSpeed;
+    }
 }
-
-
