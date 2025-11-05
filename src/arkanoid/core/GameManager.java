@@ -433,6 +433,10 @@ public class GameManager extends JPanel {
                 if (collisionSound != null) {
                     collisionSound.playOnce();
                 }
+
+                double targetSpeed = currentBall.getBaseSpeed() * currentBall.getSpeedMultiplier();
+
+                targetSpeed = Math.max(MIN_BALL_SPEED, Math.min(MAX_BALL_SPEED, targetSpeed));
                 
                 int paddleCenter = (int) paddle.getX() + paddle.getWidth() / 2;
                 int ballCenter = (int) currentBall.getX() + currentBall.getWidth() / 2;
@@ -443,22 +447,15 @@ public class GameManager extends JPanel {
                 final double MAX_FACTOR = 0.85;
                 factor = Math.max(-MAX_FACTOR, Math.min(MAX_FACTOR, factor));
 
-                double speed = Math.sqrt(currentBall.getDx() * currentBall.getDx() + 
-                                        currentBall.getDy() * currentBall.getDy());
+                double maxAngleOffset = 75.0;
+                double bounceAngleRad = Math.toRadians(90 - (factor * maxAngleOffset));
                 
-                // Clamp speed
-                speed = Math.max(MIN_BALL_SPEED, Math.min(MAX_BALL_SPEED, speed));
-                
-                double newDx = speed * factor * 1.2;
-                double newDy = -Math.abs(speed * (1 - Math.abs(factor)));
-                
-                // Ensure minimum vertical speed
-                if (Math.abs(newDy) < MIN_BALL_SPEED) {
-                    newDy = -MIN_BALL_SPEED;
-                }
+                double newDx = targetSpeed * Math.cos(bounceAngleRad);
+                double newDy = -targetSpeed * Math.sin(bounceAngleRad);
                 
                 currentBall.setDx(newDx);
                 currentBall.setDy(newDy);
+                
                 currentBall.setY(paddle.getY() - currentBall.getHeight() - 1);
             }
         }

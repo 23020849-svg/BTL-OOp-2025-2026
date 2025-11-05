@@ -187,6 +187,8 @@ public class Ball extends MovableObject {
         super.rescale(scaleX, scaleY);
         this.radius = (int) (this.radius * scaleX);
     }
+
+    public double getBaseSpeed() {
+        return baseSpeed;
+    }
 }
-
-
