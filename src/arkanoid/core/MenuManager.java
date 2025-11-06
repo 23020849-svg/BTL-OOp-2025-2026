@@ -29,6 +29,7 @@ import javax.swing.Timer;
 
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
+import arkanoid.view.LevelSelectDialog;
 import arkanoid.view.MenuRenderer;
 import arkanoid.view.PauseMenuDialog;
 
@@ -62,7 +63,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private boolean isFullScreen = false;
 
     // Menu options
-    private String[] mainMenuOptions = { "Start Game", "Custom", "Settings", "Instructions", "Leaderboard", "Exit" };
+    private String[] mainMenuOptions = { "Start Game","Level Select", "Custom", "Settings", "Instructions", "Leaderboard", "Exit" };
     private int selectedOption = 0;
 
     // Settings
@@ -479,23 +480,26 @@ public class MenuManager extends JPanel implements ActionListener {
                         startGame(); 
                        
                         break;
-                    case 1: 
+                    case 1:
+                     showLevelSelect();
+                     break;
+                    case 2: 
                         currentState = MenuState.CUSTOM;
                         createReturnButton(); // BẬT NÚT RETURN
                         break;
-                    case 2: 
+                    case 3: 
                         currentState = MenuState.SETTINGS;
                         createReturnButton(); // BẬT NÚT RETURN
                         break;
-                    case 3: 
+                    case 4: 
                         currentState = MenuState.INSTRUCTIONS;
                         createReturnButton(); // BẬT NÚT RETURN
                         break;
-                    case 4: 
+                    case 5: 
                         showLeaderboard(); 
                         
                         break;
-                    case 5: 
+                    case 6: 
                         System.exit(0); 
                        
                         break;
@@ -515,6 +519,25 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
         }
     }
+
+    private void showLevelSelect() {
+    timer.stop();
+    
+    Window parent = SwingUtilities.getWindowAncestor(this);
+    int selectedLevel = LevelSelectDialog.showDialog(parent);
+    
+    if (selectedLevel > 0) {
+        // Người chơi đã chọn level
+        gameManager.startFromLevel(selectedLevel);
+        currentState = MenuState.COUNTDOWN;
+        countdownValue = 3;
+        countdownStartTime = System.currentTimeMillis();
+        returnButton = null;
+    }
+    
+    timer.start();
+    requestFocusInWindow();
+}
 
     private void handleEscapeKey() {
         switch (currentState) {
@@ -536,10 +559,11 @@ public class MenuManager extends JPanel implements ActionListener {
     }
 
     private void startGame() {
+
         currentState = MenuState.COUNTDOWN;
         countdownValue = 3;
         countdownStartTime = System.currentTimeMillis();
-        gameManager.initGame();
+        gameManager.initGame();  
         returnButton = null; // TẮT nút return khi vào game
         setFocusable(true);
         requestFocusInWindow();

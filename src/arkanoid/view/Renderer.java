@@ -24,6 +24,7 @@ import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
 import arkanoid.entities.powerups.ExpandPaddlePowerUp;
 import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.LaserPowerUp;
 import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
 
@@ -32,6 +33,7 @@ public class Renderer {
     private arkanoid.view.expandpaddle ex = new arkanoid.view.expandpaddle();
     private arkanoid.view.extraball   exball = new arkanoid.view.extraball();
     private arkanoid.view.fast        fast = new arkanoid.view.fast();
+    private arkanoid.view.laser       laserr = new arkanoid.view.laser();
 
     private Image heart;
     private Image returnIcon; // ảnh /return.png
@@ -194,7 +196,12 @@ public class Renderer {
                 } else if (p instanceof MultiBallPowerUp) {
                     ImageIcon gif = exball.getGifIcon();
                     if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
-                } else {
+                } else if (p instanceof LaserPowerUp) {
+                    ImageIcon gif = laserr.getGifIcon();
+                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
+                }
+                
+                else {
                     g2.setColor(Color.YELLOW);
                     g2.fillRect(r.x, r.y, r.width, r.height);
                     g2.setColor(Color.DARK_GRAY);

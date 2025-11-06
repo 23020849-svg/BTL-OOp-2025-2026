@@ -3,6 +3,7 @@ package arkanoid.entities.powerups;
 import arkanoid.core.GameManager;
 import arkanoid.entities.Ball;
 import arkanoid.entities.Paddle;
+import arkanoid.utils.Sound;
 
 /**
  * LaserPowerUp - Power-up cho phép paddle bắn laser
@@ -35,6 +36,10 @@ public class LaserPowerUp extends PowerUp {
         if (paddle == null || gameManager == null) {
             return;
         }
+
+        Sound powerUpSound = new Sound();
+         powerUpSound.loadSound("/powerup.wav");
+        powerUpSound.playOnce();
 
         // Kích hoạt chế độ laser cho paddle
         paddle.activateLaser(LASER_DURATION, LASER_FIRE_RATE);
@@ -70,4 +75,6 @@ public class LaserPowerUp extends PowerUp {
         return String.format("LaserPowerUp[x=%.1f, y=%.1f, active=%b, duration=%dms]",
                 getX(), getY(), isActive(), LASER_DURATION);
     }
+
+    
 }

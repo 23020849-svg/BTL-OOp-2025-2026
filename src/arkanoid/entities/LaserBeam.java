@@ -37,6 +37,7 @@ public class LaserBeam extends MovableObject {
 
          Rectangle2D.Double beam = new Rectangle2D.Double(x, y, width, height);
         
+          
         // Glow effect
         for (int i = 3; i >= 1; i--) {
             float alpha = 0.1f + 0.2f * (4 - i) / 3f;
@@ -53,7 +54,7 @@ public class LaserBeam extends MovableObject {
         
         // Outer glow
         g2.setColor(laserColor);
-        g2.draw(beam);
+        g2.draw(beam); 
     }
 
     public boolean isActive() {

@@ -23,6 +23,7 @@ import arkanoid.entities.powerups.PowerUp;
 import arkanoid.entities.powerups.PowerUpFactory;
 import arkanoid.utils.HighScoreManager;
 import arkanoid.utils.LevelLoader;
+import arkanoid.utils.ProgressManager;
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.Renderer;
@@ -68,6 +69,9 @@ public class GameManager extends JPanel {
     private final double MIN_ANGLE = -180;
     private final double MAX_ANGLE = 0;
 
+    private ProgressManager progressManager;
+    private long levelStartTime;
+
     public GameManager() {
         setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
         setOpaque(false);
@@ -92,6 +96,8 @@ public class GameManager extends JPanel {
         ballColor = Color.RED;
         launchAngle = -90;
         totalLevels = 5;
+
+        progressManager = ProgressManager.getInstance();
     }
 
     public void initGame() {
@@ -113,7 +119,9 @@ public class GameManager extends JPanel {
 
         // Initialize bricks
         levelLoader = new LevelLoader();
+        if (currentLevel == 0) {
         currentLevel = 1;
+    }
         createLevel(w, h);
 
         // Initialize power-ups
@@ -127,7 +135,24 @@ public class GameManager extends JPanel {
         ballLaunched = false;
         paused = false;
         isFirstLife = true;
+
+        levelStartTime = System.currentTimeMillis();
     }
+
+    public void startFromLevel(int level) {
+    if (level < 1 || level > totalLevels) {
+        level = 1;
+    }
+    
+    // Kiểm tra level đã unlock chưa
+    if (!progressManager.isLevelUnlocked(level)) {
+        System.out.println("Level " + level + " chưa mở khóa!");
+        level = 1;
+    }
+    
+    this.currentLevel = level;
+    initGame();
+}
 
     private Ball createBall(int x, int y) {
         Ball ball = new Ball(x, y, 8, 3, -3, ballColor);
@@ -562,16 +587,22 @@ public class GameManager extends JPanel {
     }
 
     private void handleLevelComplete(int screenWidth, int screenHeight) {
+        long levelTime = System.currentTimeMillis() - levelStartTime;
+        progressManager.completeLevel(currentLevel, score, levelTime);
+        
         currentLevel++;
         if (currentLevel > totalLevels) {
             handleGameWon();
         } else {
+            levelStartTime = System.currentTimeMillis();
             createLevel(screenWidth, screenHeight);
         }
     }
 
     private void handleGameWon() {
         running = false;
+        long totalTime = progressManager.getProgress().getTotalPlayTime();
+        int totalScore = progressManager.getProgress().getTotalScore();
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(this, 
                 "Chúc mừng! Bạn đã chiến thắng!\nĐiểm số: " + score,
@@ -643,6 +674,8 @@ public class GameManager extends JPanel {
     private void onGameOver() {
         running = false;
         
+        progressManager.failLevel(currentLevel);
+
         if (losingSound != null) {
             losingSound.playOnce();
         }
@@ -671,6 +704,7 @@ public class GameManager extends JPanel {
                 JOptionPane.YES_NO_OPTION);
                 
             if (response == JOptionPane.YES_OPTION) {
+                currentLevel = 1;
                 initGame();
             } else {
                 System.exit(0);
@@ -781,4 +815,22 @@ public class GameManager extends JPanel {
     public boolean isPaused() {
         return paused;
     }
+
+    //them helper methof
+    private String formatTime(long millis) {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    //set level
+    public void setCurrentLevel(int level) {
+        this.currentLevel = level;
+    }   
+
 }
