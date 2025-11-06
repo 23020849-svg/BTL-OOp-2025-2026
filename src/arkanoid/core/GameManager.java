@@ -19,11 +19,20 @@ import arkanoid.entities.Ball;
 import arkanoid.entities.LaserBeam;
 import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
+import arkanoid.entities.bricks.NormalBrick;
+import arkanoid.entities.bricks.StrongBrick;
+import arkanoid.entities.bricks.UnbreakableBrick;
+import arkanoid.entities.powerups.ExpandPaddlePowerUp;
+import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.LaserPowerUp;
+import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
 import arkanoid.entities.powerups.PowerUpFactory;
+import arkanoid.utils.GameState;
 import arkanoid.utils.HighScoreManager;
 import arkanoid.utils.LevelLoader;
 import arkanoid.utils.ProgressManager;
+import arkanoid.utils.SaveManager;
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.Renderer;
@@ -56,6 +65,7 @@ public class GameManager extends JPanel {
     private int lives;
     private int currentScreenWidth;
     private int currentScreenHeight;
+   
     
     private boolean running;
     private boolean ballLaunched;
@@ -596,6 +606,7 @@ public class GameManager extends JPanel {
         } else {
             levelStartTime = System.currentTimeMillis();
             createLevel(screenWidth, screenHeight);
+            saveGame();
         }
     }
 
@@ -675,6 +686,7 @@ public class GameManager extends JPanel {
         running = false;
         
         progressManager.failLevel(currentLevel);
+        deleteSavedGame();
 
         if (losingSound != null) {
             losingSound.playOnce();
@@ -832,5 +844,246 @@ public class GameManager extends JPanel {
     public void setCurrentLevel(int level) {
         this.currentLevel = level;
     }   
+
+    public boolean saveGame() {
+
+
+    if (!running) {
+        System.out.println("Cannot save when game is not running");
+        return false;
+    }
+    
+    GameState state = new GameState();
+    
+    // Game info
+    state.currentLevel = this.currentLevel;
+    state.score = this.score;
+    state.lives = this.lives;
+    state.levelStartTime = this.levelStartTime;
+    
+    // Paddle
+    if (paddle != null) {
+        state.paddleX = paddle.getX();
+        state.paddleY = paddle.getY();
+        state.paddleWidth = paddle.getWidth();
+        state.paddleDefaultWidth = paddle.getDefaultWidth();
+        state.isPaddleExpanded = paddle.isExpanded();
+        state.paddleExpandRemainMs = paddle.getExpandRemainMs();
+        state.isPaddleLaserActive = paddle.isLaserActive();
+        state.paddleLaserRemainMs = paddle.isLaserActive() ? 
+            paddle.getLaserRemainingTime() * 1000L : 0;
+    }
+    
+    // Balls
+    state.balls = new ArrayList<>();
+    if (balls != null) {
+        for (Ball ball : balls) {
+            if (ball != null) {
+                GameState.BallState bs = new GameState.BallState(
+                    ball.getX(), ball.getY(),
+                    ball.getdx(), ball.getdy(),
+                    ball.getRadius()
+                );
+                bs.speedMultiplier = ball.getSpeedMultiplier();
+                bs.fastRemainMs = ball.getFastEndTime() > 0 ? 
+                    (ball.getFastEndTime() - System.currentTimeMillis()) : 0;
+                bs.imagePath = ball.getBallImagePath();
+                bs.colorRGB = ball.getBallColor().getRGB();
+                state.balls.add(bs);
+            }
+        }
+    }
+    
+    // Bricks
+    state.bricks = new ArrayList<>();
+    if (bricks != null) {
+        for (Brick brick : bricks) {
+            if (brick != null && !brick.isDestroyed()) {
+                String type = "normal";
+                if (brick instanceof UnbreakableBrick) type = "unbreakable";
+                else if (brick instanceof StrongBrick) type = "strong";
+                
+                GameState.BrickState bs = new GameState.BrickState(
+                    (int)brick.getX(), (int)brick.getY(),
+                    brick.getWidth(), brick.getHeight(),
+                    brick.getHitPoints(), type
+                );
+                state.bricks.add(bs);
+            }
+        }
+    }
+    
+    // Power-ups (đang rơi)
+    state.powerUps = new ArrayList<>();
+    if (powerUps != null) {
+        for (PowerUp p : powerUps) {
+            if (p != null && p.isActive()) {
+                String type = "expand";
+                if (p instanceof FastBallPowerUp) type = "fast";
+                else if (p instanceof MultiBallPowerUp) type = "multi";
+                else if (p instanceof LaserPowerUp) type = "laser";
+                
+                GameState.PowerUpState ps = new GameState.PowerUpState(
+                    p.getX(), p.getY(), type
+                );
+                state.powerUps.add(ps);
+            }
+        }
+    }
+    
+    // Launch state
+    state.ballLaunched = this.ballLaunched;
+    state.launchAngle = this.launchAngle;
+    
+    // Customization
+    state.ballImagePath = this.ballImagePath;
+    state.paddleColorRGB = this.paddleColor.getRGB();
+    state.ballColorRGB = this.ballColor.getRGB();
+    
+    // Save to file
+    return SaveManager.getInstance().save(state);
+}
+
+// ============== LOAD GAME ==============
+
+/**
+ * Tải trạng thái game đã lưu
+ */
+public boolean loadGame() {
+    GameState state = SaveManager.getInstance().load();
+    if (state == null) {
+        System.out.println("No saved game to load");
+        return false;
+    }
+    
+    // Restore game info
+    this.currentLevel = state.currentLevel;
+    this.score = state.score;
+    this.lives = state.lives;
+    this.levelStartTime = state.levelStartTime;
+    
+    // Restore customization
+    this.ballImagePath = state.ballImagePath;
+    this.paddleColor = new Color(state.paddleColorRGB);
+    this.ballColor = new Color(state.ballColorRGB);
+    
+    int w = getWidth();
+    int h = getHeight();
+    if (w == 0) w = DEFAULT_WIDTH;
+    if (h == 0) h = DEFAULT_HEIGHT;
+    
+    // Restore paddle
+    paddle = new Paddle(
+        (int)state.paddleX, (int)state.paddleY,
+        state.paddleWidth, 12, paddleColor);
+    paddle.setDefaultWidth(state.paddleDefaultWidth);
+    
+    if (state.isPaddleExpanded && state.paddleExpandRemainMs > 0) {
+        paddle.applyExpand(
+            state.paddleWidth - state.paddleDefaultWidth,
+            state.paddleExpandRemainMs,
+            w
+        );
+    }
+    
+    if (state.isPaddleLaserActive && state.paddleLaserRemainMs > 0) {
+        paddle.activateLaser(state.paddleLaserRemainMs, 500);
+    }
+    
+    // Restore balls
+    balls = new ArrayList<>();
+    for (GameState.BallState bs : state.balls) {
+        Ball ball = new Ball(
+            (int)bs.x, (int)bs.y, bs.radius,
+            bs.vx, bs.vy, new Color(bs.colorRGB)
+        );
+        ball.setBallImagePath(bs.imagePath);
+        
+        if (bs.speedMultiplier != 1.0 && bs.fastRemainMs > 0) {
+            ball.setSpeedMultiplier(bs.speedMultiplier, bs.fastRemainMs);
+        }
+        
+        balls.add(ball);
+    }
+    
+    // Restore bricks
+    bricks = new ArrayList<>();
+    for (GameState.BrickState bs : state.bricks) {
+        Brick brick = null;
+        
+        switch (bs.type) {
+            case "unbreakable":
+                brick = new UnbreakableBrick(bs.x, bs.y, bs.width, bs.height);
+                break;
+            case "strong":
+                brick = new StrongBrick(bs.x, bs.y, bs.width, bs.height, bs.hitPoints);
+                break;
+            default:
+                brick = new NormalBrick(bs.x, bs.y, bs.width, bs.height);
+                break;
+        }
+        
+        if (brick != null) {
+            bricks.add(brick);
+        }
+    }
+    
+    // Restore power-ups
+    powerUps = new ArrayList<>();
+    for (GameState.PowerUpState ps : state.powerUps) {
+        PowerUp powerUp = null;
+        
+        switch (ps.type) {
+            case "expand":
+                powerUp = new ExpandPaddlePowerUp((int)ps.x, (int)ps.y);
+                break;
+            case "fast":
+                powerUp = new FastBallPowerUp((int)ps.x, (int)ps.y);
+                break;
+            case "multi":
+                powerUp = new MultiBallPowerUp((int)ps.x, (int)ps.y);
+                break;
+            case "laser":
+                powerUp = new LaserPowerUp((int)ps.x, (int)ps.y);
+                break;
+        }
+        
+        if (powerUp != null) {
+            powerUps.add(powerUp);
+        }
+    }
+    
+    // Restore launch state
+    this.ballLaunched = state.ballLaunched;
+    this.launchAngle = state.launchAngle;
+    
+    // Reset other states
+    activePowerUps = new ArrayList<>();
+    running = true;
+    paused = false;
+    isFirstLife = false;
+    
+    this.currentScreenWidth = w;
+    this.currentScreenHeight = h;
+    
+    System.out.println("Game loaded successfully!");
+    return true;
+
+     
+}
+
+/**
+ * Kiểm tra có save game không
+ */
+public boolean hasSavedGame() {
+    return SaveManager.getInstance().hasSavedGame();
+}
+
+/**
+ * Xóa save game
+ */
+public void deleteSavedGame() {
+    SaveManager.getInstance().deleteSave();
+}
 
 }
