@@ -19,6 +19,7 @@ import javax.swing.ImageIcon;
 
 import arkanoid.core.GameManager;
 import arkanoid.entities.Ball;
+import arkanoid.entities.LaserBeam;
 import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
 import arkanoid.entities.powerups.ExpandPaddlePowerUp;
@@ -131,6 +132,23 @@ public class Renderer {
                     r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
 
             Color base = paddleColor;
+
+            // nếu laser active, vẽ glow đỏ
+
+            if (paddle.isLaserActive() ) {
+                for(int i=3; i >=1; i--) {
+                    float t = (float) i / 3f;
+                    float alpha = 0.02f + 0.25f * t;
+                    int a255 = (int) (alpha * 255);
+                    g2.setColor(new Color(255, 50, 50, a255));
+                    g2.setStroke(new BasicStroke(
+                            6f + 8f * t, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2.draw(rr);
+                }
+    
+            }
+
+            // vẽ paddle chính
             for (int i = 2; i >= 1; i--) {
                 float t = (float) i / 2f;
                 float alpha = 0.03f + 0.18f * t;
@@ -147,6 +165,18 @@ public class Renderer {
             g2.setColor(Color.WHITE);
             g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
+        }
+
+        // vẽ laser beams
+
+        List<LaserBeam> lasers = paddle.getLasers();
+        if (lasers != null) {
+            for (LaserBeam laser : lasers) {
+                if (laser != null && laser.isActive()){
+                    laser.render(g2);
+                }
+
+            }
         }
 
         // ===== PowerUps =====

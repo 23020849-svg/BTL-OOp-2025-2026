@@ -379,7 +379,7 @@ public class MenuRenderer {
         g2.drawString(instruction, x, y);
     }
 
-    public void drawSettings(Graphics g, boolean soundEnabled, int difficulty, String[] difficultyNames, int screenWidth, int screenHeight) {
+    public void drawSettings(Graphics g, boolean soundEnabled, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         drawBackground(g2, screenWidth, screenHeight);
@@ -400,16 +400,11 @@ public class MenuRenderer {
 
         y += 60;
         g2.setColor(TEXT_COLOR);
-        String diffText = "Difficulty: " + difficultyNames[difficulty - 1];
-        g2.drawString(diffText, 100, y);
+       
 
         int indicatorX = 400;
         int indicatorY = y - 20;
-        for (int i = 0; i < 3; i++) {
-            Color color = (i < difficulty) ? PRIMARY_COLOR : Color.GRAY;
-            g2.setColor(color);
-            g2.fillOval(indicatorX + i * 30, indicatorY, 15, 15);
-        }
+       
 
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));

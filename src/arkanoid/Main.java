@@ -1,7 +1,7 @@
 package arkanoid; // Đặt class trong package arkanoid
 
-import java.awt.Image;
 import java.awt.BorderLayout;
+import java.awt.Image;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;

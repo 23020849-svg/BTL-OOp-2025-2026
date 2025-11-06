@@ -1,6 +1,8 @@
 package arkanoid.entities;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Paddle.java
@@ -24,6 +26,13 @@ public class Paddle extends MovableObject {
     private int defaultWidth;
     private long expandEndTime;
     
+    // Laser properties
+    private boolean laserActive;
+    private long laserEndTime;
+    private long lastLaserFireTime;
+    private long laserFireRate;
+    private List<LaserBeam> lasers;
+    
     // Visual properties
     private Color color;
 
@@ -43,6 +52,13 @@ public class Paddle extends MovableObject {
         this.movingLeft = false;
         this.movingRight = false;
         this.expandEndTime = 0;
+
+        // Initialize laser system
+        this.laserActive = false;
+        this.laserEndTime = 0;
+        this.lastLaserFireTime = 0;
+        this.laserFireRate = 500;
+        this.lasers = new ArrayList<>();
     }
 
     /**
@@ -58,6 +74,9 @@ public class Paddle extends MovableObject {
         
         // Check and update expansion state
         updateExpansionState();
+        
+        // Update laser state
+        updateLaserState(dt);
     }
 
     /**
@@ -116,6 +135,108 @@ public class Paddle extends MovableObject {
         width = defaultWidth;
         expandEndTime = 0;
     }
+
+    // ======= LASER SYSTEM =======
+
+    /**
+     * Update laser state - check expiration and auto-fire
+     */
+    private void updateLaserState(double dt) {
+        // Check if laser duration expired
+        if (laserActive && System.currentTimeMillis() >= laserEndTime) {
+            deactivateLaser();
+        }
+        
+        // Auto fire lasers
+        if (laserActive) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastLaserFireTime >= laserFireRate) {
+                fireLaser();
+                lastLaserFireTime = currentTime;
+            }
+        }
+        
+        // Update all laser beams
+        if (lasers != null) {
+            lasers.removeIf(laser -> !laser.isActive());
+            for (LaserBeam laser : lasers) {
+                if (laser != null) {
+                    laser.update(dt);
+                }
+            }
+        }
+    }
+
+    /**
+     * Activate laser power-up
+     * @param durationMillis how long the laser stays active
+     * @param fireRateMillis time between each laser shot
+     */
+    public void activateLaser(long durationMillis, long fireRateMillis) {
+        if (durationMillis <= 0 || fireRateMillis <= 0) return;
+
+        this.laserActive = true;
+        this.laserEndTime = System.currentTimeMillis() + durationMillis;
+        this.laserFireRate = fireRateMillis;
+        this.lastLaserFireTime = 0; // Fire immediately
+    }
+
+    /**
+     * Deactivate laser
+     */
+    public void deactivateLaser() {
+        this.laserActive = false;
+        this.laserEndTime = 0;
+    }
+
+    /**
+     * Fire laser beams from both corners of paddle
+     */
+    private void fireLaser() {
+        if (lasers == null) {
+            lasers = new ArrayList<>();
+        }
+        
+        // Fire from left corner
+        double leftX = x + 5;
+        double leftY = y;
+        lasers.add(new LaserBeam(leftX, leftY));
+        
+        // Fire from right corner
+        double rightX = x + width - 9;
+        double rightY = y;
+        lasers.add(new LaserBeam(rightX, rightY));
+    }
+
+    /**
+     * Get list of active laser beams
+     */
+    public List<LaserBeam> getLasers() {
+        return lasers;
+    }
+
+    /**
+     * Check if laser is currently active
+     */
+    public boolean isLaserActive() {
+        return laserActive;
+    }
+
+    /**
+     * Get remaining laser time in seconds
+     */
+    public int getLaserRemainingTime() {
+        if (!laserActive || laserEndTime == 0) {
+            return 0;
+        }
+        long remainingMillis = laserEndTime - System.currentTimeMillis();
+        if (remainingMillis <= 0) {
+            return 0;
+        }
+        return (int) Math.ceil(remainingMillis / 1000.0);
+    }
+
+    // ======= EXPANSION METHODS =======
 
     /**
      * Apply expansion power-up
@@ -296,6 +417,12 @@ public class Paddle extends MovableObject {
         this.expandEndTime = 0;
         this.dx = 0;
         this.dy = 0;
+
+        // Reset laser
+        deactivateLaser();
+        if (lasers != null) {
+            lasers.clear();
+        }
     }
 
     /**
@@ -311,7 +438,7 @@ public class Paddle extends MovableObject {
 
     @Override
     public String toString() {
-        return String.format("Paddle[x=%.1f, y=%.1f, w=%d, h=%d, speed=%.1f, expanded=%b]",
-                x, y, width, height, speed, isExpanded());
+        return String.format("Paddle[x=%.1f, y=%.1f, w=%d, h=%d, speed=%.1f, expanded=%b, laser=%b]",
+                x, y, width, height, speed, isExpanded(), laserActive);
     }
 }

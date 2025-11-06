@@ -16,12 +16,11 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import arkanoid.entities.Ball;
+import arkanoid.entities.LaserBeam;
 import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
-import arkanoid.entities.powerups.ExpandPaddlePowerUp;
-import arkanoid.entities.powerups.FastBallPowerUp;
-import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
+import arkanoid.entities.powerups.PowerUpFactory;
 import arkanoid.utils.HighScoreManager;
 import arkanoid.utils.LevelLoader;
 import arkanoid.utils.Sound;
@@ -422,6 +421,49 @@ public class GameManager extends JPanel {
                 ballIterator.remove();
             }
         }
+        
+        // Handle laser collisions
+        handleLaserCollisions();
+    }
+
+    /**
+     * Xử lý va chạm giữa laser và gạch
+     */
+    private void handleLaserCollisions() {
+        if (paddle == null || bricks == null) return;
+        
+        List<LaserBeam> lasers = paddle.getLasers();
+        if (lasers == null || lasers.isEmpty()) return;
+
+        for (LaserBeam laser : lasers) {
+            if (!laser.isActive()) continue;
+
+            Iterator<Brick> brickIt = bricks.iterator();
+            while (brickIt.hasNext()) {
+                Brick brick = brickIt.next();
+                if (brick == null || brick.isDestroyed()) continue;
+
+                if (laser.checkCollision(brick.getBounds())) {
+                    if (collisionSound != null) {
+                        collisionSound.playOnce();
+                    }
+
+                    brick.takeHit();
+                    laser.deactivate();
+
+                    if (brick.isDestroyed()) {
+                        score += 100;
+
+                        // Spawn power-up randomly using Factory Pattern
+                        if (rand != null && rand.nextDouble() < brick.getPowerUpDropChance()) {
+                            spawnRandomPowerUp((int) (brick.getX() + brick.getWidth() / 2),
+                                             (int) brick.getY() + brick.getHeight());
+                        }
+                    }
+                    break; // Laser chỉ phá 1 gạch rồi biến mất
+                }
+            }
+        }
     }
 
     private void handlePaddleCollision(Ball currentBall) {
@@ -435,7 +477,6 @@ public class GameManager extends JPanel {
                 }
 
                 double targetSpeed = currentBall.getBaseSpeed() * currentBall.getSpeedMultiplier();
-
                 targetSpeed = Math.max(MIN_BALL_SPEED, Math.min(MAX_BALL_SPEED, targetSpeed));
                 
                 int paddleCenter = (int) paddle.getX() + paddle.getWidth() / 2;
@@ -455,7 +496,6 @@ public class GameManager extends JPanel {
                 
                 currentBall.setDx(newDx);
                 currentBall.setDy(newDy);
-
                 currentBall.setY(paddle.getY() - currentBall.getHeight() - 1);
             }
         }
@@ -480,7 +520,7 @@ public class GameManager extends JPanel {
                 if (brick.isDestroyed()) {
                     score += 100;
                     
-                    // Spawn power-up randomly
+                    // Spawn power-up randomly using Factory Pattern
                     if (rand != null && rand.nextDouble() < brick.getPowerUpDropChance()) {
                         spawnRandomPowerUp((int) (brick.getX() + brick.getWidth() / 2),
                                          (int) brick.getY() + brick.getHeight());
@@ -540,22 +580,16 @@ public class GameManager extends JPanel {
         });
     }
 
+    /**
+     * Spawn power-up sử dụng Factory Method Pattern
+     */
     private void spawnRandomPowerUp(int x, int y) {
         if (powerUps == null) {
             powerUps = new ArrayList<>();
         }
         
-        double chance = rand.nextDouble();
-        PowerUp powerUp;
-        
-        if (chance < 0.33) {
-            powerUp = new ExpandPaddlePowerUp(x - 50, y);
-        } else if (chance < 0.66) {
-            powerUp = new FastBallPowerUp(x - 50, y);
-        } else {
-            powerUp = new MultiBallPowerUp(x - 50, y);
-        }
-        
+        // SỬ DỤNG FACTORY METHOD PATTERN
+        PowerUp powerUp = PowerUpFactory.createWeightedRandomPowerUp(x - 50, y);
         powerUps.add(powerUp);
     }
 

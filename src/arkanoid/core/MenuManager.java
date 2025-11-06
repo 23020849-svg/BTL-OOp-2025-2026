@@ -67,8 +67,7 @@ public class MenuManager extends JPanel implements ActionListener {
 
     // Settings
     private boolean soundEnabled = true;
-    private int difficulty = 1;
-    private String[] difficultyNames = { "Easy", "Medium", "Hard" };
+   
 
     // Countdown variables
     private int countdownValue = 3;
@@ -211,7 +210,7 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                    if (difficulty > 1) difficulty--;
+                
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingLeft(true);
@@ -235,7 +234,7 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                    if (difficulty < 3) difficulty++;
+                   
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingRight(true);
@@ -623,7 +622,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 menuRenderer.drawCustomStore(g, w, h, paddleColor, ballColor, ballImagePath);
                 break;
             case SETTINGS:
-                menuRenderer.drawSettings(g, soundEnabled, difficulty, difficultyNames, w, h);
+                menuRenderer.drawSettings(g, soundEnabled, w, h);
                 break;
             case INSTRUCTIONS:
                 menuRenderer.drawInstructions(g, w, h);
