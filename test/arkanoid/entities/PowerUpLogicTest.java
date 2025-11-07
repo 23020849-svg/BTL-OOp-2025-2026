@@ -1,17 +1,18 @@
 package arkanoid.entities;
 
-import arkanoid.core.GameManager;
-import arkanoid.entities.powerups.ExpandPaddlePowerUp;
-import arkanoid.entities.powerups.FastBallPowerUp;
-import arkanoid.entities.powerups.MultiBallPowerUp;
+import java.awt.Color;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.awt.Color;
-import java.util.ArrayList;
-
-import static org.junit.jupiter.api.Assertions.*;
+import arkanoid.core.GameManager;
+import arkanoid.entities.powerups.ExpandPaddlePowerUp;
+import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.MultiBallPowerUp;
 
 @DisplayName("Kiểm tra Logic của các Power-up")
 public class PowerUpLogicTest {

@@ -54,7 +54,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private MenuState currentState = MenuState.MAIN_MENU;
     private MenuRenderer menuRenderer;
     private GameManager gameManager;
-    private Timer timer;
+    private final Timer timer;
     private Sound selectingSound;
 
     // Biến để quản lý fullscreen
@@ -86,7 +86,7 @@ public class MenuManager extends JPanel implements ActionListener {
     private Image returnIcon;
 
     //pause
-    private PauseButton pauseButton;
+    private final PauseButton pauseButton;
 
     // track menu
     private boolean hasSavedGame = false;
@@ -414,55 +414,49 @@ public class MenuManager extends JPanel implements ActionListener {
             return;
         }
     }
-        if (currentState == MenuState.MAIN_MENU) {
-            int startY = 350;
-            int spacing = 60;
-            int clickY = e.getY();
-
-            for (int i = 0; i < mainMenuOptions.length; i++) {
-                int optionY = startY + i * spacing;
-                if (clickY >= optionY - 30 && clickY <= optionY + 10) {
-                    selectedOption = i;
-                    handleEnterKey();
-                    break;
+        if (null != currentState) switch (currentState) {
+            case MAIN_MENU -> {
+                int startY = 350;
+                int spacing = 60;
+                int clickY = e.getY();
+                for (int i = 0; i < mainMenuOptions.length; i++) {
+                    int optionY = startY + i * spacing;
+                    if (clickY >= optionY - 30 && clickY <= optionY + 10) {
+                        selectedOption = i;
+                        handleEnterKey();
+                        break;
+                    }
                 }
-            }
-        } 
-        else if (currentState == MenuState.CUSTOM) {
-            int mouseX = e.getX();
-            int mouseY = e.getY();
-            
-            int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
-            if (paddleIndex >= 0) {
-                paddleColor = menuRenderer.getPaddleColor(paddleIndex);
-                gameManager.setPaddleColor(paddleColor);
-                if (soundEnabled) selectingSound.playOnce();
-                return;
-            }
-            
-            int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
-            if (ballIndex >= 0) {
-                ballImagePath = menuRenderer.getBallImagePath(ballIndex);
-                ballColor = menuRenderer.getBallColor(ballIndex);
-                gameManager.setBallImagePath(ballImagePath);
-                gameManager.setBallColor(ballColor);
-                if (soundEnabled) selectingSound.playOnce();
-                return;
-            }
-        }
-        else if (currentState == MenuState.SETTINGS) {
-            soundEnabled = !soundEnabled;
-        } 
-        else if (currentState == MenuState.INSTRUCTIONS) {
-            currentState = MenuState.MAIN_MENU;
-        } 
-        else if (currentState == MenuState.GAME_OVER) {
-            currentState = MenuState.MAIN_MENU;
-        } 
-        else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
-            if (!gameManager.isBallLaunched()) {
-                gameManager.launchBall();
-            }
+             }
+            case CUSTOM -> {
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+                int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
+                if (paddleIndex >= 0) {
+                    paddleColor = menuRenderer.getPaddleColor(paddleIndex);
+                    gameManager.setPaddleColor(paddleColor);
+                    if (soundEnabled) selectingSound.playOnce();
+                    return;
+                }   int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
+                if (ballIndex >= 0) {
+                    ballImagePath = menuRenderer.getBallImagePath(ballIndex);
+                    ballColor = menuRenderer.getBallColor(ballIndex);
+                    gameManager.setBallImagePath(ballImagePath);
+                    gameManager.setBallColor(ballColor);
+                    if (soundEnabled) selectingSound.playOnce();
+                    
+                }
+             }
+            case SETTINGS -> soundEnabled = !soundEnabled;
+            case INSTRUCTIONS -> currentState = MenuState.MAIN_MENU;
+            case GAME_OVER -> currentState = MenuState.MAIN_MENU;
+            case GAME, PAUSED -> {
+                if (!gameManager.isBallLaunched()) {
+                    gameManager.launchBall();
+                }
+             }
+            default -> {
+             }
         }
     }
     
@@ -508,63 +502,56 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private void handleEnterKey() {
     switch (currentState) {
-        case MAIN_MENU:
+        case MAIN_MENU -> {
             if (hasSavedGame) {
                 // Menu có Continue
                 switch (selectedOption) {
-                    case 0: continueGame(); break;
-                    case 1: confirmNewGame(); break;
-                    case 2: showLevelSelect(); break;
-                    case 3: 
+                    case 0 -> continueGame();
+                    case 1 -> confirmNewGame();
+                    case 2 -> showLevelSelect();
+                    case 3 -> { 
                         currentState = MenuState.CUSTOM;
                         createReturnButton();
-                        break;
-                    case 4: 
+                    }
+                    case 4 -> { 
                         currentState = MenuState.SETTINGS;
                         createReturnButton();
-                        break;
-                    case 5: 
+                    }
+                    case 5 -> { 
                         currentState = MenuState.INSTRUCTIONS;
                         createReturnButton();
-                        break;
-                    case 6: showLeaderboard(); break;
-                    case 7: System.exit(0); break;
+                    }
+                    case 6 -> showLeaderboard();
+                    case 7 -> System.exit(0);
                 }
             } else {
                 // Menu không có Continue
                 switch (selectedOption) {
-                    case 0: startGame(); break;
-                    case 1: showLevelSelect(); break;
-                    case 2: 
+                    case 0 -> startGame();
+                    case 1 -> showLevelSelect();
+                    case 2 -> { 
                         currentState = MenuState.CUSTOM;
                         createReturnButton();
-                        break;
-                    case 3: 
+                    }
+                    case 3 -> { 
                         currentState = MenuState.SETTINGS;
                         createReturnButton();
-                        break;
-                    case 4: 
+                    }
+                    case 4 -> { 
                         currentState = MenuState.INSTRUCTIONS;
                         createReturnButton();
-                        break;
-                    case 5: showLeaderboard(); break;
-                    case 6: System.exit(0); break;
+                    }
+                    case 5 -> showLeaderboard();
+                    case 6 -> System.exit(0);
                 }
             }
-            break;
+            }
             
-        case SETTINGS:
-            soundEnabled = !soundEnabled;
-            break;
+        case SETTINGS -> soundEnabled = !soundEnabled;
             
-        case INSTRUCTIONS:
-        case GAME_OVER:
-        case CUSTOM:
-            returnToMainMenu();
-            break;
-            
-        default:
-            break;
+        case INSTRUCTIONS, GAME_OVER, CUSTOM -> returnToMainMenu();
+        default -> {
+            }
     }
 }
 

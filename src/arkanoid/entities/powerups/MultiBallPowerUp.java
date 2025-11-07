@@ -14,7 +14,8 @@ public class MultiBallPowerUp extends PowerUp {
 
     public MultiBallPowerUp(int x, int y) {
         // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
-        super(x, y, 100, 60);
+        super(x, y, PowerUpConfig.MULTI_BALL_WIDTH, 
+              PowerUpConfig.MULTI_BALL_HEIGHT);
         // Vật phẩm này không có thời gian hiệu lực, nó chỉ kích hoạt một lần
         this.durationMillis = 0;
     }

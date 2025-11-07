@@ -11,7 +11,6 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.Box;
@@ -29,8 +28,6 @@ public class PauseMenuDialog extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	 private static final Color BG_COLOR = new Color(20, 30, 45, 230);
-	 private static final Color BUTTON_COLOR = new Color(76, 175, 80);
-	 private static final Color BUTTON_HOVER = new Color(56, 142, 60);
 	private JPanel contentPanel = new JPanel();
 	
 	private boolean resumeClicked = false;
@@ -46,7 +43,6 @@ public class PauseMenuDialog extends JDialog {
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -105,12 +101,10 @@ public class PauseMenuDialog extends JDialog {
 				btnResume.setPreferredSize(new Dimension(280, 55));
 				btnResume.setMaximumSize(new Dimension(280, 55));
 				btnResume.setAlignmentY(1.5f);
-				btnResume.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						resumeClicked = true;
-				        dispose();
-					}
-				});
+				btnResume.addActionListener((ActionEvent e) -> {
+                                    resumeClicked = true;
+                                    dispose();
+                                });
 				btnResume.setFont(new Font("Arial", Font.BOLD, 18));
 			}
 			mainPanel.setOpaque(false);
@@ -127,12 +121,10 @@ public class PauseMenuDialog extends JDialog {
 				btnRestart.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
 				btnRestart.setIcon(new ImageIcon(scaledImage));
 				btnRestart.setBackground(new Color(100, 149, 237));
-				btnRestart.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						restartClicked = true;
-		                dispose();
-					}
-				});
+				btnRestart.addActionListener((ActionEvent e) -> {
+                                    restartClicked = true;
+                                    dispose();
+                                });
 				btnRestart.setPreferredSize(new Dimension(280, 55));
 				btnRestart.setMaximumSize(new Dimension(280, 55));
 				btnRestart.setFont(new Font("Arial", Font.BOLD, 18));
@@ -152,12 +144,10 @@ public class PauseMenuDialog extends JDialog {
 				btnExit.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 				btnExit.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
 				btnExit.setIcon(new ImageIcon(scaledImage));
-				btnExit.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						 exitClicked = true;
-			             dispose();
-					}
-				});
+				btnExit.addActionListener((ActionEvent e) -> {
+                                    exitClicked = true;
+                                    dispose();
+                                });
 				btnExit.setPreferredSize(new Dimension(280, 55));
 				btnExit.setMaximumSize(new Dimension(280, 55));
 				btnExit.setFont(new Font("Arial", Font.BOLD, 18));
@@ -181,49 +171,6 @@ public class PauseMenuDialog extends JDialog {
 		}
 		
 	}
-	  private JButton createStyledButton(String text) {
-	        JButton btn = new JButton(text) {
-	            private static final long serialVersionUID = 1L;
-
-	            @Override
-	            protected void paintComponent(Graphics g) {
-	                Graphics2D g2 = (Graphics2D) g;
-	                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-	                                   RenderingHints.VALUE_ANTIALIAS_ON);
-	                
-	                RoundRectangle2D shape = new RoundRectangle2D.Float(
-	                    0, 0, getWidth(), getHeight(), 15, 15
-	                );
-	                
-	                if (getModel().isPressed()) {
-	                    g2.setColor(BUTTON_HOVER.darker());
-	                } else if (getModel().isRollover()) {
-	                    g2.setColor(BUTTON_HOVER);
-	                } else {
-	                    g2.setColor(BUTTON_COLOR);
-	                }
-	                g2.fill(shape);
-	                
-	                g2.setColor(Color.WHITE);
-	                g2.setStroke(new java.awt.BasicStroke(2f));
-	                g2.draw(shape);
-	                
-	                super.paintComponent(g);
-	            }
-	        };
-	        
-	        btn.setFont(new Font("Arial", Font.BOLD, 18));
-	        btn.setForeground(Color.WHITE);
-	        btn.setFocusPainted(false);
-	        btn.setBorderPainted(false);
-	        btn.setContentAreaFilled(false);
-	        btn.setPreferredSize(new Dimension(280, 55));
-	        btn.setMaximumSize(new Dimension(280, 55));
-	        btn.setMinimumSize(new Dimension(280, 55));
-	        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-	        
-	        return btn;
-	    }
 	public boolean isResumeClicked() { return resumeClicked; }
 	public boolean isRestartClicked() { return restartClicked; }
 	public boolean isExitClicked() { return exitClicked; }

@@ -11,8 +11,6 @@ import arkanoid.utils.Sound;
  */
 public class LaserPowerUp extends PowerUp {
     
-    private static final long LASER_DURATION = 10000; // 10 giây
-    private static final long LASER_FIRE_RATE = 500;  // Bắn mỗi 0.5 giây
 
     /**
      * Constructor
@@ -20,8 +18,10 @@ public class LaserPowerUp extends PowerUp {
      * @param y vị trí y ban đầu
      */
     public LaserPowerUp(int x, int y) {
-        super(x, y, 24,24);
-        this.durationMillis = LASER_DURATION;
+        super(x, y, 
+              PowerUpConfig.LASER_WIDTH, 
+              PowerUpConfig.LASER_HEIGHT);
+        this.durationMillis = PowerUpConfig.LASER_DURATION_MS;
     }
 
     /**
@@ -42,9 +42,12 @@ public class LaserPowerUp extends PowerUp {
         powerUpSound.playOnce();
 
         // Kích hoạt chế độ laser cho paddle
-        paddle.activateLaser(LASER_DURATION, LASER_FIRE_RATE);
+        paddle.activateLaser(PowerUpConfig.LASER_DURATION_MS, 
+            PowerUpConfig.LASER_FIRE_RATE_MS);
 
-        System.out.println("Laser Power-Up activated! Duration: " + (LASER_DURATION / 1000) + "s, Fire rate: " + LASER_FIRE_RATE + "ms");
+       System.out.println("Laser Power-Up activated! Duration: " + 
+                          (PowerUpConfig.LASER_DURATION_MS / 1000) + "s, Fire rate: " + 
+                          PowerUpConfig.LASER_FIRE_RATE_MS + "ms");
     }
 
     /**
@@ -60,20 +63,20 @@ public class LaserPowerUp extends PowerUp {
      * Lấy thời lượng của power-up
      */
     public long getDuration() {
-        return LASER_DURATION;
+        return PowerUpConfig.LASER_DURATION_MS;
     }
 
     /**
      * Lấy tốc độ bắn của laser
      */
     public long getFireRate() {
-        return LASER_FIRE_RATE;
+        return PowerUpConfig.LASER_FIRE_RATE_MS ;
     }
 
     @Override
     public String toString() {
         return String.format("LaserPowerUp[x=%.1f, y=%.1f, active=%b, duration=%dms]",
-                getX(), getY(), isActive(), LASER_DURATION);
+                getX(), getY(), isActive(), PowerUpConfig.LASER_DURATION_MS);
     }
 
     

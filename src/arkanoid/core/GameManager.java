@@ -22,10 +22,6 @@ import arkanoid.entities.bricks.Brick;
 import arkanoid.entities.bricks.NormalBrick;
 import arkanoid.entities.bricks.StrongBrick;
 import arkanoid.entities.bricks.UnbreakableBrick;
-import arkanoid.entities.powerups.ExpandPaddlePowerUp;
-import arkanoid.entities.powerups.FastBallPowerUp;
-import arkanoid.entities.powerups.LaserPowerUp;
-import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
 import arkanoid.entities.powerups.PowerUpFactory;
 import arkanoid.utils.GameState;
@@ -82,6 +78,7 @@ public class GameManager extends JPanel {
     private ProgressManager progressManager;
     private long levelStartTime;
 
+
     public GameManager() {
         setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
         setOpaque(false);
@@ -92,6 +89,8 @@ public class GameManager extends JPanel {
         initKeyBindings();
     }
 
+
+    
     private void initializeComponents() {
         rand = new Random();
         renderer = new Renderer();
@@ -627,10 +626,10 @@ public class GameManager extends JPanel {
      */
     private void spawnRandomPowerUp(int x, int y) {
         if (powerUps == null) {
-            powerUps = new ArrayList<>();
-        }
-        
-        // SỬ DỤNG FACTORY METHOD PATTERN
+        powerUps = new ArrayList<>();
+            }
+    
+            // SỬ DỤNG FACTORY METHOD PATTERN
         PowerUp powerUp = PowerUpFactory.createWeightedRandomPowerUp(x - 50, y);
         powerUps.add(powerUp);
     }
@@ -918,10 +917,8 @@ public class GameManager extends JPanel {
     if (powerUps != null) {
         for (PowerUp p : powerUps) {
             if (p != null && p.isActive()) {
-                String type = "expand";
-                if (p instanceof FastBallPowerUp) type = "fast";
-                else if (p instanceof MultiBallPowerUp) type = "multi";
-                else if (p instanceof LaserPowerUp) type = "laser";
+                // SỬ DỤNG FACTORY METHOD PATTERN
+                String type = PowerUpFactory.getTypeName(p);
                 
                 GameState.PowerUpState ps = new GameState.PowerUpState(
                     p.getX(), p.getY(), type
@@ -1011,17 +1008,11 @@ public boolean loadGame() {
     for (GameState.BrickState bs : state.bricks) {
         Brick brick = null;
         
-        switch (bs.type) {
-            case "unbreakable":
-                brick = new UnbreakableBrick(bs.x, bs.y, bs.width, bs.height);
-                break;
-            case "strong":
-                brick = new StrongBrick(bs.x, bs.y, bs.width, bs.height, bs.hitPoints);
-                break;
-            default:
-                brick = new NormalBrick(bs.x, bs.y, bs.width, bs.height);
-                break;
-        }
+        brick = switch (bs.type) {
+            case "unbreakable" -> new UnbreakableBrick(bs.x, bs.y, bs.width, bs.height);
+            case "strong" -> new StrongBrick(bs.x, bs.y, bs.width, bs.height, bs.hitPoints);
+            default -> new NormalBrick(bs.x, bs.y, bs.width, bs.height);
+        };
         
         if (brick != null) {
             bricks.add(brick);
@@ -1031,22 +1022,12 @@ public boolean loadGame() {
     // Restore power-ups
     powerUps = new ArrayList<>();
     for (GameState.PowerUpState ps : state.powerUps) {
-        PowerUp powerUp = null;
         
-        switch (ps.type) {
-            case "expand":
-                powerUp = new ExpandPaddlePowerUp((int)ps.x, (int)ps.y);
-                break;
-            case "fast":
-                powerUp = new FastBallPowerUp((int)ps.x, (int)ps.y);
-                break;
-            case "multi":
-                powerUp = new MultiBallPowerUp((int)ps.x, (int)ps.y);
-                break;
-            case "laser":
-                powerUp = new LaserPowerUp((int)ps.x, (int)ps.y);
-                break;
-        }
+         PowerUp powerUp = PowerUpFactory.createPowerUpByName(
+            ps.type, 
+            (int)ps.x, 
+            (int)ps.y
+        );
         
         if (powerUp != null) {
             powerUps.add(powerUp);
@@ -1085,5 +1066,8 @@ public boolean hasSavedGame() {
 public void deleteSavedGame() {
     SaveManager.getInstance().deleteSave();
 }
+
+
+
 
 }
