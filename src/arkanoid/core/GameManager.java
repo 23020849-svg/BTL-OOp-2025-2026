@@ -88,19 +88,18 @@ public class GameManager extends JPanel {
         initGame();
         initKeyBindings();
     }
-
-
     
-    private void initializeComponents() {
-        rand = new Random();
-        renderer = new Renderer();
-        activePowerUps = new ArrayList<>();
-        
+    public void loadGameSound() {
         collisionSound = new Sound();
         collisionSound.loadSound("/391658__jeckkech__collision.wav");
         losingSound = new Sound();
         losingSound.loadSound("/losing_sound.wav");
-        
+    }
+    
+    private void initializeComponents() {
+        rand = new Random();
+        renderer = new Renderer();
+        activePowerUps = new ArrayList<>();     
         paddleColor = Color.BLUE;
         ballColor = Color.RED;
         launchAngle = -90;
@@ -1049,8 +1048,6 @@ public boolean loadGame() {
     
     System.out.println("Game loaded successfully!");
     return true;
-
-     
 }
 
 /**

@@ -56,6 +56,8 @@ public class MenuManager extends JPanel implements ActionListener {
     private GameManager gameManager;
     private final Timer timer;
     private Sound selectingSound;
+    private Sound collisionSound;
+    private Sound losingSound;
 
     // Biến để quản lý fullscreen
     private JFrame mainFrame;
@@ -104,16 +106,8 @@ public class MenuManager extends JPanel implements ActionListener {
         gameManager.setPaddleColor(paddleColor);
         gameManager.setBallColor(ballColor);
         gameManager.setBallImagePath(ballImagePath);
-
-        selectingSound = new Sound();
-        selectingSound.loadSound("/selecting.wav");
-
-        // Load icon Return
-        try {
-            returnIcon = new ImageIcon(getClass().getResource("/return.png")).getImage();
-        } catch (Exception e) {
-            System.err.println("Không load được /return.png");
-        }
+        
+        startAssetLoader();
 
         updateMenuOptions();
 
@@ -131,7 +125,7 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private void startLogicThread() {
         logicRunning = true;
-        logicThread = new Thread(() -> { // Bắt đầu lambda
+        logicThread = new Thread(() -> {
             long lastTime = System.currentTimeMillis();
 
             while (logicRunning) {
@@ -154,7 +148,7 @@ public class MenuManager extends JPanel implements ActionListener {
                     logicRunning = false;
                 }
             }
-        }); 
+        });
 
         logicThread.start();
     }
@@ -171,6 +165,47 @@ public class MenuManager extends JPanel implements ActionListener {
                 e.printStackTrace();
             }
         }
+    }
+
+    private volatile boolean assetsLoaded = false;
+    private volatile boolean loadingAssets = false;
+    private Thread assetLoaderThread;
+
+    private void startAssetLoader() {
+        loadingAssets = true;
+        assetLoaderThread = new Thread(() -> {
+            System.out.println("Dang bat...");
+
+            try {
+                // === Load âm thanh menu ===
+                selectingSound = new Sound();
+                selectingSound.loadSound("/selecting.wav");
+                getGameManager().loadGameSound();
+                // === Load icon return và pause ===
+                try {
+                    returnIcon = new ImageIcon(getClass().getResource("/return.png")).getImage();
+                } catch (Exception e) {
+                    System.err.println("Không load được /return.png");
+                }
+
+                // === Gọi trước gameManager để nó tự load các tài nguyên bên trong ===
+                if (gameManager != null) {
+                    gameManager.initGame(); // tạo các object, bricks, sounds
+                }
+
+                // === Có thể thêm các tài nguyên khác nếu cần ===
+                // new ImageIcon(getClass().getResource("/balls/ball_red.png")).getImage();
+                System.out.println("Tải tài nguyên hoàn tất!");
+
+            } catch (Exception e) {
+                System.err.println("Lỗi khi tải tài nguyên: " + e.getMessage());
+            }
+            assetsLoaded = true;
+            loadingAssets = false;
+            repaint(); 
+        }, "AssetLoaderThread");
+
+        assetLoaderThread.start();
     }
 
     private void updateMenuOptions() {
@@ -730,7 +765,6 @@ public class MenuManager extends JPanel implements ActionListener {
         long currentTime = System.currentTimeMillis();
         double deltaTime = (currentTime - lastUpdateTime) / 1000.0;
         lastUpdateTime = currentTime;
-        System.out.println("deltaTime = " + deltaTime);
 
         if (currentState == MenuState.COUNTDOWN) {
             long elapsed = currentTime - countdownStartTime;
@@ -741,7 +775,8 @@ public class MenuManager extends JPanel implements ActionListener {
             }
 
             gameManager.getPaddle().update(deltaTime, getWidth());
-            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); chuyển qua thread rồi
+            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); chuyển qua thread
+            // rồi
             if (!gameManager.isBallLaunched()) {
                 gameManager.alignBallToPaddle();
             }
@@ -753,7 +788,8 @@ public class MenuManager extends JPanel implements ActionListener {
                 }
             }
         } else if (currentState == MenuState.GAME) {
-            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); đã được chuyển qua thread
+            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); đã được chuyển
+            // qua thread
             if (gameManager.isGameOver()) {
                 gameOver();
             }
@@ -924,7 +960,6 @@ public class MenuManager extends JPanel implements ActionListener {
             // Về menu chính
             stopLogicThread();
             returnToMainMenu();
-            timer.start();
         } else {
             // Nhấn ESC hoặc đóng dialog -> tiếp tục game
             currentState = MenuState.GAME;
