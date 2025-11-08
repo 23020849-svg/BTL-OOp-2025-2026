@@ -64,12 +64,12 @@ public class MenuManager extends JPanel implements ActionListener {
     private boolean isFullScreen = false;
 
     // Menu options
-    private String[] mainMenuOptions = { "Continue","New Game","Level Select", "Custom", "Settings", "Instructions", "Leaderboard", "Exit" };
+    private String[] mainMenuOptions = { "Continue", "New Game", "Level Select", "Custom", "Settings", "Instructions",
+            "Leaderboard", "Exit" };
     private int selectedOption = 0;
 
     // Settings
     private boolean soundEnabled = true;
-   
 
     // Countdown variables
     private int countdownValue = 3;
@@ -85,12 +85,11 @@ public class MenuManager extends JPanel implements ActionListener {
     private ReturnButton returnButton;
     private Image returnIcon;
 
-    //pause
+    // pause
     private final PauseButton pauseButton;
 
     // track menu
     private boolean hasSavedGame = false;
-
 
     public MenuManager(JFrame frame, JLabel background, Image originalImg) {
         this.mainFrame = frame;
@@ -126,32 +125,80 @@ public class MenuManager extends JPanel implements ActionListener {
         timer.start();
     }
 
-    private void updateMenuOptions() {
-    hasSavedGame = gameManager.hasSavedGame();
-    
-    if (hasSavedGame) {
-        mainMenuOptions = new String[] { 
-            "Continue",
-            "New Game",
-            "Level Select",
-            "Custom",
-            "Settings",
-            "Instructions",
-            "Leaderboard",
-            "Exit"
-        };
-    } else {
-        mainMenuOptions = new String[] { 
-            "Start Game",
-            "Level Select",
-            "Custom",
-            "Settings",
-            "Instructions",
-            "Leaderboard",
-            "Exit"
-        };
+    // Phải là volatile để đảm bảo các luồng thấy thay đổi của nhau
+    private volatile boolean logicRunning = false;
+    private Thread logicThread;
+
+    private void startLogicThread() {
+        logicRunning = true;
+        logicThread = new Thread(() -> { // Bắt đầu lambda
+            long lastTime = System.currentTimeMillis();
+
+            while (logicRunning) {
+                long now = System.currentTimeMillis();
+                double deltaTime = (now - lastTime) / 1000.0;
+                lastTime = now;
+
+                if (currentState == MenuState.GAME || currentState == MenuState.COUNTDOWN) {
+                    gameManager.updateGame(deltaTime, getWidth(), getHeight());
+                    if (gameManager.isGameOver()) {
+                        gameOver();
+                    }
+                }
+
+                // Đặt sleep bên trong vòng lặp while
+                try {
+                    Thread.sleep(5); // Tránh chiếm CPU 100%
+                } catch (InterruptedException ignored) {
+                    // Nếu luồng bị ngắt, cũng nên dừng lại
+                    logicRunning = false;
+                }
+            }
+        }); 
+
+        logicThread.start();
     }
-}
+
+    private void stopLogicThread() {
+        logicRunning = false; // Gửi tín hiệu dừng
+
+        // Sửa lỗi cú pháp (thừa một dấu '{')
+        if (logicThread != null && logicThread.isAlive()) {
+            try {
+                // Đợi cho logicThread thực sự kết thúc
+                logicThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void updateMenuOptions() {
+        hasSavedGame = gameManager.hasSavedGame();
+
+        if (hasSavedGame) {
+            mainMenuOptions = new String[] {
+                    "Continue",
+                    "New Game",
+                    "Level Select",
+                    "Custom",
+                    "Settings",
+                    "Instructions",
+                    "Leaderboard",
+                    "Exit"
+            };
+        } else {
+            mainMenuOptions = new String[] {
+                    "Start Game",
+                    "Level Select",
+                    "Custom",
+                    "Settings",
+                    "Instructions",
+                    "Leaderboard",
+                    "Exit"
+            };
+        }
+    }
 
     private void toggleFullScreen() {
         isFullScreen = !isFullScreen;
@@ -199,8 +246,6 @@ public class MenuManager extends JPanel implements ActionListener {
         requestFocusInWindow();
     }
 
-    
-
     private void initKeyBindings() {
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
         getActionMap().put("up", new AbstractAction() {
@@ -208,7 +253,8 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption - 1 + mainMenuOptions.length) % mainMenuOptions.length;
-                    if (soundEnabled) selectingSound.playOnce();
+                    if (soundEnabled)
+                        selectingSound.playOnce();
                 }
             }
         });
@@ -219,7 +265,8 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.MAIN_MENU) {
                     selectedOption = (selectedOption + 1) % mainMenuOptions.length;
-                    if (soundEnabled) selectingSound.playOnce();
+                    if (soundEnabled)
+                        selectingSound.playOnce();
                 }
             }
         });
@@ -245,7 +292,7 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                
+
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingLeft(true);
@@ -269,7 +316,7 @@ public class MenuManager extends JPanel implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
-                   
+
                 } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
                         || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingRight(true);
@@ -371,9 +418,9 @@ public class MenuManager extends JPanel implements ActionListener {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                 if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
-                pauseButton.setPressed(true);
-                    }
+                if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
+                    pauseButton.setPressed(true);
+                }
 
                 if (returnButton != null) {
                     returnButton.mousePressed(e);
@@ -382,9 +429,9 @@ public class MenuManager extends JPanel implements ActionListener {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                 if (pauseButton != null) {
+                if (pauseButton != null) {
                     pauseButton.setPressed(false);
-                        }
+                }
                 if (pauseButton != null) {
                     returnButton.mouseReleased(e);
                 }
@@ -408,65 +455,68 @@ public class MenuManager extends JPanel implements ActionListener {
     }
 
     private void handleMouseClick(MouseEvent e) {
-         if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
-        if (currentState == MenuState.GAME) {
-            showPauseMenu();
-            return;
+        if (pauseButton != null && pauseButton.contains(e.getX(), e.getY())) {
+            if (currentState == MenuState.GAME) {
+                showPauseMenu();
+                return;
+            }
         }
-    }
-        if (null != currentState) switch (currentState) {
-            case MAIN_MENU -> {
-                int startY = 350;
-                int spacing = 60;
-                int clickY = e.getY();
-                for (int i = 0; i < mainMenuOptions.length; i++) {
-                    int optionY = startY + i * spacing;
-                    if (clickY >= optionY - 30 && clickY <= optionY + 10) {
-                        selectedOption = i;
-                        handleEnterKey();
-                        break;
+        if (null != currentState)
+            switch (currentState) {
+                case MAIN_MENU -> {
+                    int startY = 350;
+                    int spacing = 60;
+                    int clickY = e.getY();
+                    for (int i = 0; i < mainMenuOptions.length; i++) {
+                        int optionY = startY + i * spacing;
+                        if (clickY >= optionY - 30 && clickY <= optionY + 10) {
+                            selectedOption = i;
+                            handleEnterKey();
+                            break;
+                        }
                     }
                 }
-             }
-            case CUSTOM -> {
-                int mouseX = e.getX();
-                int mouseY = e.getY();
-                int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
-                if (paddleIndex >= 0) {
-                    paddleColor = menuRenderer.getPaddleColor(paddleIndex);
-                    gameManager.setPaddleColor(paddleColor);
-                    if (soundEnabled) selectingSound.playOnce();
-                    return;
-                }   int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
-                if (ballIndex >= 0) {
-                    ballImagePath = menuRenderer.getBallImagePath(ballIndex);
-                    ballColor = menuRenderer.getBallColor(ballIndex);
-                    gameManager.setBallImagePath(ballImagePath);
-                    gameManager.setBallColor(ballColor);
-                    if (soundEnabled) selectingSound.playOnce();
-                    
+                case CUSTOM -> {
+                    int mouseX = e.getX();
+                    int mouseY = e.getY();
+                    int paddleIndex = menuRenderer.getPaddleColorBoxClicked(mouseX, mouseY);
+                    if (paddleIndex >= 0) {
+                        paddleColor = menuRenderer.getPaddleColor(paddleIndex);
+                        gameManager.setPaddleColor(paddleColor);
+                        if (soundEnabled)
+                            selectingSound.playOnce();
+                        return;
+                    }
+                    int ballIndex = menuRenderer.getBallColorBoxClicked(mouseX, mouseY);
+                    if (ballIndex >= 0) {
+                        ballImagePath = menuRenderer.getBallImagePath(ballIndex);
+                        ballColor = menuRenderer.getBallColor(ballIndex);
+                        gameManager.setBallImagePath(ballImagePath);
+                        gameManager.setBallColor(ballColor);
+                        if (soundEnabled)
+                            selectingSound.playOnce();
+
+                    }
                 }
-             }
-            case SETTINGS -> soundEnabled = !soundEnabled;
-            case INSTRUCTIONS -> currentState = MenuState.MAIN_MENU;
-            case GAME_OVER -> currentState = MenuState.MAIN_MENU;
-            case GAME, PAUSED -> {
-                if (!gameManager.isBallLaunched()) {
-                    gameManager.launchBall();
+                case SETTINGS -> soundEnabled = !soundEnabled;
+                case INSTRUCTIONS -> currentState = MenuState.MAIN_MENU;
+                case GAME_OVER -> currentState = MenuState.MAIN_MENU;
+                case GAME, PAUSED -> {
+                    if (!gameManager.isBallLaunched()) {
+                        gameManager.launchBall();
+                    }
                 }
-             }
-            default -> {
-             }
-        }
+                default -> {
+                }
+            }
     }
-    
 
     private void handleMouseMove(MouseEvent e) {
 
         if (pauseButton != null) {
-        pauseButton.setHovered(pauseButton.contains(e.getX(), e.getY()));
-             }
-    
+            pauseButton.setHovered(pauseButton.contains(e.getX(), e.getY()));
+        }
+
         if (currentState == MenuState.MAIN_MENU) {
             int startY = 350;
             int spacing = 60;
@@ -489,8 +539,10 @@ public class MenuManager extends JPanel implements ActionListener {
             int paddleWidth = gameManager.getPaddle().getWidth();
             int newPaddleX = mouseX - paddleWidth / 2;
 
-            if (newPaddleX < 0) newPaddleX = 0;
-            if (newPaddleX > getWidth() - paddleWidth) newPaddleX = getWidth() - paddleWidth;
+            if (newPaddleX < 0)
+                newPaddleX = 0;
+            if (newPaddleX > getWidth() - paddleWidth)
+                newPaddleX = getWidth() - paddleWidth;
 
             gameManager.getPaddle().setX(newPaddleX);
 
@@ -501,122 +553,118 @@ public class MenuManager extends JPanel implements ActionListener {
     }
 
     private void handleEnterKey() {
-    switch (currentState) {
-        case MAIN_MENU -> {
-            if (hasSavedGame) {
-                // Menu có Continue
-                switch (selectedOption) {
-                    case 0 -> continueGame();
-                    case 1 -> confirmNewGame();
-                    case 2 -> showLevelSelect();
-                    case 3 -> { 
-                        currentState = MenuState.CUSTOM;
-                        createReturnButton();
+        switch (currentState) {
+            case MAIN_MENU -> {
+                if (hasSavedGame) {
+                    // Menu có Continue
+                    switch (selectedOption) {
+                        case 0 -> continueGame();
+                        case 1 -> confirmNewGame();
+                        case 2 -> showLevelSelect();
+                        case 3 -> {
+                            currentState = MenuState.CUSTOM;
+                            createReturnButton();
+                        }
+                        case 4 -> {
+                            currentState = MenuState.SETTINGS;
+                            createReturnButton();
+                        }
+                        case 5 -> {
+                            currentState = MenuState.INSTRUCTIONS;
+                            createReturnButton();
+                        }
+                        case 6 -> showLeaderboard();
+                        case 7 -> System.exit(0);
                     }
-                    case 4 -> { 
-                        currentState = MenuState.SETTINGS;
-                        createReturnButton();
+                } else {
+                    // Menu không có Continue
+                    switch (selectedOption) {
+                        case 0 -> startGame();
+                        case 1 -> showLevelSelect();
+                        case 2 -> {
+                            currentState = MenuState.CUSTOM;
+                            createReturnButton();
+                        }
+                        case 3 -> {
+                            currentState = MenuState.SETTINGS;
+                            createReturnButton();
+                        }
+                        case 4 -> {
+                            currentState = MenuState.INSTRUCTIONS;
+                            createReturnButton();
+                        }
+                        case 5 -> showLeaderboard();
+                        case 6 -> System.exit(0);
                     }
-                    case 5 -> { 
-                        currentState = MenuState.INSTRUCTIONS;
-                        createReturnButton();
-                    }
-                    case 6 -> showLeaderboard();
-                    case 7 -> System.exit(0);
                 }
-            } else {
-                // Menu không có Continue
-                switch (selectedOption) {
-                    case 0 -> startGame();
-                    case 1 -> showLevelSelect();
-                    case 2 -> { 
-                        currentState = MenuState.CUSTOM;
-                        createReturnButton();
-                    }
-                    case 3 -> { 
-                        currentState = MenuState.SETTINGS;
-                        createReturnButton();
-                    }
-                    case 4 -> { 
-                        currentState = MenuState.INSTRUCTIONS;
-                        createReturnButton();
-                    }
-                    case 5 -> showLeaderboard();
-                    case 6 -> System.exit(0);
-                }
             }
+
+            case SETTINGS -> soundEnabled = !soundEnabled;
+
+            case INSTRUCTIONS, GAME_OVER, CUSTOM -> returnToMainMenu();
+            default -> {
             }
-            
-        case SETTINGS -> soundEnabled = !soundEnabled;
-            
-        case INSTRUCTIONS, GAME_OVER, CUSTOM -> returnToMainMenu();
-        default -> {
-            }
+        }
     }
-}
 
     private void continueGame() {
-    if (gameManager.loadGame()) {
-        currentState = MenuState.COUNTDOWN;
-        countdownValue = 3;
-        countdownStartTime = System.currentTimeMillis();
-        returnButton = null;
-        setFocusable(true);
-        requestFocusInWindow();
-        
-        if (soundEnabled) {
-            selectingSound.playOnce();
+        if (gameManager.loadGame()) {
+            currentState = MenuState.COUNTDOWN;
+            countdownValue = 3;
+            countdownStartTime = System.currentTimeMillis();
+            returnButton = null;
+            setFocusable(true);
+            requestFocusInWindow();
+
+            if (soundEnabled) {
+                selectingSound.playOnce();
+            }
+
+            System.out.println("Continuing saved game...");
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không thể load game đã lưu!\nBắt đầu game mới.",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            startGame();
         }
-        
-        System.out.println("Continuing saved game...");
-    } else {
-        JOptionPane.showMessageDialog(
-            this,
-            "Không thể load game đã lưu!\nBắt đầu game mới.",
-            "Lỗi",
-            JOptionPane.ERROR_MESSAGE
-        );
-        startGame();
     }
-}
 
     private void confirmNewGame() {
-    int response = JOptionPane.showConfirmDialog(
-        this,
-        "Bạn có game đã lưu.\n" +
-        "Bắt đầu game mới sẽ XÓA game đã lưu!\n\n" +
-        "Tiếp tục?",
-        "Xác nhận",
-        JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE
-    );
-    
-    if (response == JOptionPane.YES_OPTION) {
-        gameManager.deleteSavedGame();
-        startGame();
+        int response = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có game đã lưu.\n" +
+                        "Bắt đầu game mới sẽ XÓA game đã lưu!\n\n" +
+                        "Tiếp tục?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (response == JOptionPane.YES_OPTION) {
+            gameManager.deleteSavedGame();
+            startGame();
+        }
     }
-}
-
-
 
     private void showLevelSelect() {
-    timer.stop();
-    
-    Window parent = SwingUtilities.getWindowAncestor(this);
-    int selectedLevel = LevelSelectDialog.showDialog(parent);
-    
-    if (selectedLevel > 0) {
-        // Người chơi đã chọn level
-        gameManager.startFromLevel(selectedLevel);
-        currentState = MenuState.COUNTDOWN;
-        countdownValue = 3;
-        countdownStartTime = System.currentTimeMillis();
-        returnButton = null;
+        timer.stop();
+
+        Window parent = SwingUtilities.getWindowAncestor(this);
+        int selectedLevel = LevelSelectDialog.showDialog(parent);
+
+        if (selectedLevel > 0) {
+            // Người chơi đã chọn level
+            gameManager.startFromLevel(selectedLevel);
+            currentState = MenuState.COUNTDOWN;
+            countdownValue = 3;
+            countdownStartTime = System.currentTimeMillis();
+            returnButton = null;
+        }
+
+        timer.start();
+        requestFocusInWindow();
     }
-    
-    timer.start();
-    requestFocusInWindow();
-}
 
     private void handleEscapeKey() {
         switch (currentState) {
@@ -626,7 +674,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 returnToMainMenu();
                 break;
             case GAME:
-            showPauseMenu();
+                showPauseMenu();
                 currentState = MenuState.PAUSED;
                 break;
             case PAUSED:
@@ -642,8 +690,10 @@ public class MenuManager extends JPanel implements ActionListener {
         currentState = MenuState.COUNTDOWN;
         countdownValue = 3;
         countdownStartTime = System.currentTimeMillis();
-        gameManager.initGame();  
+        gameManager.initGame();
         returnButton = null; // TẮT nút return khi vào game
+
+        startLogicThread(); // Bắt đầu luồng logic game
         setFocusable(true);
         requestFocusInWindow();
     }
@@ -691,7 +741,7 @@ public class MenuManager extends JPanel implements ActionListener {
             }
 
             gameManager.getPaddle().update(deltaTime, getWidth());
-            gameManager.updateGame(deltaTime, getWidth(), getHeight());
+            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); chuyển qua thread rồi
             if (!gameManager.isBallLaunched()) {
                 gameManager.alignBallToPaddle();
             }
@@ -703,7 +753,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 }
             }
         } else if (currentState == MenuState.GAME) {
-            gameManager.updateGame(deltaTime, getWidth(), getHeight());
+            // gameManager.updateGame(deltaTime, getWidth(), getHeight()); đã được chuyển qua thread
             if (gameManager.isGameOver()) {
                 gameOver();
             }
@@ -747,21 +797,19 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
         }
 
-        
         if (returnButton != null) {
             returnButton.paint((Graphics2D) g);
         }
-         if (returnButton != null) {
-        returnButton.paint((Graphics2D) g);
-    }
-    
-    // VẼ PAUSE BUTTON - THÊM DÒNG NÀY
-    if (pauseButton != null) {
-        pauseButton.paint((Graphics2D) g);
-    }
+        if (returnButton != null) {
+            returnButton.paint((Graphics2D) g);
+        }
+
+        // VẼ PAUSE BUTTON - THÊM DÒNG NÀY
+        if (pauseButton != null) {
+            pauseButton.paint((Graphics2D) g);
+        }
     }
 
-    
     private class ReturnButton {
         Rectangle bounds;
         boolean hovered = false, pressed = false;
@@ -777,9 +825,8 @@ public class MenuManager extends JPanel implements ActionListener {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             RoundRectangle2D pill = new RoundRectangle2D.Float(
-                bounds.x, bounds.y, bounds.width, bounds.height,
-                bounds.height, bounds.height
-            );
+                    bounds.x, bounds.y, bounds.width, bounds.height,
+                    bounds.height, bounds.height);
 
             int alpha = hovered ? 90 : 60;
             g.setColor(new Color(255, 255, 255, alpha));
@@ -790,17 +837,16 @@ public class MenuManager extends JPanel implements ActionListener {
             g.draw(pill);
 
             if (returnIcon != null) {
-                int iw = (int)(bounds.height * 0.6), ih = iw;
+                int iw = (int) (bounds.height * 0.6), ih = iw;
                 int ix = bounds.x + (bounds.width - iw) / 2;
                 int iy = bounds.y + (bounds.height - ih) / 2 + (pressed ? 1 : 0);
                 g.drawImage(returnIcon, ix, iy, iw, ih, null);
             } else {
                 g.setColor(Color.WHITE);
                 g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, bounds.height * 0.55f));
-                g.drawString("⟵", 
-                    bounds.x + bounds.width / 2 - (int)(bounds.height * 0.2),
-                    bounds.y + (int)(bounds.height * 0.72)
-                );
+                g.drawString("⟵",
+                        bounds.x + bounds.width / 2 - (int) (bounds.height * 0.2),
+                        bounds.y + (int) (bounds.height * 0.72));
             }
             g.dispose();
         }
@@ -841,118 +887,118 @@ public class MenuManager extends JPanel implements ActionListener {
     public GameManager getGameManager() {
         return gameManager;
     }
+
     private void showPauseMenu() {
-    // Tạm dừng game
-    currentState = MenuState.PAUSED;
-    timer.stop();
-    
-    // Hiển thị dialog
-    Window parent = javax.swing.SwingUtilities.getWindowAncestor(this);
-    PauseMenuDialog dialog = new PauseMenuDialog(parent);
-    dialog.setVisible(true);
-    
-    // Xử lý sau khi đóng dialog
-    if (dialog.isResumeClicked()) {
-        // Chơi tiếp
-        currentState = MenuState.GAME;
-        timer.start();
-        requestFocusInWindow();
-    } 
-    else if (dialog.isRestartClicked()) {
-        // Chơi lại
-        gameManager.initGame();
-        currentState = MenuState.COUNTDOWN;
-        countdownValue = 3;
-        countdownStartTime = System.currentTimeMillis();
-        timer.start();
-        requestFocusInWindow();
-    } 
-    else if (dialog.isExitClicked()) {
+        // Tạm dừng game
+        currentState = MenuState.PAUSED;
+        stopLogicThread();
+        timer.stop();
 
-        if(gameManager.isRunning() && gameManager.getLives() > 0) {
-            gameManager.saveGame();
-        }
-        // Về menu chính
-        returnToMainMenu();
-        timer.start();
-    }
-    else {
-        // Nhấn ESC hoặc đóng dialog -> tiếp tục game
-        currentState = MenuState.GAME;
-        timer.start();
-        requestFocusInWindow();
-    }
-}
+        // Hiển thị dialog
+        Window parent = javax.swing.SwingUtilities.getWindowAncestor(this);
+        PauseMenuDialog dialog = new PauseMenuDialog(parent);
+        dialog.setVisible(true);
 
-private class PauseButton {
-    private java.awt.Rectangle bounds;
-    private boolean hovered = false;
-    private boolean pressed = false;
-    private java.awt.Image pauseIcon;
-    
-    PauseButton() {
-        // Load icon pause
-        try {
-            pauseIcon = new javax.swing.ImageIcon(
-                getClass().getResource("/pausebutton.png")
-            ).getImage();
-        } catch (Exception e) {
-            System.err.println("Không load được /pausebutton.png");
-        }
-        
-        updateBounds();
-    }
-    
-    void updateBounds() {
-        int size = 35;
-        int margin = 20;
-        bounds = new Rectangle(
-            getWidth() - size - margin ,  
-            margin -10,                       
-            size, size
-        );
-    }
-    
-    void paint(Graphics2D g2) {
-        if (currentState != MenuState.GAME && currentState != MenuState.COUNTDOWN) {
-            return;
-        }
-        
-        updateBounds(); // Cập nhật vị trí theo kích thước màn hình
-        
-        g2 = (Graphics2D) g2.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
-       
-        // Icon
-        if (pauseIcon != null) {
-            int iconSize = (int)(bounds.width * 1.7);
-            int iconX = bounds.x + (bounds.width - iconSize) / 2;
-            int iconY = bounds.y + (bounds.height - iconSize) / 2 + (pressed ? 2 : 0);
-            g2.drawImage(pauseIcon, iconX, iconY, iconSize, iconSize, null);
+        // Xử lý sau khi đóng dialog
+        if (dialog.isResumeClicked()) {
+            // Chơi tiếp
+            currentState = MenuState.GAME;
+            startLogicThread();
+            timer.start();
+            requestFocusInWindow();
+        } else if (dialog.isRestartClicked()) {
+            // Chơi lại
+            gameManager.initGame();
+            currentState = MenuState.COUNTDOWN;
+            countdownValue = 3;
+            countdownStartTime = System.currentTimeMillis();
+            timer.start();
+            requestFocusInWindow();
+        } else if (dialog.isExitClicked()) {
+
+            if (gameManager.isRunning() && gameManager.getLives() > 0) {
+                stopLogicThread();
+                // Lưu game khi thoát
+                gameManager.saveGame();
+            }
+            // Về menu chính
+            stopLogicThread();
+            returnToMainMenu();
+            timer.start();
         } else {
-            // Vẽ ký hiệu ||
-            g2.setColor(new Color(76, 175, 80));
-            g2.setFont(new Font("Arial", Font.BOLD, 24));
-            g2.drawString("| |", 
-                bounds.x + bounds.width / 2 - 12,
-                bounds.y + bounds.height / 2 + 8
-            );
+            // Nhấn ESC hoặc đóng dialog -> tiếp tục game
+            currentState = MenuState.GAME;
+            startLogicThread();
+            timer.start();
+            requestFocusInWindow();
         }
-        
-        g2.dispose();
     }
-    
-    boolean contains(int x, int y) {
-        return bounds != null && bounds.contains(x, y);
+
+    private class PauseButton {
+        private java.awt.Rectangle bounds;
+        private boolean hovered = false;
+        private boolean pressed = false;
+        private java.awt.Image pauseIcon;
+
+        PauseButton() {
+            // Load icon pause
+            try {
+                pauseIcon = new javax.swing.ImageIcon(
+                        getClass().getResource("/pausebutton.png")).getImage();
+            } catch (Exception e) {
+                System.err.println("Không load được /pausebutton.png");
+            }
+
+            updateBounds();
+        }
+
+        void updateBounds() {
+            int size = 35;
+            int margin = 20;
+            bounds = new Rectangle(
+                    getWidth() - size - margin,
+                    margin - 10,
+                    size, size);
+        }
+
+        void paint(Graphics2D g2) {
+            if (currentState != MenuState.GAME && currentState != MenuState.COUNTDOWN) {
+                return;
+            }
+
+            updateBounds(); // Cập nhật vị trí theo kích thước màn hình
+
+            g2 = (Graphics2D) g2.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Icon
+            if (pauseIcon != null) {
+                int iconSize = (int) (bounds.width * 1.7);
+                int iconX = bounds.x + (bounds.width - iconSize) / 2;
+                int iconY = bounds.y + (bounds.height - iconSize) / 2 + (pressed ? 2 : 0);
+                g2.drawImage(pauseIcon, iconX, iconY, iconSize, iconSize, null);
+            } else {
+                // Vẽ ký hiệu ||
+                g2.setColor(new Color(76, 175, 80));
+                g2.setFont(new Font("Arial", Font.BOLD, 24));
+                g2.drawString("| |",
+                        bounds.x + bounds.width / 2 - 12,
+                        bounds.y + bounds.height / 2 + 8);
+            }
+
+            g2.dispose();
+        }
+
+        boolean contains(int x, int y) {
+            return bounds != null && bounds.contains(x, y);
+        }
+
+        void setHovered(boolean h) {
+            this.hovered = h;
+        }
+
+        void setPressed(boolean p) {
+            this.pressed = p;
+        }
     }
-    
-    void setHovered(boolean h) {
-        this.hovered = h;
-    }
-    
-    void setPressed(boolean p) {
-        this.pressed = p;
-    }
-}
 }
