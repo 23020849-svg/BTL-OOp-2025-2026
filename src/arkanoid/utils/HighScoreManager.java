@@ -60,7 +60,6 @@ public class HighScoreManager {
                 new FileOutputStream(SCORE_FILE))) {
             oos.writeObject(scores);
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
     

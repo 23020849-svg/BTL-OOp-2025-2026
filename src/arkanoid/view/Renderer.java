@@ -17,35 +17,54 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import arkanoid.core.GameManager;
 import arkanoid.entities.Ball;
+import arkanoid.entities.LaserBeam;
 import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
 import arkanoid.entities.powerups.ExpandPaddlePowerUp;
 import arkanoid.entities.powerups.FastBallPowerUp;
+import arkanoid.entities.powerups.LaserPowerUp;
 import arkanoid.entities.powerups.MultiBallPowerUp;
 import arkanoid.entities.powerups.PowerUp;
+import arkanoid.entities.powerups.PowerUpConfig;
 
 public class Renderer {
 
-    private arkanoid.view.expandpaddle ex = new arkanoid.view.expandpaddle();
-    private arkanoid.view.extraball   exball = new arkanoid.view.extraball();
-    private arkanoid.view.fast        fast = new arkanoid.view.fast();
-
+    // ===== POWER-UP GIF IMAGES - GỘP TỪ 4 CLASS =====
+    private Image expandPaddleGif;
+    private Image extraBallGif;
+    private Image fastBallGif;
+    private Image laserGif;
+    
+    private long saveIndicatorTime = 0;
+    private static final long SAVE_INDICATOR_DURATION = 2000;
     private Image heart;
-    private Image returnIcon; // ảnh /return.png
 
-    private static final double BALL_SCALE   = 3.0; // phóng to khi vẽ
-    private static final int    ARROW_GAP    = 2;   // khoảng hở giữa mép bóng & mũi tên
-    private static final int    LIFE_ICON_SIZE = 20;
-
+    private static final double BALL_SCALE = 3.0;
+    private static final int LIFE_ICON_SIZE = 40;
 
     public Renderer() {
+        loadResources();
+    }
+
+    /**
+     * Load tất cả resources (GIF và images)
+     */
+    private void loadResources() {
         try {
-            heart      = new ImageIcon(getClass().getResource("/heart.png")).getImage();
-           
+            // Load heart icon
+            heart = new ImageIcon(getClass().getResource("/heart.png")).getImage();
+            
+            // Load power-up GIFs
+            expandPaddleGif = new ImageIcon(getClass().getResource("/extra.gif")).getImage();
+            extraBallGif = new ImageIcon(getClass().getResource("/extraball.gif")).getImage();
+            fastBallGif = new ImageIcon(getClass().getResource("/fast.gif")).getImage();
+            laserGif = new ImageIcon(getClass().getResource("/laser.gif")).getImage();
+            
+            System.out.println("✓ All renderer resources loaded successfully");
         } catch (Exception e) {
-            System.err.println("Không thể load ảnh: " + e.getMessage());
+            System.err.println("Error loading renderer resources: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -66,8 +85,6 @@ public class Renderer {
                      boolean isFirstLife) {
 
         Graphics2D g2 = (Graphics2D) g;
-
-        // Khử răng cưa
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // ===== Balls & beam =====
@@ -83,12 +100,12 @@ public class Renderer {
                 int cx = bx + bw / 2;
                 int cy = by + bh / 2;
                 int rLogic = Math.min(bw, bh) / 2;
-                int rDraw  = (int) Math.round(rLogic * BALL_SCALE);
+                int rDraw = (int) Math.round(rLogic * BALL_SCALE);
 
                 List<double[]> t = ball.getTrail();
-                double dirX = ball.getdx(), dirY = ball.getdy(); // fallback theo vận tốc
+                double dirX = ball.getdx(), dirY = ball.getdy();
                 if (t != null && t.size() >= 3) {
-                    int k = Math.min(5, t.size());   // lấy tối đa 5 điểm cuối để mượt hướng
+                    int k = Math.min(5, t.size());
                     double sx = 0, sy = 0;
                     for (int i = t.size() - k; i < t.size(); i++) {
                         sx += cx - t.get(i)[0];
@@ -99,7 +116,6 @@ public class Renderer {
                 }
                 drawTaperedBeamWhite(g2, cx, cy, rDraw, dirX, dirY);
 
-                // --- Vẽ bóng ---
                 Image ballImg = ball.getBallImage();
                 if (ballImg != null) {
                     int d = rDraw * 2;
@@ -131,6 +147,19 @@ public class Renderer {
                     r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f, arc, arc);
 
             Color base = paddleColor;
+
+            if (paddle.isLaserActive()) {
+                for(int i=3; i >=1; i--) {
+                    float t = (float) i / 3f;
+                    float alpha = 0.02f + 0.25f * t;
+                    int a255 = (int) (alpha * 255);
+                    g2.setColor(new Color(255, 50, 50, a255));
+                    g2.setStroke(new BasicStroke(
+                            6f + 8f * t, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2.draw(rr);
+                }
+            }
+
             for (int i = 2; i >= 1; i--) {
                 float t = (float) i / 2f;
                 float alpha = 0.03f + 0.18f * t;
@@ -149,22 +178,33 @@ public class Renderer {
             g2.draw(rr);
         }
 
-        // ===== PowerUps =====
+        // Vẽ laser beams
+        List<LaserBeam> lasers = paddle.getLasers();
+        if (lasers != null) {
+            for (LaserBeam laser : lasers) {
+                if (laser != null && laser.isActive()){
+                    laser.render(g2);
+                }
+            }
+        }
+
+        // ===== PowerUps - SỬ DỤNG GIF ĐÃ LOAD =====
         if (powerUps != null) {
             for (PowerUp p : powerUps) {
                 if (p == null || !p.isActive()) continue;
                 Rectangle r = p.getBounds();
 
-                if (p instanceof ExpandPaddlePowerUp) {
-                    ImageIcon gif = ex.getGifIcon();
-                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
-                } else if (p instanceof FastBallPowerUp) {
-                    ImageIcon gif = fast.getGifIcon();
-                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
-                } else if (p instanceof MultiBallPowerUp) {
-                    ImageIcon gif = exball.getGifIcon();
-                    if (gif != null) g2.drawImage(gif.getImage(), r.x, r.y, 100, 60, null);
+                // Vẽ GIF tương ứng với từng loại power-up
+                if (p instanceof ExpandPaddlePowerUp && expandPaddleGif != null) {
+                    g2.drawImage(expandPaddleGif, r.x, r.y, 100, 60, null);
+                } else if (p instanceof FastBallPowerUp && fastBallGif != null) {
+                    g2.drawImage(fastBallGif, r.x, r.y, 100, 60, null);
+                } else if (p instanceof MultiBallPowerUp && extraBallGif != null) {
+                    g2.drawImage(extraBallGif, r.x, r.y, 100, 60, null);
+                } else if (p instanceof LaserPowerUp && laserGif != null) {
+                    g2.drawImage(laserGif, r.x, r.y, 100, 60, null);
                 } else {
+                    // Fallback nếu không load được GIF
                     g2.setColor(Color.YELLOW);
                     g2.fillRect(r.x, r.y, r.width, r.height);
                     g2.setColor(Color.DARK_GRAY);
@@ -174,72 +214,122 @@ public class Renderer {
         }
 
         // ===== HUD =====
-        int w = (g.getClipBounds() != null) ? g.getClipBounds().width  : GameManager.WIDTH;
-        int h = (g.getClipBounds() != null) ? g.getClipBounds().height : GameManager.HEIGHT;
+        int w = (g.getClipBounds() != null) ? g.getClipBounds().width : 1440;
+        int h = (g.getClipBounds() != null) ? g.getClipBounds().height : 800;
 
-        Font hudFont = MenuRenderer.loadCustomFont(22f);
-        g2.setFont(hudFont);
         g2.setColor(Color.WHITE);
-        int pad = 10;
+        g2.setFont(new Font("Arial", Font.BOLD, 24));
         FontMetrics fm = g2.getFontMetrics();
-        int textY = pad + fm.getAscent();
-
-        g2.drawString("Score: " + score, pad, textY);
+        int pad = 20;
+        int textY = 40;
+        
+        // Score
+        String scoreText = "Score: " + score;
+        g2.drawString(scoreText, pad, textY);
+        
+        // Lives with icons
         drawLivesWithIcons(g2, lives, w, textY, fm, pad);
 
-        // Active powerups (ví dụ)
-        int yOffset = 300;
-        g2.setFont(new Font("Arial", Font.BOLD, 14));
-        if (paddle != null && paddle.getExpandRemainingTime() > 0) {
-            g2.drawString("PowerUp: ExpandPaddlePowerUp – " + paddle.getExpandRemainingTime() + "s", 10, yOffset);
+        // ===== ACTIVE POWER-UPS INFO =====
+        if (activePowerUps != null && !activePowerUps.isEmpty()) {
+            drawActivePowerUpsInfo(g2, activePowerUps, pad, textY);
         }
 
-        // ===== Overlay: aiming arrow =====
-        if (!ballLaunched && balls != null && !balls.isEmpty()) {
-            Ball firstBall = balls.get(0);
-            int fbw = firstBall.getWidth(), fbh = firstBall.getHeight();
-            int fcx = (int) firstBall.getX() + fbw / 2;
-            int fcy = (int) firstBall.getY() + fbh / 2;
-            int frLogic = Math.min(fbw, fbh) / 2;
-            int frDraw  = (int) Math.round(frLogic * BALL_SCALE);
-
-            double rad = Math.toRadians(launchAngle);
-            int lineLength = 60;
-
-            int startX = (int) (fcx + (frDraw + ARROW_GAP) * Math.cos(rad));
-            int startY = (int) (fcy + (frDraw + ARROW_GAP) * Math.sin(rad));
-            int endX   = (int) (fcx + (frDraw + ARROW_GAP + lineLength) * Math.cos(rad));
-            int endY   = (int) (fcy + (frDraw + ARROW_GAP + lineLength) * Math.sin(rad));
-
-            Graphics2D g2c = (Graphics2D) g2.create();
-            g2c.setColor(new Color(244, 63, 94));
-            g2c.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                                          1f, new float[]{8f, 6f}, 0f));
-            g2c.drawLine(startX, startY, endX, endY);
-            g2c.dispose();
-
-            g2.drawString("Press SPACE to launch", w / 2 - 60, h / 2 - 10);
-            g2.drawString("Use 4/6 to aim",       w / 2 - 50, h / 2 + 20);
+        // Save indicator
+        if (saveIndicatorTime > 0) {
+            drawSaveIndicator(g2, w);
         }
-
-       
 
         // ===== Overlay: PAUSED =====
         if (paused) {
-            String text = "PAUSED";
-            Font old = g2.getFont();
-            Font pauseFont = MenuRenderer.loadCustomFont(48f);
-            g2.setFont(pauseFont);
-
-            FontMetrics pfm = g2.getFontMetrics();
-            int tx = (w - pfm.stringWidth(text)) / 2;
-            int ty = (h + pfm.getAscent()) / 2 - 10;
-            g2.drawString(text, tx, ty);
-            g2.setFont(old);
+            drawPausedOverlay(g2, w, h);
         }
     }
 
-    // ===== Helpers =====
+    /**
+     * Vẽ thông tin các power-up đang active
+     */
+    private void drawActivePowerUpsInfo(Graphics2D g2, List<PowerUp> activePowerUps, 
+                                       int pad, int baseY) {
+        int infoX = pad -15;
+        int infoY = baseY + 200;
+        
+        
+        infoY += 25;
+        g2.setFont(new Font("Arial", Font.PLAIN, 16));
+        
+        for (PowerUp p : activePowerUps) {
+            if (p == null || !p.isActivated()) continue;
+            
+            String info = "";
+            Color iconColor = Color.WHITE;
+            
+            if (p instanceof ExpandPaddlePowerUp) {
+                info = " Expand: +" + 
+                       PowerUpConfig.EXPAND_EXTRA_PIXELS + "px (" +
+                       p.getRemainingTime() + "s)";
+                iconColor = new Color(100, 255, 100);
+                
+            } else if (p instanceof FastBallPowerUp) {
+                info = "Fast: x" + 
+                       PowerUpConfig.FAST_BALL_MULTIPLIER + " (" +
+                       p.getRemainingTime() + "s)";
+                iconColor = new Color(100, 200, 255);
+                
+            } else if (p instanceof LaserPowerUp) {
+                info = "Laser (" + p.getRemainingTime() + "s)";
+                iconColor = new Color(255, 100, 100);
+            }
+            
+            if (!info.isEmpty()) {
+                g2.setColor(iconColor);
+                g2.drawString(info, infoX + 10, infoY);
+                infoY += 22;
+            }
+        }
+    }
+
+    /**
+     * Vẽ thông báo "Game Saved!"
+     */
+    private void drawSaveIndicator(Graphics2D g2, int screenWidth) {
+        long elapsed = System.currentTimeMillis() - saveIndicatorTime;
+        if (elapsed < SAVE_INDICATOR_DURATION) {
+            float alpha = 1.0f - (float)elapsed / SAVE_INDICATOR_DURATION;
+            g2.setComposite(java.awt.AlphaComposite.getInstance(
+                java.awt.AlphaComposite.SRC_OVER, alpha));
+            
+            g2.setColor(new Color(76, 175, 80));
+            g2.setFont(new Font("Arial", Font.BOLD, 24));
+            FontMetrics fmSave = g2.getFontMetrics();
+            String text = "✓ Game Saved!";
+            int x = (screenWidth - fmSave.stringWidth(text)) / 2;
+            int y = 50;
+            g2.drawString(text, x, y);
+            
+            g2.setComposite(java.awt.AlphaComposite.SrcOver);
+        } else {
+            saveIndicatorTime = 0;
+        }
+    }
+
+    /**
+     * Vẽ overlay "PAUSED"
+     */
+    private void drawPausedOverlay(Graphics2D g2, int w, int h) {
+        String text = "PAUSED";
+        Font old = g2.getFont();
+        Font pauseFont = MenuRenderer.loadCustomFont(48f);
+        g2.setFont(pauseFont);
+
+        FontMetrics pfm = g2.getFontMetrics();
+        int tx = (w - pfm.stringWidth(text)) / 2;
+        int ty = (h + pfm.getAscent()) / 2 - 10;
+        g2.drawString(text, tx, ty);
+        g2.setFont(old);
+    }
+
+    // ===== Helper Methods =====
 
     private Color colorForHP(int hp) {
         if (hp >= 3) return new Color(0x7f8c8d);
@@ -247,29 +337,30 @@ public class Renderer {
         return Color.ORANGE;
     }
 
-    private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, int textY, FontMetrics fm, int pad) {
+    private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, 
+                                   int textY, FontMetrics fm, int pad) {
         String livesLabel = "Lives: ";
-        int labelWidth = fm.stringWidth(livesLabel);
-
-        int totalIconsWidth = 3 * (LIFE_ICON_SIZE + 5); // giả định max 3 mạng
-        int startX = screenWidth - pad - labelWidth - totalIconsWidth;
+        int scoreWidth = fm.stringWidth("Score: 999999");
+        int startX = scoreWidth + pad;
 
         g2.drawString(livesLabel, startX, textY);
 
         long time = System.currentTimeMillis();
-        float pulse = (float) Math.abs(Math.sin(time / 400.0)); // 0 → 1 → 0 mỗi 800ms
+        float pulse = (float) Math.abs(Math.sin(time / 400.0));
 
-        int iconX = startX + labelWidth;
-        int iconY = textY - LIFE_ICON_SIZE + 3;
+        int iconX = startX + fm.stringWidth(livesLabel);
+        int iconY = textY - LIFE_ICON_SIZE + 14;
 
         for (int i = 0; i < 3; i++) {
             if (i < lives) {
                 int alpha = (int) (150 + 100 * pulse);
-                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
+                g2.setComposite(java.awt.AlphaComposite.getInstance(
+                    java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
                 g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
                 g2.setComposite(java.awt.AlphaComposite.SrcOver);
             } else {
-                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.4f));
+                g2.setComposite(java.awt.AlphaComposite.getInstance(
+                    java.awt.AlphaComposite.SRC_OVER, 0.4f));
                 g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
                 g2.setComposite(java.awt.AlphaComposite.SrcOver);
             }
@@ -277,25 +368,23 @@ public class Renderer {
         }
     }
 
-    /** Beam trắng mờ, thu nhọn ở đuôi */
     private void drawTaperedBeamWhite(Graphics2D g2, double cx, double cy, int rDraw,
                                       double dirX, double dirY) {
         double L = Math.hypot(dirX, dirY);
         if (L < 1e-6) return;
         double ux = dirX / L, uy = dirY / L;
 
-        float len   = (float)Math.max(100, rDraw * 5.0f); // dài -> mềm
+        float len = (float)Math.max(100, rDraw * 5.0f);
         float headW = rDraw * 0.8f;
-        float tailW = rDraw * 0.06f; // nhọn
+        float tailW = rDraw * 0.06f;
 
         float headX = (float)cx, headY = (float)cy;
         float tailX = (float)(cx - ux*len), tailY = (float)(cy - uy*len);
 
         double nx = -uy, ny = ux;
 
-        // helper vẽ 1 lớp tapered với alpha đầu/giữa/đuôi
         java.util.function.BiConsumer<float[], Integer> fillLayer = (ws, aHead) -> {
-            float wHead = ws[0], wTail = ws[1];  // [headW, tailW]
+            float wHead = ws[0], wTail = ws[1];
 
             float hxL = (float)(headX - nx * (wHead*0.5f));
             float hyL = (float)(headY - ny * (wHead*0.5f));
@@ -307,31 +396,28 @@ public class Renderer {
             float tyR = (float)(tailY + ny * (wTail*0.5f));
 
             Path2D p = new Path2D.Float();
-            p.moveTo(txL, tyL); p.lineTo(hxL, hyL); p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
+            p.moveTo(txL, tyL); p.lineTo(hxL, hyL); 
+            p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
 
             Paint old = g2.getPaint();
             g2.setPaint(new LinearGradientPaint(
                     headX, headY, tailX, tailY,
                     new float[]{0f, 0.55f, 1f},
                     new Color[]{
-                        new Color(255,255,255, Math.min(255, aHead)), // đầu
-                        new Color(255,255,255, Math.max(0, aHead-70)),// giữa
-                        new Color(255,255,255, 0)                     // đuôi
+                        new Color(255,255,255, Math.min(255, aHead)),
+                        new Color(255,255,255, Math.max(0, aHead-70)),
+                        new Color(255,255,255, 0)
                     }
             ));
             g2.fill(p);
             g2.setPaint(old);
         };
 
-        // feather ngoài cùng (rộng, rất mờ)
         fillLayer.accept(new float[]{ headW*1.25f, rDraw*0.10f }, 50);
-        // feather giữa (vừa, mờ)
         fillLayer.accept(new float[]{ headW*1.08f, rDraw*0.08f }, 30);
-        // lõi (hẹp, đậm)
-        fillLayer.accept(new float[]{ headW*0.90f, tailW          }, 20);
+        fillLayer.accept(new float[]{ headW*0.90f, tailW }, 20);
     }
 
-    /** Gạch hiệu ứng neon */
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
         float arc = 10f;
         RoundRectangle2D rr = new RoundRectangle2D.Float(
@@ -348,22 +434,26 @@ public class Renderer {
             float t = (float) i / layers;
             float alpha = 0.03f + 0.3f * t;
             int a255 = (int) (alpha * 255);
-            Color haloA = new Color(halo.getRed(), halo.getGreen(), halo.getBlue(), a255);
+            Color haloA = new Color(halo.getRed(), halo.getGreen(), 
+                                   halo.getBlue(), a255);
             g2.setColor(haloA);
-            g2.setStroke(new BasicStroke(5f + 10f * t, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.setStroke(new BasicStroke(5f + 10f * t, 
+                        BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
         }
 
         g2.setColor(core);
-        g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, 
+                                    BasicStroke.JOIN_ROUND));
         g2.draw(rr);
 
         g2.setColor(Color.WHITE);
-        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, 
+                                    BasicStroke.JOIN_ROUND));
         g2.draw(rr);
     }
 
-    
-
-   
+    public void showSaveIndicator() {
+        saveIndicatorTime = System.currentTimeMillis();
+    }
 }

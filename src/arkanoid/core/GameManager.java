@@ -16,14 +16,19 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import arkanoid.entities.Ball;
+import arkanoid.entities.LaserBeam;
 import arkanoid.entities.Paddle;
 import arkanoid.entities.bricks.Brick;
-import arkanoid.entities.powerups.ExpandPaddlePowerUp;
-import arkanoid.entities.powerups.FastBallPowerUp;
-import arkanoid.entities.powerups.MultiBallPowerUp;
+import arkanoid.entities.bricks.NormalBrick;
+import arkanoid.entities.bricks.StrongBrick;
+import arkanoid.entities.bricks.UnbreakableBrick;
 import arkanoid.entities.powerups.PowerUp;
+import arkanoid.entities.powerups.PowerUpFactory;
+import arkanoid.utils.GameState;
 import arkanoid.utils.HighScoreManager;
 import arkanoid.utils.LevelLoader;
+import arkanoid.utils.ProgressManager;
+import arkanoid.utils.SaveManager;
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.Renderer;
@@ -56,6 +61,7 @@ public class GameManager extends JPanel {
     private int lives;
     private int currentScreenWidth;
     private int currentScreenHeight;
+   
     
     private boolean running;
     private boolean ballLaunched;
@@ -69,6 +75,10 @@ public class GameManager extends JPanel {
     private final double MIN_ANGLE = -180;
     private final double MAX_ANGLE = 0;
 
+    private ProgressManager progressManager;
+    private long levelStartTime;
+
+
     public GameManager() {
         setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
         setOpaque(false);
@@ -78,21 +88,24 @@ public class GameManager extends JPanel {
         initGame();
         initKeyBindings();
     }
-
-    private void initializeComponents() {
-        rand = new Random();
-        renderer = new Renderer();
-        activePowerUps = new ArrayList<>();
-        
+    
+    public void loadGameSound() {
         collisionSound = new Sound();
         collisionSound.loadSound("/391658__jeckkech__collision.wav");
         losingSound = new Sound();
         losingSound.loadSound("/losing_sound.wav");
-        
+    }
+    
+    private void initializeComponents() {
+        rand = new Random();
+        renderer = new Renderer();
+        activePowerUps = new ArrayList<>();     
         paddleColor = Color.BLUE;
         ballColor = Color.RED;
         launchAngle = -90;
         totalLevels = 5;
+
+        progressManager = ProgressManager.getInstance();
     }
 
     public void initGame() {
@@ -114,7 +127,9 @@ public class GameManager extends JPanel {
 
         // Initialize bricks
         levelLoader = new LevelLoader();
+        if (currentLevel == 0) {
         currentLevel = 1;
+    }
         createLevel(w, h);
 
         // Initialize power-ups
@@ -128,7 +143,24 @@ public class GameManager extends JPanel {
         ballLaunched = false;
         paused = false;
         isFirstLife = true;
+
+        levelStartTime = System.currentTimeMillis();
     }
+
+    public void startFromLevel(int level) {
+    if (level < 1 || level > totalLevels) {
+        level = 1;
+    }
+    
+    // Kiểm tra level đã unlock chưa
+    if (!progressManager.isLevelUnlocked(level)) {
+        System.out.println("Level " + level + " chưa mở khóa!");
+        level = 1;
+    }
+    
+    this.currentLevel = level;
+    initGame();
+}
 
     private Ball createBall(int x, int y) {
         Ball ball = new Ball(x, y, 8, 3, -3, ballColor);
@@ -422,6 +454,49 @@ public class GameManager extends JPanel {
                 ballIterator.remove();
             }
         }
+        
+        // Handle laser collisions
+        handleLaserCollisions();
+    }
+
+    /**
+     * Xử lý va chạm giữa laser và gạch
+     */
+    private void handleLaserCollisions() {
+        if (paddle == null || bricks == null) return;
+        
+        List<LaserBeam> lasers = paddle.getLasers();
+        if (lasers == null || lasers.isEmpty()) return;
+
+        for (LaserBeam laser : lasers) {
+            if (!laser.isActive()) continue;
+
+            Iterator<Brick> brickIt = bricks.iterator();
+            while (brickIt.hasNext()) {
+                Brick brick = brickIt.next();
+                if (brick == null || brick.isDestroyed()) continue;
+
+                if (laser.checkCollision(brick.getBounds())) {
+                    if (collisionSound != null) {
+                        collisionSound.playOnce();
+                    }
+
+                    brick.takeHit();
+                    laser.deactivate();
+
+                    if (brick.isDestroyed()) {
+                        score += 100;
+
+                        // Spawn power-up randomly using Factory Pattern
+                        if (rand != null && rand.nextDouble() < brick.getPowerUpDropChance()) {
+                            spawnRandomPowerUp((int) (brick.getX() + brick.getWidth() / 2),
+                                             (int) brick.getY() + brick.getHeight());
+                        }
+                    }
+                    break; // Laser chỉ phá 1 gạch rồi biến mất
+                }
+            }
+        }
     }
 
     private void handlePaddleCollision(Ball currentBall) {
@@ -435,7 +510,6 @@ public class GameManager extends JPanel {
                 }
 
                 double targetSpeed = currentBall.getBaseSpeed() * currentBall.getSpeedMultiplier();
-
                 targetSpeed = Math.max(MIN_BALL_SPEED, Math.min(MAX_BALL_SPEED, targetSpeed));
                 
                 int paddleCenter = (int) paddle.getX() + paddle.getWidth() / 2;
@@ -455,7 +529,6 @@ public class GameManager extends JPanel {
                 
                 currentBall.setDx(newDx);
                 currentBall.setDy(newDy);
-
                 currentBall.setY(paddle.getY() - currentBall.getHeight() - 1);
             }
         }
@@ -480,7 +553,7 @@ public class GameManager extends JPanel {
                 if (brick.isDestroyed()) {
                     score += 100;
                     
-                    // Spawn power-up randomly
+                    // Spawn power-up randomly using Factory Pattern
                     if (rand != null && rand.nextDouble() < brick.getPowerUpDropChance()) {
                         spawnRandomPowerUp((int) (brick.getX() + brick.getWidth() / 2),
                                          (int) brick.getY() + brick.getHeight());
@@ -522,16 +595,23 @@ public class GameManager extends JPanel {
     }
 
     private void handleLevelComplete(int screenWidth, int screenHeight) {
+        long levelTime = System.currentTimeMillis() - levelStartTime;
+        progressManager.completeLevel(currentLevel, score, levelTime);
+        
         currentLevel++;
         if (currentLevel > totalLevels) {
             handleGameWon();
         } else {
+            levelStartTime = System.currentTimeMillis();
             createLevel(screenWidth, screenHeight);
+            saveGame();
         }
     }
 
     private void handleGameWon() {
         running = false;
+        long totalTime = progressManager.getProgress().getTotalPlayTime();
+        int totalScore = progressManager.getProgress().getTotalScore();
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(this, 
                 "Chúc mừng! Bạn đã chiến thắng!\nĐiểm số: " + score,
@@ -540,22 +620,16 @@ public class GameManager extends JPanel {
         });
     }
 
+    /**
+     * Spawn power-up sử dụng Factory Method Pattern
+     */
     private void spawnRandomPowerUp(int x, int y) {
         if (powerUps == null) {
-            powerUps = new ArrayList<>();
-        }
-        
-        double chance = rand.nextDouble();
-        PowerUp powerUp;
-        
-        if (chance < 0.33) {
-            powerUp = new ExpandPaddlePowerUp(x - 50, y);
-        } else if (chance < 0.66) {
-            powerUp = new FastBallPowerUp(x - 50, y);
-        } else {
-            powerUp = new MultiBallPowerUp(x - 50, y);
-        }
-        
+        powerUps = new ArrayList<>();
+            }
+    
+            // SỬ DỤNG FACTORY METHOD PATTERN
+        PowerUp powerUp = PowerUpFactory.createWeightedRandomPowerUp(x - 50, y);
         powerUps.add(powerUp);
     }
 
@@ -615,6 +689,9 @@ public class GameManager extends JPanel {
     private void onGameOver() {
         running = false;
         
+        progressManager.failLevel(currentLevel);
+        deleteSavedGame();
+
         if (losingSound != null) {
             losingSound.playOnce();
         }
@@ -643,6 +720,7 @@ public class GameManager extends JPanel {
                 JOptionPane.YES_NO_OPTION);
                 
             if (response == JOptionPane.YES_OPTION) {
+                currentLevel = 1;
                 initGame();
             } else {
                 System.exit(0);
@@ -753,4 +831,246 @@ public class GameManager extends JPanel {
     public boolean isPaused() {
         return paused;
     }
+
+    //them helper methof
+    private String formatTime(long millis) {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    //set level
+    public void setCurrentLevel(int level) {
+        this.currentLevel = level;
+    }   
+
+    public boolean saveGame() {
+
+
+    if (!running) {
+        System.out.println("Cannot save when game is not running");
+        return false;
+    }
+    
+    GameState state = new GameState();
+    
+    // Game info
+    state.currentLevel = this.currentLevel;
+    state.score = this.score;
+    state.lives = this.lives;
+    state.levelStartTime = this.levelStartTime;
+    
+    // Paddle
+    if (paddle != null) {
+        state.paddleX = paddle.getX();
+        state.paddleY = paddle.getY();
+        state.paddleWidth = paddle.getWidth();
+        state.paddleDefaultWidth = paddle.getDefaultWidth();
+        state.isPaddleExpanded = paddle.isExpanded();
+        state.paddleExpandRemainMs = paddle.getExpandRemainMs();
+        state.isPaddleLaserActive = paddle.isLaserActive();
+        state.paddleLaserRemainMs = paddle.isLaserActive() ? 
+            paddle.getLaserRemainingTime() * 1000L : 0;
+    }
+    
+    // Balls
+    state.balls = new ArrayList<>();
+    if (balls != null) {
+        for (Ball ball : balls) {
+            if (ball != null) {
+                GameState.BallState bs = new GameState.BallState(
+                    ball.getX(), ball.getY(),
+                    ball.getdx(), ball.getdy(),
+                    ball.getRadius()
+                );
+                bs.speedMultiplier = ball.getSpeedMultiplier();
+                bs.fastRemainMs = ball.getFastEndTime() > 0 ? 
+                    (ball.getFastEndTime() - System.currentTimeMillis()) : 0;
+                bs.imagePath = ball.getBallImagePath();
+                bs.colorRGB = ball.getBallColor().getRGB();
+                state.balls.add(bs);
+            }
+        }
+    }
+    
+    // Bricks
+    state.bricks = new ArrayList<>();
+    if (bricks != null) {
+        for (Brick brick : bricks) {
+            if (brick != null && !brick.isDestroyed()) {
+                String type = "normal";
+                if (brick instanceof UnbreakableBrick) type = "unbreakable";
+                else if (brick instanceof StrongBrick) type = "strong";
+                
+                GameState.BrickState bs = new GameState.BrickState(
+                    (int)brick.getX(), (int)brick.getY(),
+                    brick.getWidth(), brick.getHeight(),
+                    brick.getHitPoints(), type
+                );
+                state.bricks.add(bs);
+            }
+        }
+    }
+    
+    // Power-ups (đang rơi)
+    state.powerUps = new ArrayList<>();
+    if (powerUps != null) {
+        for (PowerUp p : powerUps) {
+            if (p != null && p.isActive()) {
+                // SỬ DỤNG FACTORY METHOD PATTERN
+                String type = PowerUpFactory.getTypeName(p);
+                
+                GameState.PowerUpState ps = new GameState.PowerUpState(
+                    p.getX(), p.getY(), type
+                );
+                state.powerUps.add(ps);
+            }
+        }
+    }
+    
+    // Launch state
+    state.ballLaunched = this.ballLaunched;
+    state.launchAngle = this.launchAngle;
+    
+    // Customization
+    state.ballImagePath = this.ballImagePath;
+    state.paddleColorRGB = this.paddleColor.getRGB();
+    state.ballColorRGB = this.ballColor.getRGB();
+    
+    // Save to file
+    return SaveManager.getInstance().save(state);
+}
+
+// ============== LOAD GAME ==============
+
+/**
+ * Tải trạng thái game đã lưu
+ */
+public boolean loadGame() {
+    GameState state = SaveManager.getInstance().load();
+    if (state == null) {
+        System.out.println("No saved game to load");
+        return false;
+    }
+    
+    // Restore game info
+    this.currentLevel = state.currentLevel;
+    this.score = state.score;
+    this.lives = state.lives;
+    this.levelStartTime = state.levelStartTime;
+    
+    // Restore customization
+    this.ballImagePath = state.ballImagePath;
+    this.paddleColor = new Color(state.paddleColorRGB);
+    this.ballColor = new Color(state.ballColorRGB);
+    
+    int w = getWidth();
+    int h = getHeight();
+    if (w == 0) w = DEFAULT_WIDTH;
+    if (h == 0) h = DEFAULT_HEIGHT;
+    
+    // Restore paddle
+    paddle = new Paddle(
+        (int)state.paddleX, (int)state.paddleY,
+        state.paddleWidth, 12, paddleColor);
+    paddle.setDefaultWidth(state.paddleDefaultWidth);
+    
+    if (state.isPaddleExpanded && state.paddleExpandRemainMs > 0) {
+        paddle.applyExpand(
+            state.paddleWidth - state.paddleDefaultWidth,
+            state.paddleExpandRemainMs,
+            w
+        );
+    }
+    
+    if (state.isPaddleLaserActive && state.paddleLaserRemainMs > 0) {
+        paddle.activateLaser(state.paddleLaserRemainMs, 500);
+    }
+    
+    // Restore balls
+    balls = new ArrayList<>();
+    for (GameState.BallState bs : state.balls) {
+        Ball ball = new Ball(
+            (int)bs.x, (int)bs.y, bs.radius,
+            bs.vx, bs.vy, new Color(bs.colorRGB)
+        );
+        ball.setBallImagePath(bs.imagePath);
+        
+        if (bs.speedMultiplier != 1.0 && bs.fastRemainMs > 0) {
+            ball.setSpeedMultiplier(bs.speedMultiplier, bs.fastRemainMs);
+        }
+        
+        balls.add(ball);
+    }
+    
+    // Restore bricks
+    bricks = new ArrayList<>();
+    for (GameState.BrickState bs : state.bricks) {
+        Brick brick = null;
+        
+        brick = switch (bs.type) {
+            case "unbreakable" -> new UnbreakableBrick(bs.x, bs.y, bs.width, bs.height);
+            case "strong" -> new StrongBrick(bs.x, bs.y, bs.width, bs.height, bs.hitPoints);
+            default -> new NormalBrick(bs.x, bs.y, bs.width, bs.height);
+        };
+        
+        if (brick != null) {
+            bricks.add(brick);
+        }
+    }
+    
+    // Restore power-ups
+    powerUps = new ArrayList<>();
+    for (GameState.PowerUpState ps : state.powerUps) {
+        
+         PowerUp powerUp = PowerUpFactory.createPowerUpByName(
+            ps.type, 
+            (int)ps.x, 
+            (int)ps.y
+        );
+        
+        if (powerUp != null) {
+            powerUps.add(powerUp);
+        }
+    }
+    
+    // Restore launch state
+    this.ballLaunched = state.ballLaunched;
+    this.launchAngle = state.launchAngle;
+    
+    // Reset other states
+    activePowerUps = new ArrayList<>();
+    running = true;
+    paused = false;
+    isFirstLife = false;
+    
+    this.currentScreenWidth = w;
+    this.currentScreenHeight = h;
+    
+    System.out.println("Game loaded successfully!");
+    return true;
+}
+
+/**
+ * Kiểm tra có save game không
+ */
+public boolean hasSavedGame() {
+    return SaveManager.getInstance().hasSavedGame();
+}
+
+/**
+ * Xóa save game
+ */
+public void deleteSavedGame() {
+    SaveManager.getInstance().deleteSave();
+}
+
+
+
+
 }

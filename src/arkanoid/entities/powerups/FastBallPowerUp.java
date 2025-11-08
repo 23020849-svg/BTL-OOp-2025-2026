@@ -11,13 +11,14 @@ import arkanoid.utils.Sound;
  * Power-up: tăng tốc bóng trong thời gian ngắn.
  */
 // Khi người chơi hứng được, bóng sẽ di chuyển nhanh hơn tạm thời.
-public class FastBallPowerUp extends PowerUp {
-    private double multiplier;     // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
+public class FastBallPowerUp extends PowerUp { // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
+    // Hệ số nhân tốc độ (ví dụ 1.6 = nhanh hơn 60%)
     // ======= Constructor =======
     public FastBallPowerUp(int x, int y) {
-        super(x, y, 100, 60);          // Gọi constructor lớp cha PowerUp (tọa độ + kích thước)
-        this.multiplier = 1.6;        // Bóng nhanh gấp 1.6 lần tốc độ gốc
-        this.durationMillis = 10_000;  // Hiệu ứng kéo dài 10 giây (10000 ms)
+       super(x, y, 
+              PowerUpConfig.FAST_BALL_WIDTH, 
+              PowerUpConfig.FAST_BALL_HEIGHT);
+        this.durationMillis = PowerUpConfig.FAST_BALL_DURATION_MS;
     }
 
     // ======= Phương thức render: vẽ power-up lên màn hình =======
@@ -32,7 +33,8 @@ public class FastBallPowerUp extends PowerUp {
         if (game != null && game.getBalls() != null) {
             for (Ball currentBall : game.getBalls()) {
                 if (currentBall != null) {
-                    currentBall.setSpeedMultiplier(multiplier, durationMillis);
+                    currentBall.setSpeedMultiplier( PowerUpConfig.FAST_BALL_MULTIPLIER, 
+                        PowerUpConfig.FAST_BALL_DURATION_MS);
                 }
             }
         }

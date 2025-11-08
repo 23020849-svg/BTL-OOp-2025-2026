@@ -16,6 +16,8 @@ import java.io.InputStream;
 
 import javax.swing.ImageIcon;
 
+import arkanoid.entities.powerups.PowerUpConfig;
+
 public class MenuRenderer {
 
     // Colors
@@ -26,14 +28,14 @@ public class MenuRenderer {
 
     private static Font ARKANOID_TITLE_FONT = null;
 
-    private Rectangle leaderboardButtonBounds = new Rectangle();
+    private final Rectangle leaderboardButtonBounds = new Rectangle();
     
     // Custom Store - Color boxes bounds
-    private Rectangle[] paddleColorBoxes = new Rectangle[8];
-    private Rectangle[] ballColorBoxes = new Rectangle[8];
+    private final Rectangle[] paddleColorBoxes = new Rectangle[8];
+    private final Rectangle[] ballColorBoxes = new Rectangle[8];
 
     // Các màu mẫu cho paddle và ball
-    private Color[] PADDLE_COLORS = {
+    private final Color[] PADDLE_COLORS = {
         new Color(255, 100, 100),  // Red
         new Color(100, 255, 100),  // Green
         new Color(100, 100, 255),  // Blue
@@ -44,7 +46,7 @@ public class MenuRenderer {
         Color.WHITE                // White
     };
 
-    private Color[] BALL_COLORS = {
+    private final Color[] BALL_COLORS = {
         new Color(255, 50, 50),    // Red
         new Color(50, 255, 50),    // Green
         new Color(50, 50, 255),    // Blue
@@ -56,7 +58,7 @@ public class MenuRenderer {
     };
 
     // Các đường dẫn đến file ảnh ball
-    private String[] BALL_IMAGE_PATHS = {
+    private final String[] BALL_IMAGE_PATHS = {
         "/balls/ball_red.png",
         "/balls/ball_blue.png",
         "/balls/ball_gradient.png",
@@ -68,7 +70,7 @@ public class MenuRenderer {
     };
 
     // Cache ảnh ball để không phải load lại nhiều lần
-    private Image[] ballImages = new Image[8];
+    private final Image[] ballImages = new Image[8];
 
     /**
      * Load ảnh ball từ resources
@@ -93,14 +95,13 @@ public class MenuRenderer {
     public static Font loadCustomFont(float size) {
         if (ARKANOID_TITLE_FONT == null) {
             try {
-                InputStream is = MenuRenderer.class.getResourceAsStream("/font.otf");
-                if (is == null) {
-                    throw new IOException("Font file not found in resources: /font.otf");
+                try (InputStream is = MenuRenderer.class.getResourceAsStream("/font.otf")) {
+                    if (is == null) {
+                        throw new IOException("Font file not found in resources: /font.otf");
+                    }
+                    ARKANOID_TITLE_FONT = Font.createFont(Font.TRUETYPE_FONT, is);
                 }
-                ARKANOID_TITLE_FONT = Font.createFont(Font.TRUETYPE_FONT, is);
-                is.close();
             } catch (IOException | FontFormatException e) {
-                e.printStackTrace();
                 System.err.println("Không thể tải font tùy chỉnh. Sử dụng font Arial mặc định.");
                 ARKANOID_TITLE_FONT = new Font("Arial", Font.BOLD, (int) size);
             }
@@ -124,12 +125,12 @@ public class MenuRenderer {
             drawBackground(g2, screenWidth, screenHeight);
         }
 
-        drawTitle(g2, screenWidth, screenHeight);
-        drawMenuOptions(g2, options, selectedOption, screenWidth, screenHeight);
+        drawTitle(g2, screenWidth);
+        drawMenuOptions(g2, options, selectedOption, screenWidth);
         drawFooterInstructions(g2, screenWidth, screenHeight);
     }
 
-    private void drawTitle(Graphics2D g2, int screenWidth, int screenHeight) {
+    private void drawTitle(Graphics2D g2, int screenWidth) {
         String title = "ARKANOID";
         int y = 200;
         float titleSize = 100f;
@@ -152,7 +153,7 @@ public class MenuRenderer {
         g2.drawString(title, x, y);
     }
 
-    private void drawMenuOptions(Graphics2D g2, String[] options, int selectedOption, int screenWidth, int screenHeight) {
+    private void drawMenuOptions(Graphics2D g2, String[] options, int selectedOption, int screenWidth) {
         int startY = 350;
         int spacing = 60;
         Font menuFont = loadCustomFont(28f).deriveFont(Font.PLAIN);
@@ -210,7 +211,7 @@ public class MenuRenderer {
         Font titleFont = loadCustomFont(48f).deriveFont(Font.BOLD);
         g2.setFont(titleFont);
         FontMetrics fm = g2.getFontMetrics();
-        String title = "🎨 CUSTOM COLOR MENU";
+        String title = "CUSTOM COLOR MENU";
         int titleX = (screenWidth - fm.stringWidth(title)) / 2;
         g2.drawString(title, titleX, 100);
 
@@ -379,7 +380,7 @@ public class MenuRenderer {
         g2.drawString(instruction, x, y);
     }
 
-    public void drawSettings(Graphics g, boolean soundEnabled, int difficulty, String[] difficultyNames, int screenWidth, int screenHeight) {
+    public void drawSettings(Graphics g, boolean soundEnabled, int screenWidth, int screenHeight) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         drawBackground(g2, screenWidth, screenHeight);
@@ -400,16 +401,8 @@ public class MenuRenderer {
 
         y += 60;
         g2.setColor(TEXT_COLOR);
-        String diffText = "Difficulty: " + difficultyNames[difficulty - 1];
-        g2.drawString(diffText, 100, y);
-
-        int indicatorX = 400;
-        int indicatorY = y - 20;
-        for (int i = 0; i < 3; i++) {
-            Color color = (i < difficulty) ? PRIMARY_COLOR : Color.GRAY;
-            g2.setColor(color);
-            g2.fillOval(indicatorX + i * 30, indicatorY, 15, 15);
-        }
+       
+       
 
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -583,6 +576,84 @@ public class MenuRenderer {
             g2.drawLine(0, i, screenWidth, i);
         }
     }
+
+    public void drawPowerUpInfo(Graphics g, int screenWidth, int screenHeight) {
+    Graphics2D g2 = (Graphics2D) g;
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    
+    drawBackground(g2, screenWidth, screenHeight);
+    
+    // Title
+    g2.setColor(PRIMARY_COLOR);
+    g2.setFont(new Font("Arial", Font.BOLD, 36));
+    FontMetrics fm = g2.getFontMetrics();
+    String title = "POWER-UP CONFIGURATION";
+    int titleX = (screenWidth - fm.stringWidth(title)) / 2;
+    g2.drawString(title, titleX, 100);
+    
+    // Content
+    g2.setFont(new Font("Arial", Font.PLAIN, 20));
+    int y = 180;
+    int x = 100;
+    
+    // Expand Paddle
+    g2.setColor(new Color(100, 255, 100));
+    g2.setFont(new Font("Arial", Font.BOLD, 22));
+    g2.drawString("🎯 Expand Paddle:", x, y);
+    g2.setFont(new Font("Arial", Font.PLAIN, 18));
+    g2.setColor(Color.WHITE);
+    y += 30;
+    g2.drawString("  • Extra width: " + PowerUpConfig.EXPAND_EXTRA_PIXELS + "px", x, y);
+    y += 25;
+    g2.drawString("  • Duration: " + (PowerUpConfig.EXPAND_DURATION_MS / 1000) + " seconds", x, y);
+    y += 25;
+    g2.drawString("  • Drop rate: " + (int)(PowerUpConfig.EXPAND_PADDLE_DROP_WEIGHT * 100) + "%", x, y);
+    y += 40;
+    
+    // Fast Ball
+    g2.setColor(new Color(100, 200, 255));
+    g2.setFont(new Font("Arial", Font.BOLD, 22));
+    g2.drawString("⚡ Fast Ball:", x, y);
+    g2.setFont(new Font("Arial", Font.PLAIN, 18));
+    g2.setColor(Color.WHITE);
+    y += 30;
+    g2.drawString("  • Speed multiplier: x" + PowerUpConfig.FAST_BALL_MULTIPLIER, x, y);
+    y += 25;
+    g2.drawString("  • Duration: " + (PowerUpConfig.FAST_BALL_DURATION_MS / 1000) + " seconds", x, y);
+    y += 25;
+    g2.drawString("  • Drop rate: " + (int)(PowerUpConfig.FAST_BALL_DROP_WEIGHT * 100) + "%", x, y);
+    y += 40;
+    
+    // Multi Ball
+    g2.setColor(new Color(255, 200, 100));
+    g2.setFont(new Font("Arial", Font.BOLD, 22));
+    g2.drawString("⚪ Multi Ball:", x, y);
+    g2.setFont(new Font("Arial", Font.PLAIN, 18));
+    g2.setColor(Color.WHITE);
+    y += 30;
+    g2.drawString("  • Extra balls: +" + PowerUpConfig.MULTI_BALL_COUNT, x, y);
+    y += 25;
+    g2.drawString("  • Drop rate: " + (int)(PowerUpConfig.MULTI_BALL_DROP_WEIGHT * 100) + "%", x, y);
+    y += 40;
+    
+    // Laser
+    g2.setColor(new Color(255, 100, 100));
+    g2.setFont(new Font("Arial", Font.BOLD, 22));
+    g2.drawString("🔫 Laser:", x, y);
+    g2.setFont(new Font("Arial", Font.PLAIN, 18));
+    g2.setColor(Color.WHITE);
+    y += 30;
+    g2.drawString("  • Duration: " + (PowerUpConfig.LASER_DURATION_MS / 1000) + " seconds", x, y);
+    y += 25;
+    g2.drawString("  • Fire rate: " + PowerUpConfig.LASER_FIRE_RATE_MS + "ms", x, y);
+    y += 25;
+    g2.drawString("  • Drop rate: " + (int)(PowerUpConfig.LASER_DROP_WEIGHT * 100) + "%", x, y);
+    
+    // Footer
+    g2.setColor(Color.GRAY);
+    g2.setFont(new Font("Arial", Font.PLAIN, 16));
+    g2.drawString("Press ESC to return", screenWidth - 300, screenHeight - 50);
+}
     
     public Rectangle getLeaderboardButtonBounds() {
         return new Rectangle(leaderboardButtonBounds);
