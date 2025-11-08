@@ -1,33 +1,25 @@
-package arkanoid; // Đặt class trong package arkanoid
+package arkanoid;
 
 import java.awt.BorderLayout;
 import java.awt.Image;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-
 import arkanoid.core.MenuManager;
 
-// ======= Lớp Main =======
 // Đây là điểm khởi đầu (entry point) của toàn bộ chương trình Arkanoid.
 public class Main {
-
-    // ======= Hàm main =======
     // Là nơi chương trình bắt đầu chạy.
     public static void main(String[] args) {
 
         // invokeLater đảm bảo khởi tạo giao diện trong luồng Event Dispatch Thread (EDT),
         // giúp tránh lỗi khi xử lý Swing không thread-safe.
         SwingUtilities.invokeLater(() -> {
-
-            // ======= 1. Tạo cửa sổ JFrame =======
             JFrame frame = new JFrame("Arkanoid"); // Tiêu đề cửa sổ game
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Thêm dòng này
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             ImageIcon logo = new ImageIcon("rsc/logo.png");
             frame.setIconImage(logo.getImage());
-            // ======= 2. Xử lý ảnh nền (background) =======
             // Lấy kích thước màn hình thực tế
             // add image
             ImageIcon icon = new ImageIcon("rsc/testbg.jpg");
