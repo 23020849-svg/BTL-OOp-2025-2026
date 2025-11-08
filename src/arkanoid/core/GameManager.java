@@ -89,22 +89,21 @@ public class GameManager extends JPanel {
         initKeyBindings();
     }
     
-    public void loadGameSound() {
+    public void loadGameManagerResource() {
         collisionSound = new Sound();
         collisionSound.loadSound("/391658__jeckkech__collision.wav");
         losingSound = new Sound();
         losingSound.loadSound("/losing_sound.wav");
+        renderer = new Renderer();
     }
     
     private void initializeComponents() {
         rand = new Random();
-        renderer = new Renderer();
         activePowerUps = new ArrayList<>();     
         paddleColor = Color.BLUE;
         ballColor = Color.RED;
         launchAngle = -90;
         totalLevels = 5;
-
         progressManager = ProgressManager.getInstance();
     }
 
@@ -383,7 +382,7 @@ public class GameManager extends JPanel {
 
         // Update balls and handle collisions
         updateBalls(dt, screenWidth, screenHeight);
-
+        
         // Remove destroyed bricks
         if (bricks != null) {
             bricks.removeIf(Brick::isDestroyed);
@@ -824,14 +823,6 @@ public class GameManager extends JPanel {
     
     public boolean isPaused() {
         return paused;
-    }
-
-    //them helper methof
-    private String formatTime(long millis) {
-        long seconds = millis / 1000;
-        long minutes = seconds / 60;
-        seconds = seconds % 60;
-        return String.format("%02d:%02d", minutes, seconds);
     }
 
     public int getCurrentLevel() {
