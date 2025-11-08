@@ -44,7 +44,9 @@ public abstract class Brick extends GameObject {
         return destroyed;
     }
 
-    public int getHitPoints()     { return Math.max(0, hitPoints); }
+    public int getHitPoints() {
+        return Math.max(0, hitPoints);
+    }
 
     // ======= Phương thức update trừu tượng =======
     // Các lớp con (NormalBrick, StrongBrick...) có thể override nếu muốn có hiệu ứng riêng

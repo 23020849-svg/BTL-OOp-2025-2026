@@ -25,7 +25,7 @@ public class NormalBrick extends Brick {
 
     @Override
     public double getPowerUpDropChance() {
-        return 0.99; // Gạch thường có 15% cơ hội rơi vật phẩm.
+        return 0.15; // Gạch thường có 15% cơ hội rơi vật phẩm.
     }
 
    
