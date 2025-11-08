@@ -10,12 +10,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -43,6 +45,7 @@ public class LevelSelectDialog extends JDialog {
     
     private int selectedLevel = -1;
     private boolean cancelled = false;
+    
     
     public LevelSelectDialog(Window parent) {
         super(parent, "CHỌN LEVEL", Dialog.ModalityType.APPLICATION_MODAL);

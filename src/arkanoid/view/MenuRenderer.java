@@ -406,7 +406,6 @@ public class MenuRenderer {
 
         g2.setColor(Color.GRAY);
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
-        g2.drawString("Use LEFT/RIGHT to change difficulty", 100, y + 40);
         g2.drawString("Press ENTER to toggle sound", 100, y + 60);
         g2.drawString("Press ESC to return to main menu", 100, y + 80);
     }
