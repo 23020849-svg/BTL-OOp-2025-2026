@@ -56,6 +56,8 @@ public class MenuManager extends JPanel implements ActionListener {
     private GameManager gameManager;
     private final Timer timer;
     private Sound selectingSound;
+    private java.awt.Image pauseIcon;
+
 
     // Biến để quản lý fullscreen
     private JFrame mainFrame;
@@ -168,37 +170,43 @@ public class MenuManager extends JPanel implements ActionListener {
     private Thread assetLoaderThread;
 
     private void startAssetLoader() {
-    loadingAssets = true;
+        loadingAssets = true;
 
-    assetLoaderThread = new Thread(() -> {
-        System.out.println("[AssetLoader] Bắt đầu tải...");
-        try {
-            selectingSound = new Sound();
-            selectingSound.loadSound("/selecting.wav");
-            getGameManager().loadGameManagerResource();
-
+        assetLoaderThread = new Thread(() -> {
+            System.out.println("[AssetLoader] Bắt đầu tải...");
             try {
-                returnButtonIconImage = new ImageIcon(getClass().getResource("/return.png")).getImage();
+                selectingSound = new Sound();
+                selectingSound.loadSound("/selecting.wav");
+                getGameManager().loadGameManagerResource();
+
+                try {
+                    returnButtonIconImage = new ImageIcon(getClass().getResource("/return.png")).getImage();
+                } catch (Exception e) {
+                    System.err.println("Không tìm thấy /return.png");
+                }
+
+                try {
+                pauseIcon = new javax.swing.ImageIcon(
+                        getClass().getResource("/pausebutton.png")).getImage();
             } catch (Exception e) {
-                System.err.println("Không tìm thấy /return.png");
+                System.err.println("Không load được /pausebutton.png");
             }
-            System.out.println("[AssetLoader] Tải xong!");
+                System.out.println("[AssetLoader] Tải xong!");
 
-            SwingUtilities.invokeLater(() -> {
-                assetsLoaded = true;
+                SwingUtilities.invokeLater(() -> {
+                    assetsLoaded = true;
+                    loadingAssets = false;
+                    repaint();
+                });
+
+            } catch (Exception e) {
+                System.err.println("[AssetLoader] Lỗi khi tải tài nguyên: " + e.getMessage());
                 loadingAssets = false;
-                repaint();
-            });
+            }
+        }, "AssetLoaderThread");
 
-        } catch (Exception e) {
-            System.err.println("[AssetLoader] Lỗi khi tải tài nguyên: " + e.getMessage());
-            loadingAssets = false;
-        }
-    }, "AssetLoaderThread");
-
-    assetLoaderThread.start();
-}
-
+        assetLoaderThread.start();
+    }
 
     private void updateMenuOptions() {
         hasSavedGame = gameManager.hasSavedGame();
@@ -320,8 +328,7 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
 
-                } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
-                        || currentState == MenuState.COUNTDOWN) {
+                } else if (currentState == MenuState.GAME || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingLeft(true);
                 }
             }
@@ -344,8 +351,7 @@ public class MenuManager extends JPanel implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 if (currentState == MenuState.SETTINGS) {
 
-                } else if (currentState == MenuState.GAME || currentState == MenuState.PAUSED
-                        || currentState == MenuState.COUNTDOWN) {
+                } else if (currentState == MenuState.GAME || currentState == MenuState.COUNTDOWN) {
                     gameManager.getPaddle().setMovingRight(true);
                 }
             }
@@ -366,7 +372,7 @@ public class MenuManager extends JPanel implements ActionListener {
         getActionMap().put("space", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (currentState == MenuState.GAME || currentState == MenuState.PAUSED) {
+                if (currentState == MenuState.GAME) {
                     if (!gameManager.isBallLaunched()) {
                         gameManager.launchBall();
                     }
@@ -637,8 +643,6 @@ public class MenuManager extends JPanel implements ActionListener {
     private void continueGame() {
         if (gameManager.loadGame()) {
             currentState = MenuState.COUNTDOWN;
-            countdownValue = 3;
-            countdownStartTime = System.currentTimeMillis();
             returnButton = null;
             setFocusable(true);
             requestFocusInWindow();
@@ -646,7 +650,7 @@ public class MenuManager extends JPanel implements ActionListener {
             if (soundEnabled) {
                 selectingSound.playOnce();
             }
-
+            startGame();
             System.out.println("Continuing saved game...");
         } else {
             JOptionPane.showMessageDialog(
@@ -843,7 +847,7 @@ public class MenuManager extends JPanel implements ActionListener {
         private Image icon;
         boolean hovered = false, pressed = false;
         Runnable onClick = null;
-        
+
         ReturnButton(int x, int y, int w, int h, Runnable cb, Image icon) {
             this.bounds = new Rectangle(x, y, w, h);
             this.onClick = cb;
@@ -945,15 +949,15 @@ public class MenuManager extends JPanel implements ActionListener {
             timer.start();
             requestFocusInWindow();
         } else if (dialog.isExitClicked()) {
-
-            if (gameManager.isRunning() && gameManager.getLives() > 0) {
-                stopLogicThread();
-                // Lưu game khi thoát
-                gameManager.saveGame();
-            }
-            // Về menu chính
+            // Khi chọn Exit to Menu
             stopLogicThread();
-            returnToMainMenu();
+            gameManager.saveGame();
+            currentState = MenuState.MAIN_MENU; 
+            returnToMainMenu(); // Quay về menu chính
+            timer.start(); // Tiếp tục timer để menu hoạt động
+            repaint();  // Vẽ lại giao diện menu
+            requestFocusInWindow(); // Focus lại panel
+
         } else {
             // Nhấn ESC hoặc đóng dialog -> tiếp tục game
             currentState = MenuState.GAME;
@@ -967,17 +971,8 @@ public class MenuManager extends JPanel implements ActionListener {
         private java.awt.Rectangle bounds;
         private boolean hovered = false;
         private boolean pressed = false;
-        private java.awt.Image pauseIcon;
 
         PauseButton() {
-            // Load icon pause
-            try {
-                pauseIcon = new javax.swing.ImageIcon(
-                        getClass().getResource("/pausebutton.png")).getImage();
-            } catch (Exception e) {
-                System.err.println("Không load được /pausebutton.png");
-            }
-
             updateBounds();
         }
 

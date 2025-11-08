@@ -17,9 +17,11 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
@@ -58,6 +60,12 @@ public class PauseMenuDialog extends JDialog {
 		setBounds(600, 300, 430, 350);
 		getContentPane().setLayout(new BorderLayout());
 		
+		// NHấn phím ESC để đóng dialog
+		getRootPane().registerKeyboardAction(e -> {
+            dispose();
+        }, KeyStroke.getKeyStroke("ESCAPE"), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+
 		contentPanel = new JPanel() {
             private static final long serialVersionUID = 1L;
 
