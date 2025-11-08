@@ -56,8 +56,6 @@ public class MenuManager extends JPanel implements ActionListener {
     private GameManager gameManager;
     private final Timer timer;
     private Sound selectingSound;
-    private Sound collisionSound;
-    private Sound losingSound;
 
     // Biến để quản lý fullscreen
     private JFrame mainFrame;
@@ -85,7 +83,7 @@ public class MenuManager extends JPanel implements ActionListener {
 
     // ===== NÚT RETURN =====
     private ReturnButton returnButton;
-    private Image returnIcon;
+    private Image returnButtonIconImage;
 
     // pause
     private final PauseButton pauseButton;
@@ -103,15 +101,13 @@ public class MenuManager extends JPanel implements ActionListener {
 
         menuRenderer = new MenuRenderer();
         gameManager = new GameManager();
+        pauseButton = new PauseButton();
+
         gameManager.setPaddleColor(paddleColor);
         gameManager.setBallColor(ballColor);
         gameManager.setBallImagePath(ballImagePath);
-        
         startAssetLoader();
-
         updateMenuOptions();
-
-        pauseButton = new PauseButton();
         initKeyBindings();
         initMouseListeners();
 
@@ -172,41 +168,37 @@ public class MenuManager extends JPanel implements ActionListener {
     private Thread assetLoaderThread;
 
     private void startAssetLoader() {
-        loadingAssets = true;
-        assetLoaderThread = new Thread(() -> {
-            System.out.println("Dang bat...");
+    loadingAssets = true;
+
+    assetLoaderThread = new Thread(() -> {
+        System.out.println("[AssetLoader] Bắt đầu tải...");
+        try {
+            selectingSound = new Sound();
+            selectingSound.loadSound("/selecting.wav");
+            getGameManager().loadGameManagerResource();
 
             try {
-                // === Load âm thanh menu ===
-                selectingSound = new Sound();
-                selectingSound.loadSound("/selecting.wav");
-                getGameManager().loadGameSound();
-                // === Load icon return và pause ===
-                try {
-                    returnIcon = new ImageIcon(getClass().getResource("/return.png")).getImage();
-                } catch (Exception e) {
-                    System.err.println("Không load được /return.png");
-                }
-
-                // === Gọi trước gameManager để nó tự load các tài nguyên bên trong ===
-                if (gameManager != null) {
-                    gameManager.initGame(); // tạo các object, bricks, sounds
-                }
-
-                // === Có thể thêm các tài nguyên khác nếu cần ===
-                // new ImageIcon(getClass().getResource("/balls/ball_red.png")).getImage();
-                System.out.println("Tải tài nguyên hoàn tất!");
-
+                returnButtonIconImage = new ImageIcon(getClass().getResource("/return.png")).getImage();
             } catch (Exception e) {
-                System.err.println("Lỗi khi tải tài nguyên: " + e.getMessage());
+                System.err.println("Không tìm thấy /return.png");
             }
-            assetsLoaded = true;
-            loadingAssets = false;
-            repaint(); 
-        }, "AssetLoaderThread");
+            System.out.println("[AssetLoader] Tải xong!");
 
-        assetLoaderThread.start();
-    }
+            SwingUtilities.invokeLater(() -> {
+                assetsLoaded = true;
+                loadingAssets = false;
+                repaint();
+            });
+
+        } catch (Exception e) {
+            System.err.println("[AssetLoader] Lỗi khi tải tài nguyên: " + e.getMessage());
+            loadingAssets = false;
+        }
+    }, "AssetLoaderThread");
+
+    assetLoaderThread.start();
+}
+
 
     private void updateMenuOptions() {
         hasSavedGame = gameManager.hasSavedGame();
@@ -467,7 +459,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 if (pauseButton != null) {
                     pauseButton.setPressed(false);
                 }
-                if (pauseButton != null) {
+                if (returnButton != null) {
                     returnButton.mouseReleased(e);
                 }
             }
@@ -750,7 +742,7 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private void createReturnButton() {
         int btnSize = 50;
-        returnButton = new ReturnButton(10, 10, btnSize, btnSize, () -> returnToMainMenu());
+        returnButton = new ReturnButton(10, 10, btnSize, btnSize, () -> returnToMainMenu(), returnButtonIconImage);
     }
 
     public void gameOver() {
@@ -848,12 +840,14 @@ public class MenuManager extends JPanel implements ActionListener {
 
     private class ReturnButton {
         Rectangle bounds;
+        private Image icon;
         boolean hovered = false, pressed = false;
         Runnable onClick = null;
-
-        ReturnButton(int x, int y, int w, int h, Runnable cb) {
+        
+        ReturnButton(int x, int y, int w, int h, Runnable cb, Image icon) {
             this.bounds = new Rectangle(x, y, w, h);
             this.onClick = cb;
+            this.icon = icon;
         }
 
         void paint(Graphics2D g2) {
@@ -872,11 +866,11 @@ public class MenuManager extends JPanel implements ActionListener {
             g.setColor(new Color(255, 200, 0, hovered ? 200 : 120));
             g.draw(pill);
 
-            if (returnIcon != null) {
+            if (icon != null) {
                 int iw = (int) (bounds.height * 0.6), ih = iw;
                 int ix = bounds.x + (bounds.width - iw) / 2;
                 int iy = bounds.y + (bounds.height - ih) / 2 + (pressed ? 1 : 0);
-                g.drawImage(returnIcon, ix, iy, iw, ih, null);
+                g.drawImage(icon, ix, iy, iw, ih, null);
             } else {
                 g.setColor(Color.WHITE);
                 g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, bounds.height * 0.55f));

@@ -35,7 +35,7 @@ public class Renderer {
     private Image extraBallGif;
     private Image fastBallGif;
     private Image laserGif;
-    
+
     private long saveIndicatorTime = 0;
     private static final long SAVE_INDICATOR_DURATION = 2000;
     private Image heart;
@@ -54,13 +54,13 @@ public class Renderer {
         try {
             // Load heart icon
             heart = new ImageIcon(getClass().getResource("/heart.png")).getImage();
-            
+
             // Load power-up GIFs
             expandPaddleGif = new ImageIcon(getClass().getResource("/extra.gif")).getImage();
             extraBallGif = new ImageIcon(getClass().getResource("/extraball.gif")).getImage();
             fastBallGif = new ImageIcon(getClass().getResource("/fast.gif")).getImage();
             laserGif = new ImageIcon(getClass().getResource("/laser.gif")).getImage();
-            
+
             System.out.println("✓ All renderer resources loaded successfully");
         } catch (Exception e) {
             System.err.println("Error loading renderer resources: " + e.getMessage());
@@ -70,27 +70,28 @@ public class Renderer {
 
     /** Vẽ toàn bộ frame: entities + HUD + overlay */
     public void draw(Graphics g,
-                     Paddle paddle,
-                     Color paddleColor,
-                     List<Ball> balls,
-                     Color ballColor,
-                     List<Brick> bricks,
-                     List<PowerUp> powerUps,
-                     int score,
-                     int lives,
-                     boolean ballLaunched,
-                     double launchAngle,
-                     boolean paused,
-                     List<PowerUp> activePowerUps,
-                     boolean isFirstLife) {
+            Paddle paddle,
+            Color paddleColor,
+            List<Ball> balls,
+            Color ballColor,
+            List<Brick> bricks,
+            List<PowerUp> powerUps,
+            int score,
+            int lives,
+            boolean ballLaunched,
+            double launchAngle,
+            boolean paused,
+            List<PowerUp> activePowerUps,
+            boolean isFirstLife) {
 
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // ===== Balls & beam =====
         if (balls != null) {
-            for (Ball ball : balls) {
-                if (ball == null) continue;
+            for (Ball ball : new java.util.ArrayList<>(balls)) {
+                if (ball == null)
+                    continue;
 
                 int bx = (int) ball.getX();
                 int by = (int) ball.getY();
@@ -129,8 +130,9 @@ public class Renderer {
 
         // ===== Bricks =====
         if (bricks != null) {
-            for (Brick b : bricks) {
-                if (b == null || b.isDestroyed()) continue;
+            for (Brick b : new java.util.ArrayList<>(bricks)) {
+                if (b == null || b.isDestroyed())
+                    continue;
                 Rectangle r = b.getBounds();
                 Color base = colorForHP(b.getHitPoints());
                 Graphics2D g2c = (Graphics2D) g2.create();
@@ -149,7 +151,7 @@ public class Renderer {
             Color base = paddleColor;
 
             if (paddle.isLaserActive()) {
-                for(int i=3; i >=1; i--) {
+                for (int i = 3; i >= 1; i--) {
                     float t = (float) i / 3f;
                     float alpha = 0.02f + 0.25f * t;
                     int a255 = (int) (alpha * 255);
@@ -181,8 +183,8 @@ public class Renderer {
         // Vẽ laser beams
         List<LaserBeam> lasers = paddle.getLasers();
         if (lasers != null) {
-            for (LaserBeam laser : lasers) {
-                if (laser != null && laser.isActive()){
+            for (LaserBeam laser : new java.util.ArrayList<>(lasers)) {
+                if (laser != null && laser.isActive()) {
                     laser.render(g2);
                 }
             }
@@ -190,8 +192,9 @@ public class Renderer {
 
         // ===== PowerUps - SỬ DỤNG GIF ĐÃ LOAD =====
         if (powerUps != null) {
-            for (PowerUp p : powerUps) {
-                if (p == null || !p.isActive()) continue;
+            for (PowerUp p : new java.util.ArrayList<>(powerUps)) {
+                if (p == null || !p.isActive())
+                    continue;
                 Rectangle r = p.getBounds();
 
                 // Vẽ GIF tương ứng với từng loại power-up
@@ -222,11 +225,11 @@ public class Renderer {
         FontMetrics fm = g2.getFontMetrics();
         int pad = 20;
         int textY = 40;
-        
+
         // Score
         String scoreText = "Score: " + score;
         g2.drawString(scoreText, pad, textY);
-        
+
         // Lives with icons
         drawLivesWithIcons(g2, lives, w, textY, fm, pad);
 
@@ -249,38 +252,38 @@ public class Renderer {
     /**
      * Vẽ thông tin các power-up đang active
      */
-    private void drawActivePowerUpsInfo(Graphics2D g2, List<PowerUp> activePowerUps, 
-                                       int pad, int baseY) {
-        int infoX = pad -15;
+    private void drawActivePowerUpsInfo(Graphics2D g2, List<PowerUp> activePowerUps,
+            int pad, int baseY) {
+        int infoX = pad - 15;
         int infoY = baseY + 200;
-        
-        
+
         infoY += 25;
         g2.setFont(new Font("Arial", Font.PLAIN, 16));
-        
-        for (PowerUp p : activePowerUps) {
-            if (p == null || !p.isActivated()) continue;
-            
+
+        for (PowerUp p : new java.util.ArrayList<>(activePowerUps)) {
+            if (p == null || !p.isActivated())
+                continue;
+
             String info = "";
             Color iconColor = Color.WHITE;
-            
+
             if (p instanceof ExpandPaddlePowerUp) {
-                info = " Expand: +" + 
-                       PowerUpConfig.EXPAND_EXTRA_PIXELS + "px (" +
-                       p.getRemainingTime() + "s)";
+                info = " Expand: +" +
+                        PowerUpConfig.EXPAND_EXTRA_PIXELS + "px (" +
+                        p.getRemainingTime() + "s)";
                 iconColor = new Color(100, 255, 100);
-                
+
             } else if (p instanceof FastBallPowerUp) {
-                info = "Fast: x" + 
-                       PowerUpConfig.FAST_BALL_MULTIPLIER + " (" +
-                       p.getRemainingTime() + "s)";
+                info = "Fast: x" +
+                        PowerUpConfig.FAST_BALL_MULTIPLIER + " (" +
+                        p.getRemainingTime() + "s)";
                 iconColor = new Color(100, 200, 255);
-                
+
             } else if (p instanceof LaserPowerUp) {
                 info = "Laser (" + p.getRemainingTime() + "s)";
                 iconColor = new Color(255, 100, 100);
             }
-            
+
             if (!info.isEmpty()) {
                 g2.setColor(iconColor);
                 g2.drawString(info, infoX + 10, infoY);
@@ -295,10 +298,10 @@ public class Renderer {
     private void drawSaveIndicator(Graphics2D g2, int screenWidth) {
         long elapsed = System.currentTimeMillis() - saveIndicatorTime;
         if (elapsed < SAVE_INDICATOR_DURATION) {
-            float alpha = 1.0f - (float)elapsed / SAVE_INDICATOR_DURATION;
+            float alpha = 1.0f - (float) elapsed / SAVE_INDICATOR_DURATION;
             g2.setComposite(java.awt.AlphaComposite.getInstance(
-                java.awt.AlphaComposite.SRC_OVER, alpha));
-            
+                    java.awt.AlphaComposite.SRC_OVER, alpha));
+
             g2.setColor(new Color(76, 175, 80));
             g2.setFont(new Font("Arial", Font.BOLD, 24));
             FontMetrics fmSave = g2.getFontMetrics();
@@ -306,7 +309,7 @@ public class Renderer {
             int x = (screenWidth - fmSave.stringWidth(text)) / 2;
             int y = 50;
             g2.drawString(text, x, y);
-            
+
             g2.setComposite(java.awt.AlphaComposite.SrcOver);
         } else {
             saveIndicatorTime = 0;
@@ -332,13 +335,15 @@ public class Renderer {
     // ===== Helper Methods =====
 
     private Color colorForHP(int hp) {
-        if (hp >= 3) return new Color(0x7f8c8d);
-        if (hp == 2) return new Color(0x9b59b6);
+        if (hp >= 3)
+            return new Color(0x7f8c8d);
+        if (hp == 2)
+            return new Color(0x9b59b6);
         return Color.ORANGE;
     }
 
-    private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth, 
-                                   int textY, FontMetrics fm, int pad) {
+    private void drawLivesWithIcons(Graphics2D g2, int lives, int screenWidth,
+            int textY, FontMetrics fm, int pad) {
         String livesLabel = "Lives: ";
         int scoreWidth = fm.stringWidth("Score: 999999");
         int startX = scoreWidth + pad;
@@ -355,12 +360,12 @@ public class Renderer {
             if (i < lives) {
                 int alpha = (int) (150 + 100 * pulse);
                 g2.setComposite(java.awt.AlphaComposite.getInstance(
-                    java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
+                        java.awt.AlphaComposite.SRC_OVER, alpha / 255f));
                 g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
                 g2.setComposite(java.awt.AlphaComposite.SrcOver);
             } else {
                 g2.setComposite(java.awt.AlphaComposite.getInstance(
-                    java.awt.AlphaComposite.SRC_OVER, 0.4f));
+                        java.awt.AlphaComposite.SRC_OVER, 0.4f));
                 g2.drawImage(heart, iconX, iconY, LIFE_ICON_SIZE, LIFE_ICON_SIZE, null);
                 g2.setComposite(java.awt.AlphaComposite.SrcOver);
             }
@@ -369,53 +374,56 @@ public class Renderer {
     }
 
     private void drawTaperedBeamWhite(Graphics2D g2, double cx, double cy, int rDraw,
-                                      double dirX, double dirY) {
+            double dirX, double dirY) {
         double L = Math.hypot(dirX, dirY);
-        if (L < 1e-6) return;
+        if (L < 1e-6)
+            return;
         double ux = dirX / L, uy = dirY / L;
 
-        float len = (float)Math.max(100, rDraw * 5.0f);
+        float len = (float) Math.max(100, rDraw * 5.0f);
         float headW = rDraw * 0.8f;
         float tailW = rDraw * 0.06f;
 
-        float headX = (float)cx, headY = (float)cy;
-        float tailX = (float)(cx - ux*len), tailY = (float)(cy - uy*len);
+        float headX = (float) cx, headY = (float) cy;
+        float tailX = (float) (cx - ux * len), tailY = (float) (cy - uy * len);
 
         double nx = -uy, ny = ux;
 
         java.util.function.BiConsumer<float[], Integer> fillLayer = (ws, aHead) -> {
             float wHead = ws[0], wTail = ws[1];
 
-            float hxL = (float)(headX - nx * (wHead*0.5f));
-            float hyL = (float)(headY - ny * (wHead*0.5f));
-            float hxR = (float)(headX + nx * (wHead*0.5f));
-            float hyR = (float)(headY + ny * (wHead*0.5f));
-            float txL = (float)(tailX - nx * (wTail*0.5f));
-            float tyL = (float)(tailY - ny * (wTail*0.5f));
-            float txR = (float)(tailX + nx * (wTail*0.5f));
-            float tyR = (float)(tailY + ny * (wTail*0.5f));
+            float hxL = (float) (headX - nx * (wHead * 0.5f));
+            float hyL = (float) (headY - ny * (wHead * 0.5f));
+            float hxR = (float) (headX + nx * (wHead * 0.5f));
+            float hyR = (float) (headY + ny * (wHead * 0.5f));
+            float txL = (float) (tailX - nx * (wTail * 0.5f));
+            float tyL = (float) (tailY - ny * (wTail * 0.5f));
+            float txR = (float) (tailX + nx * (wTail * 0.5f));
+            float tyR = (float) (tailY + ny * (wTail * 0.5f));
 
             Path2D p = new Path2D.Float();
-            p.moveTo(txL, tyL); p.lineTo(hxL, hyL); 
-            p.lineTo(hxR, hyR); p.lineTo(txR, tyR); p.closePath();
+            p.moveTo(txL, tyL);
+            p.lineTo(hxL, hyL);
+            p.lineTo(hxR, hyR);
+            p.lineTo(txR, tyR);
+            p.closePath();
 
             Paint old = g2.getPaint();
             g2.setPaint(new LinearGradientPaint(
                     headX, headY, tailX, tailY,
-                    new float[]{0f, 0.55f, 1f},
-                    new Color[]{
-                        new Color(255,255,255, Math.min(255, aHead)),
-                        new Color(255,255,255, Math.max(0, aHead-70)),
-                        new Color(255,255,255, 0)
-                    }
-            ));
+                    new float[] { 0f, 0.55f, 1f },
+                    new Color[] {
+                            new Color(255, 255, 255, Math.min(255, aHead)),
+                            new Color(255, 255, 255, Math.max(0, aHead - 70)),
+                            new Color(255, 255, 255, 0)
+                    }));
             g2.fill(p);
             g2.setPaint(old);
         };
 
-        fillLayer.accept(new float[]{ headW*1.25f, rDraw*0.10f }, 50);
-        fillLayer.accept(new float[]{ headW*1.08f, rDraw*0.08f }, 30);
-        fillLayer.accept(new float[]{ headW*0.90f, tailW }, 20);
+        fillLayer.accept(new float[] { headW * 1.25f, rDraw * 0.10f }, 50);
+        fillLayer.accept(new float[] { headW * 1.08f, rDraw * 0.08f }, 30);
+        fillLayer.accept(new float[] { headW * 0.90f, tailW }, 20);
     }
 
     private void drawNeonBrick(Graphics2D g2, Rectangle r, Color base) {
@@ -434,22 +442,22 @@ public class Renderer {
             float t = (float) i / layers;
             float alpha = 0.03f + 0.3f * t;
             int a255 = (int) (alpha * 255);
-            Color haloA = new Color(halo.getRed(), halo.getGreen(), 
-                                   halo.getBlue(), a255);
+            Color haloA = new Color(halo.getRed(), halo.getGreen(),
+                    halo.getBlue(), a255);
             g2.setColor(haloA);
-            g2.setStroke(new BasicStroke(5f + 10f * t, 
-                        BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.setStroke(new BasicStroke(5f + 10f * t,
+                    BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(rr);
         }
 
         g2.setColor(core);
-        g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, 
-                                    BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND));
         g2.draw(rr);
 
         g2.setColor(Color.WHITE);
-        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, 
-                                    BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND));
         g2.draw(rr);
     }
 
