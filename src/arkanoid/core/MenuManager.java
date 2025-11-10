@@ -705,7 +705,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
             case GAME:
                 showPauseMenu();
-                break;
+                 break;
             case PAUSED:
                 currentState = MenuState.GAME;
                 break;
@@ -953,7 +953,6 @@ public class MenuManager extends JPanel implements ActionListener {
 
         } else {
             // Nhấn ESC hoặc đóng dialog -> tiếp tục game
-            currentState = MenuState.GAME;
             startLogicThread();
             timer.start();
             requestFocusInWindow();
