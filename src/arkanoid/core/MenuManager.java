@@ -154,7 +154,6 @@ public class MenuManager extends JPanel implements ActionListener {
     private void stopLogicThread() {
         logicRunning = false; // Gửi tín hiệu dừng
 
-        // Sửa lỗi cú pháp (thừa một dấu '{')
         if (logicThread != null && logicThread.isAlive()) {
             try {
                 // Đợi cho logicThread thực sự kết thúc
@@ -494,7 +493,7 @@ public class MenuManager extends JPanel implements ActionListener {
                 return;
             }
         }
-        if (null != currentState)
+        if (currentState != null)
             switch (currentState) {
                 case MAIN_MENU -> {
                     int startY = 350;
@@ -706,7 +705,6 @@ public class MenuManager extends JPanel implements ActionListener {
                 break;
             case GAME:
                 showPauseMenu();
-                currentState = MenuState.PAUSED;
                 break;
             case PAUSED:
                 currentState = MenuState.GAME;
@@ -836,7 +834,7 @@ public class MenuManager extends JPanel implements ActionListener {
             returnButton.paint((Graphics2D) g);
         }
 
-        // VẼ PAUSE BUTTON - THÊM DÒNG NÀY
+        // VẼ PAUSE BUTTON
         if (pauseButton != null) {
             pauseButton.paint((Graphics2D) g);
         }
@@ -942,17 +940,12 @@ public class MenuManager extends JPanel implements ActionListener {
             requestFocusInWindow();
         } else if (dialog.isRestartClicked()) {
             // Chơi lại
-            gameManager.initGame();
-            currentState = MenuState.COUNTDOWN;
-            countdownValue = 3;
-            countdownStartTime = System.currentTimeMillis();
+            startGame();
             timer.start();
             requestFocusInWindow();
         } else if (dialog.isExitClicked()) {
             // Khi chọn Exit to Menu
-            stopLogicThread();
             gameManager.saveGame();
-            currentState = MenuState.MAIN_MENU; 
             returnToMainMenu(); // Quay về menu chính
             timer.start(); // Tiếp tục timer để menu hoạt động
             repaint();  // Vẽ lại giao diện menu
