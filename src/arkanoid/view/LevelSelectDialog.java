@@ -249,10 +249,10 @@ public class LevelSelectDialog extends JDialog {
         levelLabel.setFont(new Font("Arial", Font.BOLD, 24));
         levelLabel.setForeground(unlocked ? Color.WHITE : LOCKED_COLOR);
         levelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(Box.createVerticalGlue()); // đẩy phần status xuống đáy card
+        card.add(Box.createVerticalStrut(50)); 
         card.add(levelLabel);
 
-        card.add(Box.createRigidArea(new Dimension(0, 10)));
+        card.add(Box.createRigidArea(new Dimension(0, 0)));
 
         // Status
         String statusText;
