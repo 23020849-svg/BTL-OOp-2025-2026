@@ -28,7 +28,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import arkanoid.core.MenuManager.MenuState;
 import arkanoid.utils.Sound;
 import arkanoid.view.LeaderboardDialog;
 import arkanoid.view.LevelSelectDialog;
@@ -58,7 +57,6 @@ public class MenuManager extends JPanel implements ActionListener {
     private final Timer timer;
     private Sound selectingSound;
     private java.awt.Image pauseIcon;
-
 
     // Biến để quản lý fullscreen
     private JFrame mainFrame;
@@ -118,51 +116,49 @@ public class MenuManager extends JPanel implements ActionListener {
         timer.start();
     }
 
-    // Phải là volatile để đảm bảo các luồng thấy thay đổi của nhau
- private volatile boolean logicRunning = false;
-private Thread logicThread;
+    private volatile boolean logicRunning = false;
+    private Thread logicThread;
 
-private void startLogicThread() {
-    logicRunning = true;
+    private void startLogicThread() {
+        logicRunning = true;
 
-    logicThread = new Thread(() -> {
-        long lastTime = System.currentTimeMillis();
-        final long frameTime = 16; // ~16ms = 60 FPS
+        logicThread = new Thread(() -> {
+            long lastTime = System.currentTimeMillis();
+            final long frameTime = 16; // ~16ms = 60 FPS
 
-        while (logicRunning) {
-            long now = System.currentTimeMillis();
-            double deltaTime = (now - lastTime) / 1000.0; // giây
-            lastTime = now;
+            while (logicRunning) {
+                long now = System.currentTimeMillis();
+                double deltaTime = (now - lastTime) / 1000.0; // giây
+                lastTime = now;
 
-            // Update logic khi đang chơi
-            if (assetsLoaded && (currentState == MenuState.GAME || currentState == MenuState.COUNTDOWN)) {
-                gameManager.updateGame(deltaTime, getWidth(), getHeight());
+                // Update logic khi đang chơi
+                if (assetsLoaded && (currentState == MenuState.GAME || currentState == MenuState.COUNTDOWN)) {
+                    gameManager.updateGame(deltaTime, getWidth(), getHeight());
 
-                if (gameManager.isGameOver()) {
-                    // Gọi gameOver trên EDT để an toàn với GUI
-                    SwingUtilities.invokeLater(this::gameOver);
+                    if (gameManager.isGameOver()) {
+                        // Gọi gameOver trên EDT để an toàn với GUI
+                        SwingUtilities.invokeLater(this::gameOver);
+                    }
+
+                    // Yêu cầu repaint GUI
+                    SwingUtilities.invokeLater(this::repaint);
                 }
 
-                // Yêu cầu repaint GUI
-                SwingUtilities.invokeLater(this::repaint);
-            }
-
-            // Giới hạn FPS ~60
-            long elapsed = System.currentTimeMillis() - now;
-            long sleepTime = frameTime - elapsed;
-            if (sleepTime > 0) {
-                try {
-                    Thread.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                    logicRunning = false;
+                // Giới hạn FPS ~60
+                long elapsed = System.currentTimeMillis() - now;
+                long sleepTime = frameTime - elapsed;
+                if (sleepTime > 0) {
+                    try {
+                        Thread.sleep(sleepTime);
+                    } catch (InterruptedException e) {
+                        logicRunning = false;
+                    }
                 }
             }
-        }
-    }, "LogicThread");
+        }, "LogicThread");
 
-    logicThread.start();
-}
-
+        logicThread.start();
+    }
 
     private void stopLogicThread() {
         logicRunning = false; // Gửi tín hiệu dừng
@@ -195,11 +191,11 @@ private void startLogicThread() {
                 }
 
                 try {
-                pauseIcon = new javax.swing.ImageIcon(
-                        getClass().getResource("/pausebutton.png")).getImage();
-            } catch (Exception e) {
-                System.err.println("Khong load duoc /pausebutton.png");
-            }
+                    pauseIcon = new javax.swing.ImageIcon(
+                            getClass().getResource("/pausebutton.png")).getImage();
+                } catch (Exception e) {
+                    System.err.println("Khong load duoc /pausebutton.png");
+                }
                 System.out.println("[AssetLoader] Tai xong!");
 
                 SwingUtilities.invokeLater(() -> {
@@ -713,7 +709,7 @@ private void startLogicThread() {
                 break;
             case GAME:
                 showPauseMenu();
-                 break;
+                break;
             case PAUSED:
                 currentState = MenuState.GAME;
                 break;
@@ -792,9 +788,7 @@ private void startLogicThread() {
         } else if (currentState == MenuState.GAME) {
             // gameManager.updateGame(deltaTime, getWidth(), getHeight()); đã được chuyển
             // qua thread
-            if (gameManager.isGameOver()) {
-                gameOver();
-            }
+           
         }
         repaint();
     }
@@ -956,7 +950,7 @@ private void startLogicThread() {
             gameManager.saveGame();
             returnToMainMenu(); // Quay về menu chính
             timer.start(); // Tiếp tục timer để menu hoạt động
-            repaint();  // Vẽ lại giao diện menu
+            repaint(); // Vẽ lại giao diện menu
             requestFocusInWindow(); // Focus lại panel
 
         } else {
